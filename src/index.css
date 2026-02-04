@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 
+ * FoodOrder Design System
+ * Modern food ordering app with warm, appetizing colors
+ * All colors MUST be HSL.
+ */
+
+@layer base {
+  :root {
+    /* Base colors - warm and inviting */
+    --background: 30 25% 98%;
+    --foreground: 20 14.3% 4.1%;
+
+    /* Card - slightly warmer white */
+    --card: 0 0% 100%;
+    --card-foreground: 20 14.3% 4.1%;
+
+    /* Popover */
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 14.3% 4.1%;
+
+    /* Primary - appetizing orange-red */
+    --primary: 16 90% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - warm beige */
+    --secondary: 30 30% 96%;
+    --secondary-foreground: 20 14.3% 4.1%;
+
+    /* Muted */
+    --muted: 30 20% 94%;
+    --muted-foreground: 20 10% 40%;
+
+    /* Accent - soft coral */
+    --accent: 16 80% 95%;
+    --accent-foreground: 16 90% 35%;
+
+    /* Destructive */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Success - fresh green */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    /* Warning - warm amber */
+    --warning: 45 93% 47%;
+    --warning-foreground: 20 14.3% 4.1%;
+
+    /* Border and input */
+    --border: 20 15% 90%;
+    --input: 20 15% 90%;
+    --ring: 16 90% 50%;
+
+    --radius: 0.75rem;
+
+    /* Sidebar colors */
+    --sidebar-background: 30 25% 98%;
+    --sidebar-foreground: 20 10% 30%;
+    --sidebar-primary: 16 90% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 30 30% 96%;
+    --sidebar-accent-foreground: 20 14.3% 4.1%;
+    --sidebar-border: 20 15% 90%;
+    --sidebar-ring: 16 90% 50%;
+  }
+
+  .dark {
+    --background: 20 14.3% 4.1%;
+    --foreground: 30 25% 98%;
+
+    --card: 20 14.3% 6%;
+    --card-foreground: 30 25% 98%;
+
+    --popover: 20 14.3% 6%;
+    --popover-foreground: 30 25% 98%;
+
+    --primary: 16 90% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 20 14.3% 12%;
+    --secondary-foreground: 30 25% 98%;
+
+    --muted: 20 14.3% 12%;
+    --muted-foreground: 30 15% 65%;
+
+    --accent: 16 50% 15%;
+    --accent-foreground: 16 90% 70%;
+
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 70% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 45 93% 47%;
+    --warning-foreground: 20 14.3% 4.1%;
+
+    --border: 20 14.3% 15%;
+    --input: 20 14.3% 15%;
+    --ring: 16 90% 55%;
+
+    --sidebar-background: 20 14.3% 6%;
+    --sidebar-foreground: 30 15% 80%;
+    --sidebar-primary: 16 90% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 20 14.3% 12%;
+    --sidebar-accent-foreground: 30 25% 98%;
+    --sidebar-border: 20 14.3% 15%;
+    --sidebar-ring: 16 90% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+/* Custom utility classes */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

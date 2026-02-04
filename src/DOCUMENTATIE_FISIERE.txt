@@ -1,0 +1,275 @@
+================================================================================
+DOCUMENTAȚIE FIȘIERE PROIECT - APLICAȚIE FOOD ORDERING
+================================================================================
+
+Acest document descrie structura și funcția fiecărui fișier din proiect.
+
+================================================================================
+📁 STRUCTURA PRINCIPALĂ
+================================================================================
+
+src/
+├── api/                  # Comunicare cu API-ul (deprecated, înlocuit de GraphQL)
+├── components/           # Componente React reutilizabile
+├── config/               # Configurări aplicație
+├── graphql/              # Modul GraphQL cu Apollo Client
+├── hooks/                # Hook-uri React personalizate
+├── pages/                # Paginile aplicației
+├── store/                # Redux store și slice-uri
+├── test/                 # Configurare teste
+├── types/                # Tipuri TypeScript globale
+├── App.tsx               # Componenta principală
+├── main.tsx              # Punct de intrare aplicație
+└── index.css             # Stiluri globale CSS
+
+================================================================================
+📁 MODUL GRAPHQL (/src/graphql)
+================================================================================
+
+client.ts
+---------
+FUNCȚIE: Configurează clientul Apollo pentru comunicarea cu API-ul GraphQL.
+CONȚINE:
+  - Conexiune HTTP către endpoint-ul GraphQL
+  - Link pentru gestionarea erorilor (erori GraphQL și de rețea)
+  - Link pentru autentificare (adaugă token Bearer automat)
+  - Cache în memorie cu politici pentru entități
+EXPORTĂ: apolloClient (instanța configurată)
+
+queries.ts
+----------
+FUNCȚIE: Definește toate interogările GraphQL pentru citirea datelor.
+CONȚINE:
+  - Fragmente reutilizabile (ProductFields, UserFields, OrderFields, AddressFields)
+  - Query-uri pentru produse (GET_PRODUCTS, GET_PRODUCT_BY_ID, SEARCH_PRODUCTS)
+  - Query-uri pentru utilizatori (GET_CURRENT_USER)
+  - Query-uri pentru comenzi (GET_USER_ORDERS, GET_ORDER_BY_ID)
+  - Query-uri pentru adrese (GET_USER_ADDRESSES)
+EXPORTĂ: Toate query-urile și fragmentele
+
+mutations.ts
+------------
+FUNCȚIE: Definește toate mutațiile GraphQL pentru modificarea datelor.
+CONȚINE:
+  - Mutații autentificare (LOGIN, SIGNUP, LOGOUT)
+  - Mutații profil (UPDATE_PROFILE, REQUEST_PASSWORD_RESET, DELETE_ACCOUNT)
+  - Mutații adrese (CREATE_ADDRESS, UPDATE_ADDRESS, DELETE_ADDRESS)
+  - Mutații comenzi (CREATE_ORDER, CANCEL_ORDER)
+  - Mutații recenzii (ADD_REVIEW)
+EXPORTĂ: Toate mutațiile
+
+types.ts
+--------
+FUNCȚIE: Definește tipurile TypeScript pentru operațiunile GraphQL.
+CONȚINE:
+  - Tipuri pentru răspunsuri Query (GetProductsResponse, etc.)
+  - Tipuri pentru input-uri Mutation (LoginInput, CreateOrderInput, etc.)
+  - Tipuri pentru răspunsuri Mutation (AuthResponse, etc.)
+  - Tipuri pentru variabile Query și Mutation
+EXPORTĂ: Toate interfețele TypeScript
+
+index.ts
+--------
+FUNCȚIE: Punct central de export pentru modulul GraphQL.
+EXPORTĂ: client, queries, mutations, types, hooks
+
+================================================================================
+📁 HOOK-URI GRAPHQL (/src/graphql/hooks)
+================================================================================
+
+useProducts.ts
+--------------
+FUNCȚIE: Hook-uri pentru gestionarea produselor.
+CONȚINE:
+  - useProducts(): Obține toate produsele
+  - useProduct(id): Obține un produs după ID
+  - useProductsByCategory(category): Filtrează după categorie
+  - useSearchProducts(): Căutare produse
+  - useCategories(): Lista categoriilor
+
+useAuth.ts
+----------
+FUNCȚIE: Hook-uri pentru autentificare și gestionarea sesiunii.
+CONȚINE:
+  - useCurrentUser(): Obține utilizatorul autentificat
+  - useLogin(): Autentificare cu email/parolă
+  - useSignup(): Înregistrare utilizator nou
+  - useLogout(): Deconectare
+  - useRequestPasswordReset(): Resetare parolă
+  - useDeleteAccount(): Ștergere cont
+
+useProfile.ts
+-------------
+FUNCȚIE: Hook pentru actualizarea profilului.
+CONȚINE:
+  - useUpdateProfile(): Actualizează datele utilizatorului
+
+useAddresses.ts
+---------------
+FUNCȚIE: Hook-uri pentru gestionarea adreselor de livrare.
+CONȚINE:
+  - useUserAddresses(userId): Lista adreselor utilizatorului
+  - useCreateAddress(): Adaugă adresă nouă
+  - useUpdateAddress(): Modifică adresă existentă
+  - useDeleteAddress(): Șterge adresă
+  - useSetDefaultAddress(): Setează adresa implicită
+
+useOrders.ts
+------------
+FUNCȚIE: Hook-uri pentru gestionarea comenzilor.
+CONȚINE:
+  - useUserOrders(userId): Istoricul comenzilor
+  - useOrder(id): Detalii comandă
+  - useCreateOrder(): Plasează comandă nouă
+  - useCancelOrder(): Anulează comandă
+
+index.ts
+--------
+FUNCȚIE: Export central pentru toate hook-urile GraphQL.
+
+================================================================================
+📁 PAGINI (/src/pages)
+================================================================================
+
+Home.tsx
+--------
+FUNCȚIE: Pagina principală cu produse recomandate și categorii.
+
+Catalog.tsx
+-----------
+FUNCȚIE: Catalogul complet de produse cu filtrare și căutare.
+
+ProductDetails.tsx
+------------------
+FUNCȚIE: Pagina de detalii produs cu imagini, ingrediente și recenzii.
+
+Cart.tsx
+--------
+FUNCȚIE: Coșul de cumpărături cu gestionare cantități.
+
+Checkout.tsx
+------------
+FUNCȚIE: Procesul de finalizare comandă (adresă, plată).
+
+Profile.tsx
+-----------
+FUNCȚIE: Pagina de profil cu tab-uri (Info, Adrese, Comenzi, Setări).
+
+Login.tsx
+---------
+FUNCȚIE: Pagina de autentificare.
+
+Signup.tsx
+----------
+FUNCȚIE: Pagina de înregistrare cont nou.
+
+NotFound.tsx
+------------
+FUNCȚIE: Pagina 404 pentru rute inexistente.
+
+================================================================================
+📁 COMPONENTE (/src/components)
+================================================================================
+
+/layout
+-------
+- Layout.tsx: Wrapper pentru pagini (Navbar + Footer + MobileNav)
+- Navbar.tsx: Bara de navigare desktop
+- Footer.tsx: Footer-ul aplicației
+- MobileBottomNav.tsx: Navigare inferioară pentru mobil
+- ProtectedRoute.tsx: Rutare protejată pentru pagini autentificate
+
+/common
+-------
+- ProductCard.tsx: Card pentru afișarea unui produs
+- Modal.tsx: Componentă modală reutilizabilă
+- Loader.tsx: Indicatoare de încărcare
+- FormInput.tsx: Input de formular cu validare
+
+/profile
+--------
+- AccountSettings.tsx: Setări cont (parolă, ștergere)
+- AddressManager.tsx: Gestionare adrese de livrare
+
+/ui
+---
+Componente UI de bază din shadcn/ui (Button, Card, Input, etc.)
+
+================================================================================
+📁 SERVICII HTTP (/src/services)
+================================================================================
+
+httpClient.ts
+-------------
+FUNCȚIE: Client HTTP centralizat pentru cereri API cu gestionare JWT.
+CONȚINE:
+  - Injectare automată a accessToken în header Authorization
+  - Refresh automat al token-ului când expiră (răspuns 401)
+  - Coadă de cereri în așteptare în timpul refresh-ului
+  - Metode helper: get(), post(), put(), patch(), del()
+IMPORTANT: Token-urile sunt citite din Redux (memorie), NU din localStorage!
+
+================================================================================
+📁 STORE REDUX (/src/store)
+================================================================================
+
+index.ts
+--------
+FUNCȚIE: Configurare Redux store.
+EXPORTĂ: store, useAppDispatch, useAppSelector
+
+/slices
+-------
+- userSlice.ts: State pentru utilizator, autentificare și token-uri JWT
+  IMPORTANT: Token-urile sunt stocate DOAR în Redux (memorie)!
+  Acest lucru oferă protecție împotriva atacurilor XSS.
+- cartSlice.ts: State pentru coșul de cumpărături
+- productsSlice.ts: State pentru produse (cache local)
+
+================================================================================
+📁 CONFIGURĂRI (/src/config)
+================================================================================
+
+routes.ts
+---------
+FUNCȚIE: Definește rutele aplicației și helper-e.
+CONȚINE: routes object, getProductUrl(), isProtectedRoute()
+
+texts.ts
+--------
+FUNCȚIE: Texte și mesaje ale aplicației (pentru i18n).
+
+colors.ts
+---------
+FUNCȚIE: Configurare culori (mapare la variabile CSS).
+
+================================================================================
+📁 TIPURI (/src/types)
+================================================================================
+
+index.ts
+--------
+FUNCȚIE: Tipuri TypeScript globale.
+CONȚINE: Product, User, Order, CartItem, DeliveryAddress, etc.
+
+================================================================================
+📁 FIȘIERE ROOT
+================================================================================
+
+App.tsx
+-------
+FUNCȚIE: Componenta principală care configurează:
+  - ApolloProvider pentru GraphQL
+  - Redux Provider pentru state management
+  - React Router pentru navigare
+  - QueryClient pentru TanStack Query
+
+main.tsx
+--------
+FUNCȚIE: Punct de intrare - montează App în DOM.
+
+index.css
+---------
+FUNCȚIE: Stiluri globale și variabile CSS pentru teme.
+
+================================================================================

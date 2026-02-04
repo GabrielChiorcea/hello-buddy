@@ -1,0 +1,51 @@
+# Docker Compose pentru dezvoltare locală
+# Pornire: docker-compose up -d
+# Oprire: docker-compose down
+# Ștergere date: docker-compose down -v
+
+version: '3.8'
+
+services:
+  # Baza de date MariaDB
+  mariadb:
+    image: mariadb:10.11
+    container_name: foodorder-mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password_change_me
+      MYSQL_DATABASE: food_ordering
+      MYSQL_USER: foodorder
+      MYSQL_PASSWORD: your_secure_password_here
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./migrations:/docker-entrypoint-initdb.d:ro
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-time-zone=+00:00
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PhpMyAdmin pentru administrare vizuală (opțional)
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: foodorder-phpmyadmin
+    restart: unless-stopped
+    depends_on:
+      - mariadb
+    environment:
+      PMA_HOST: mariadb
+      PMA_PORT: 3306
+      PMA_USER: foodorder
+      PMA_PASSWORD: your_secure_password_here
+    ports:
+      - "8080:80"
+
+volumes:
+  mariadb_data:
+    driver: local

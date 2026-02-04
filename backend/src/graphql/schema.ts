@@ -1,0 +1,216 @@
+/**
+ * Schema GraphQL completă pentru API-ul public
+ */
+
+export const typeDefs = `#graphql
+  # ============================================
+  # Tipuri de bază
+  # ============================================
+  
+  type User {
+    id: ID!
+    email: String!
+    name: String!
+    phone: String
+    address: String
+    city: String
+    createdAt: String!
+  }
+
+  type Ingredient {
+    id: Int!
+    name: String!
+    isAllergen: Boolean!
+  }
+
+  type Product {
+    id: ID!
+    name: String!
+    description: String
+    price: Float!
+    image: String
+    category: String!
+    categoryId: ID!
+    isAvailable: Boolean!
+    preparationTime: Int!
+    ingredients: [Ingredient!]!
+    createdAt: String!
+  }
+
+  type Category {
+    id: ID!
+    name: String!
+    displayName: String!
+    description: String
+    image: String
+    icon: String
+    productsCount: Int
+  }
+
+  type Address {
+    id: ID!
+    label: String!
+    address: String!
+    city: String!
+    phone: String!
+    notes: String
+    isDefault: Boolean!
+  }
+
+  type OrderItem {
+    id: Int!
+    productId: ID!
+    productName: String!
+    productImage: String
+    quantity: Int!
+    priceAtOrder: Float!
+  }
+
+  type Order {
+    id: ID!
+    subtotal: Float!
+    deliveryFee: Float!
+    total: Float!
+    status: OrderStatus!
+    deliveryAddress: String!
+    deliveryCity: String!
+    phone: String!
+    notes: String
+    paymentMethod: PaymentMethod!
+    items: [OrderItem!]!
+    createdAt: String!
+    estimatedDelivery: String
+    deliveredAt: String
+  }
+
+  enum OrderStatus {
+    pending
+    confirmed
+    preparing
+    delivering
+    delivered
+    cancelled
+  }
+
+  enum PaymentMethod {
+    cash
+    card
+  }
+
+  # ============================================
+  # Tipuri pentru autentificare
+  # SECURITY: refreshToken este setat în HttpOnly cookie, nu în response body
+  # ============================================
+
+  type AuthPayload {
+    user: User!
+    accessToken: String!
+    expiresIn: Int!
+  }
+
+  type RefreshPayload {
+    accessToken: String!
+    expiresIn: Int!
+  }
+
+  # ============================================
+  # Input types
+  # ============================================
+
+  input LoginInput {
+    email: String!
+    password: String!
+  }
+
+  input SignupInput {
+    email: String!
+    password: String!
+    name: String!
+    phone: String
+  }
+
+  input ProfileUpdateInput {
+    name: String
+    phone: String
+    address: String
+    city: String
+  }
+
+  input AddressInput {
+    label: String!
+    address: String!
+    city: String!
+    phone: String!
+    notes: String
+    isDefault: Boolean
+  }
+
+  input OrderItemInput {
+    productId: ID!
+    quantity: Int!
+  }
+
+  input CreateOrderInput {
+    items: [OrderItemInput!]!
+    deliveryAddress: String!
+    deliveryCity: String!
+    phone: String!
+    notes: String
+    paymentMethod: PaymentMethod!
+  }
+
+  # ============================================
+  # Queries
+  # ============================================
+
+  type Query {
+    # Produse
+    products: [Product!]!
+    product(id: ID!): Product
+    productsByCategory(category: String!): [Product!]!
+    searchProducts(query: String!): [Product!]!
+    
+    # Categorii
+    categories: [Category!]!
+    
+    # Utilizator curent (necesită autentificare)
+    currentUser: User
+    
+    # Comenzi (necesită autentificare)
+    orders: [Order!]!
+    order(id: ID!): Order
+    
+    # Adrese (necesită autentificare)
+    addresses: [Address!]!
+    address(id: ID!): Address
+  }
+
+  # ============================================
+  # Mutations
+  # ============================================
+
+  type Mutation {
+    # Autentificare
+    login(input: LoginInput!): AuthPayload!
+    signup(input: SignupInput!): AuthPayload!
+    logout: Boolean!
+    refreshToken(refreshToken: String!): RefreshPayload!
+    
+    # Profil (necesită autentificare)
+    updateProfile(input: ProfileUpdateInput!): User!
+    changePassword(currentPassword: String!, newPassword: String!): Boolean!
+    requestPasswordReset(email: String!): Boolean!
+    resetPassword(token: String!, newPassword: String!): Boolean!
+    deleteAccount(password: String!, confirmText: String!): Boolean!
+    
+    # Adrese (necesită autentificare)
+    createAddress(input: AddressInput!): Address!
+    updateAddress(id: ID!, input: AddressInput!): Address!
+    deleteAddress(id: ID!): Boolean!
+    setDefaultAddress(id: ID!): Address!
+    
+    # Comenzi (necesită autentificare)
+    createOrder(input: CreateOrderInput!): Order!
+    cancelOrder(id: ID!): Order!
+  }
+`;

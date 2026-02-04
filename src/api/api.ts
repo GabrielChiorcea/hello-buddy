@@ -1,0 +1,582 @@
+/**
+ * =============================================================================
+ * API LAYER - Folosește Apollo Client pentru toate operațiunile
+ * =============================================================================
+ * 
+ * Toate funcțiile API comunică cu backend-ul real prin GraphQL.
+ * Nu mai există date mock în acest fișier.
+ */
+
+import { apolloClient } from '@/graphql/client';
+import {
+  GET_PRODUCTS,
+  GET_PRODUCT_BY_ID,
+  GET_PRODUCTS_BY_CATEGORY,
+  SEARCH_PRODUCTS,
+  GET_CATEGORIES,
+  GET_CURRENT_USER,
+  GET_USER_ORDERS,
+  GET_USER_ADDRESSES
+} from '@/graphql/queries';
+import { 
+  LOGIN,
+  SIGNUP,
+  LOGOUT,
+  REFRESH_TOKEN,
+  UPDATE_PROFILE,
+  CHANGE_PASSWORD,
+  REQUEST_PASSWORD_RESET,
+  DELETE_ACCOUNT,
+  CREATE_ADDRESS,
+  UPDATE_ADDRESS,
+  DELETE_ADDRESS,
+  SET_DEFAULT_ADDRESS,
+  CREATE_ORDER,
+  CANCEL_ORDER
+} from '@/graphql/mutations';
+import { 
+  Product, 
+  User, 
+  Order, 
+  LoginCredentials, 
+  SignupData, 
+  ProfileUpdateData,
+  CheckoutData,
+  ApiResponse,
+  CartItem,
+  DeliveryAddress,
+  AuthTokens,
+  Category
+} from '@/types';
+
+// ============================================================================
+// AUTH API
+// ============================================================================
+
+/**
+ * AuthPayload din backend - refreshToken este în HttpOnly cookie
+ */
+interface AuthPayload {
+  user: User;
+  accessToken: string;
+  expiresIn: number;
+}
+
+export const loginApi = async (
+  credentials: LoginCredentials
+): Promise<ApiResponse<{ user: User; tokens: AuthTokens }>> => {
+  try {
+    const { data } = await apolloClient.mutate<{ login: AuthPayload }>({
+      mutation: LOGIN,
+      variables: { input: credentials },
+    });
+    
+    if (!data?.login) {
+      return { success: false, error: 'Autentificare eșuată' };
+    }
+    
+    const { user, accessToken, expiresIn } = data.login;
+    
+    // Backend setează refreshToken în HttpOnly cookie
+    return { 
+      success: true, 
+      data: {
+        user,
+        tokens: {
+          accessToken,
+          accessTokenExpiresAt: Date.now() + (expiresIn * 1000),
+        },
+      },
+      message: 'Autentificare reușită'
+    };
+  } catch (error) {
+    console.error('Login API error:', error);
+    const message = error instanceof Error ? error.message : 'Eroare de rețea';
+    return { success: false, error: message };
+  }
+};
+
+export const signupApi = async (
+  data: SignupData
+): Promise<ApiResponse<{ user: User; tokens: AuthTokens }>> => {
+  try {
+    const { data: result } = await apolloClient.mutate<{ signup: AuthPayload }>({
+      mutation: SIGNUP,
+      variables: { input: data },
+    });
+    
+    if (!result?.signup) {
+      return { success: false, error: 'Înregistrare eșuată' };
+    }
+    
+    const { user, accessToken, expiresIn } = result.signup;
+    
+    // Backend setează refreshToken în HttpOnly cookie
+    return { 
+      success: true, 
+      data: {
+        user,
+        tokens: {
+          accessToken,
+          accessTokenExpiresAt: Date.now() + (expiresIn * 1000),
+        },
+      },
+      message: 'Cont creat cu succes'
+    };
+  } catch (error) {
+    console.error('Signup API error:', error);
+    const message = error instanceof Error ? error.message : 'Eroare de rețea';
+    return { success: false, error: message };
+  }
+};
+
+export const logoutApi = async (): Promise<ApiResponse<null>> => {
+  try {
+    await apolloClient.mutate({ mutation: LOGOUT });
+    await apolloClient.clearStore();
+    return { success: true, message: 'Deconectat cu succes' };
+  } catch (error) {
+    console.error('Logout API error:', error);
+    return { success: false, error: 'Eroare la deconectare' };
+  }
+};
+
+export const refreshTokenApi = async (
+  refreshToken: string
+): Promise<ApiResponse<{ accessToken: string; expiresIn: number }>> => {
+  try {
+    const { data } = await apolloClient.mutate<{ 
+      refreshToken: { accessToken: string; expiresIn: number } 
+    }>({
+      mutation: REFRESH_TOKEN,
+      variables: { refreshToken },
+    });
+    
+    if (!data?.refreshToken) {
+      return { success: false, error: 'Token invalid' };
+    }
+    
+    return { success: true, data: data.refreshToken };
+  } catch (error) {
+    console.error('Refresh token API error:', error);
+    return { success: false, error: 'Sesiune expirată' };
+  }
+};
+
+// ============================================================================
+// USER PROFILE API
+// ============================================================================
+
+export const getCurrentUserApi = async (): Promise<ApiResponse<User>> => {
+  try {
+    const { data } = await apolloClient.query<{ currentUser: User }>({
+      query: GET_CURRENT_USER,
+      fetchPolicy: 'network-only',
+    });
+    
+    if (!data?.currentUser) {
+      return { success: false, error: 'Utilizator neautentificat' };
+    }
+    
+    return { success: true, data: data.currentUser };
+  } catch (error) {
+    console.error('Get current user API error:', error);
+    return { success: false, error: 'Eroare la obținerea profilului' };
+  }
+};
+
+export const updateProfileApi = async (
+  _userId: string, // Ignorat - backend-ul folosește JWT context
+  profileData: ProfileUpdateData
+): Promise<ApiResponse<User>> => {
+  try {
+    const { data } = await apolloClient.mutate<{ updateProfile: User }>({
+      mutation: UPDATE_PROFILE,
+      variables: { input: profileData },
+    });
+    
+    if (!data?.updateProfile) {
+      return { success: false, error: 'Actualizare eșuată' };
+    }
+    
+    return { 
+      success: true, 
+      data: data.updateProfile,
+      message: 'Profil actualizat cu succes'
+    };
+  } catch (error) {
+    console.error('Update profile API error:', error);
+    const message = error instanceof Error ? error.message : 'Eroare de rețea';
+    return { success: false, error: message };
+  }
+};
+
+export const changePasswordApi = async (
+  currentPassword: string,
+  newPassword: string
+): Promise<ApiResponse<boolean>> => {
+  try {
+    const { data } = await apolloClient.mutate<{ changePassword: boolean }>({
+      mutation: CHANGE_PASSWORD,
+      variables: { currentPassword, newPassword },
+    });
+    
+    return { 
+      success: data?.changePassword ?? false,
+      message: data?.changePassword ? 'Parolă schimbată cu succes' : 'Eroare la schimbarea parolei'
+    };
+  } catch (error) {
+    console.error('Change password API error:', error);
+    const message = error instanceof Error ? error.message : 'Eroare de rețea';
+    return { success: false, error: message };
+  }
+};
+
+export const requestPasswordResetApi = async (
+  email: string
+): Promise<ApiResponse<null>> => {
+  try {
+    await apolloClient.mutate({
+      mutation: REQUEST_PASSWORD_RESET,
+      variables: { email },
+    });
+    
+    return { 
+      success: true, 
+      message: 'Email de resetare trimis (dacă contul există)'
+    };
+  } catch (error) {
+    console.error('Request password reset API error:', error);
+    return { success: false, error: 'Eroare la trimiterea email-ului' };
+  }
+};
+
+export const deleteAccountApi = async (
+  _userId: string, // Ignorat - backend-ul folosește JWT context
+  data: { password: string; confirmText: string }
+): Promise<ApiResponse<null>> => {
+  try {
+    const { data: result } = await apolloClient.mutate<{ deleteAccount: boolean }>({
+      mutation: DELETE_ACCOUNT,
+      variables: data,
+    });
+    
+    if (result?.deleteAccount) {
+      await apolloClient.clearStore();
+      return { success: true, message: 'Cont șters cu succes' };
+    }
+    
+    return { success: false, error: 'Ștergere eșuată' };
+  } catch (error) {
+    console.error('Delete account API error:', error);
+    const message = error instanceof Error ? error.message : 'Eroare de rețea';
+    return { success: false, error: message };
+  }
+};
+
+// ============================================================================
+// PRODUCTS API
+// ============================================================================
+
+export const fetchProductsApi = async (): Promise<ApiResponse<Product[]>> => {
+  try {
+    const { data } = await apolloClient.query<{ products: Product[] }>({
+      query: GET_PRODUCTS,
+      fetchPolicy: 'cache-first',
+    });
+    
+    return { success: true, data: data?.products || [] };
+  } catch (error) {
+    console.error('Fetch products API error:', error);
+    return { success: false, error: 'Eroare la încărcarea produselor' };
+  }
+};
+
+export const fetchProductByIdApi = async (id: string): Promise<ApiResponse<Product>> => {
+  try {
+    const { data } = await apolloClient.query<{ product: Product }>({
+      query: GET_PRODUCT_BY_ID,
+      variables: { id },
+    });
+    
+    if (!data?.product) {
+      return { success: false, error: 'Produs negăsit' };
+    }
+    
+    return { success: true, data: data.product };
+  } catch (error) {
+    console.error('Fetch product API error:', error);
+    return { success: false, error: 'Eroare la încărcarea produsului' };
+  }
+};
+
+export const fetchProductsByCategoryApi = async (
+  category: string
+): Promise<ApiResponse<Product[]>> => {
+  try {
+    const { data } = await apolloClient.query<{ productsByCategory: Product[] }>({
+      query: GET_PRODUCTS_BY_CATEGORY,
+      variables: { category },
+    });
+    
+    return { success: true, data: data?.productsByCategory || [] };
+  } catch (error) {
+    console.error('Fetch products by category API error:', error);
+    return { success: false, error: 'Eroare la filtrarea produselor' };
+  }
+};
+
+export const searchProductsApi = async (query: string): Promise<ApiResponse<Product[]>> => {
+  try {
+    const { data } = await apolloClient.query<{ searchProducts: Product[] }>({
+      query: SEARCH_PRODUCTS,
+      variables: { query },
+    });
+    
+    return { success: true, data: data?.searchProducts || [] };
+  } catch (error) {
+    console.error('Search products API error:', error);
+    return { success: false, error: 'Eroare la căutare' };
+  }
+};
+
+export const fetchCategoriesApi = async (): Promise<ApiResponse<Category[]>> => {
+  try {
+    const { data } = await apolloClient.query<{ categories: Category[] }>({
+      query: GET_CATEGORIES,
+      fetchPolicy: 'cache-first',
+    });
+    
+    return { success: true, data: data?.categories || [] };
+  } catch (error) {
+    console.error('Fetch categories API error:', error);
+    return { success: false, error: 'Eroare la încărcarea categoriilor' };
+  }
+};
+
+// ============================================================================
+// ORDERS API
+// ============================================================================
+
+export const fetchOrdersApi = async (
+  _userId?: string // Ignorat - backend-ul folosește JWT context
+): Promise<ApiResponse<Order[]>> => {
+  try {
+    const { data } = await apolloClient.query<{ orders: Order[] }>({
+      query: GET_USER_ORDERS,
+      fetchPolicy: 'network-only',
+    });
+    
+    return { success: true, data: data?.orders || [] };
+  } catch (error) {
+    console.error('Fetch orders API error:', error);
+    return { success: false, error: 'Eroare la încărcarea comenzilor' };
+  }
+};
+
+export const placeOrderApi = async (
+  _userId: string, // Ignorat - backend-ul folosește JWT context
+  items: CartItem[],
+  checkoutData: CheckoutData,
+  _subtotal: number,
+  _deliveryFee: number,
+  _total: number
+): Promise<ApiResponse<Order>> => {
+  try {
+    const orderInput = {
+      items: items.map(item => ({
+        productId: item.product.id,
+        quantity: item.quantity,
+      })),
+      deliveryAddress: checkoutData.deliveryAddress,
+      deliveryCity: checkoutData.deliveryCity,
+      phone: checkoutData.phone,
+      notes: checkoutData.notes || null,
+      paymentMethod: checkoutData.paymentMethod,
+    };
+    
+    const { data } = await apolloClient.mutate<{ createOrder: Order }>({
+      mutation: CREATE_ORDER,
+      variables: { input: orderInput },
+      refetchQueries: [{ query: GET_USER_ORDERS }],
+    });
+    
+    if (!data?.createOrder) {
+      return { success: false, error: 'Eroare la plasarea comenzii' };
+    }
+    
+    return { 
+      success: true, 
+      data: data.createOrder,
+      message: 'Comandă plasată cu succes'
+    };
+  } catch (error) {
+    console.error('Place order API error:', error);
+    const message = error instanceof Error ? error.message : 'Eroare de rețea';
+    return { success: false, error: message };
+  }
+};
+
+export const cancelOrderApi = async (orderId: string): Promise<ApiResponse<Order>> => {
+  try {
+    const { data } = await apolloClient.mutate<{ cancelOrder: Order }>({
+      mutation: CANCEL_ORDER,
+      variables: { id: orderId },
+      refetchQueries: [{ query: GET_USER_ORDERS }],
+    });
+    
+    if (!data?.cancelOrder) {
+      return { success: false, error: 'Eroare la anularea comenzii' };
+    }
+    
+    return { 
+      success: true, 
+      data: data.cancelOrder,
+      message: 'Comandă anulată'
+    };
+  } catch (error) {
+    console.error('Cancel order API error:', error);
+    const message = error instanceof Error ? error.message : 'Eroare de rețea';
+    return { success: false, error: message };
+  }
+};
+
+// ============================================================================
+// ADDRESSES API
+// ============================================================================
+
+export const fetchAddressesApi = async (
+  _userId?: string // Ignorat - backend-ul folosește JWT context
+): Promise<ApiResponse<DeliveryAddress[]>> => {
+  try {
+    const { data } = await apolloClient.query<{ addresses: DeliveryAddress[] }>({
+      query: GET_USER_ADDRESSES,
+      fetchPolicy: 'network-only',
+    });
+    
+    return { success: true, data: data?.addresses || [] };
+  } catch (error) {
+    console.error('Fetch addresses API error:', error);
+    return { success: false, error: 'Eroare la încărcarea adreselor' };
+  }
+};
+
+export const saveAddressApi = async (
+  _userId: string, // Ignorat
+  address: Omit<DeliveryAddress, 'id'>
+): Promise<ApiResponse<DeliveryAddress>> => {
+  try {
+    const { data } = await apolloClient.mutate<{ createAddress: DeliveryAddress }>({
+      mutation: CREATE_ADDRESS,
+      variables: { 
+        input: {
+          label: address.label,
+          address: address.address,
+          city: address.city,
+          phone: address.phone,
+          notes: address.notes || null,
+          isDefault: address.isDefault || false,
+        }
+      },
+      refetchQueries: [{ query: GET_USER_ADDRESSES }],
+    });
+    
+    if (!data?.createAddress) {
+      return { success: false, error: 'Eroare la salvarea adresei' };
+    }
+    
+    return { 
+      success: true, 
+      data: data.createAddress,
+      message: 'Adresă salvată'
+    };
+  } catch (error) {
+    console.error('Save address API error:', error);
+    const message = error instanceof Error ? error.message : 'Eroare de rețea';
+    return { success: false, error: message };
+  }
+};
+
+export const updateAddressApi = async (
+  addressId: string,
+  _userId: string, // Ignorat
+  updates: Partial<DeliveryAddress>
+): Promise<ApiResponse<DeliveryAddress>> => {
+  try {
+    const { data } = await apolloClient.mutate<{ updateAddress: DeliveryAddress }>({
+      mutation: UPDATE_ADDRESS,
+      variables: { 
+        id: addressId,
+        input: {
+          label: updates.label,
+          address: updates.address,
+          city: updates.city,
+          phone: updates.phone,
+          notes: updates.notes || null,
+          isDefault: updates.isDefault || false,
+        }
+      },
+      refetchQueries: [{ query: GET_USER_ADDRESSES }],
+    });
+    
+    if (!data?.updateAddress) {
+      return { success: false, error: 'Eroare la actualizarea adresei' };
+    }
+    
+    return { 
+      success: true, 
+      data: data.updateAddress,
+      message: 'Adresă actualizată'
+    };
+  } catch (error) {
+    console.error('Update address API error:', error);
+    const message = error instanceof Error ? error.message : 'Eroare de rețea';
+    return { success: false, error: message };
+  }
+};
+
+export const deleteAddressApi = async (
+  addressId: string,
+  _userId?: string // Ignorat
+): Promise<ApiResponse<null>> => {
+  try {
+    await apolloClient.mutate({
+      mutation: DELETE_ADDRESS,
+      variables: { id: addressId },
+      refetchQueries: [{ query: GET_USER_ADDRESSES }],
+    });
+    
+    return { success: true, message: 'Adresă ștearsă' };
+  } catch (error) {
+    console.error('Delete address API error:', error);
+    const message = error instanceof Error ? error.message : 'Eroare de rețea';
+    return { success: false, error: message };
+  }
+};
+
+export const setDefaultAddressApi = async (
+  addressId: string
+): Promise<ApiResponse<DeliveryAddress>> => {
+  try {
+    const { data } = await apolloClient.mutate<{ setDefaultAddress: DeliveryAddress }>({
+      mutation: SET_DEFAULT_ADDRESS,
+      variables: { id: addressId },
+      refetchQueries: [{ query: GET_USER_ADDRESSES }],
+    });
+    
+    if (!data?.setDefaultAddress) {
+      return { success: false, error: 'Eroare la setarea adresei implicite' };
+    }
+    
+    return { 
+      success: true, 
+      data: data.setDefaultAddress,
+      message: 'Adresă setată ca implicită'
+    };
+  } catch (error) {
+    console.error('Set default address API error:', error);
+    const message = error instanceof Error ? error.message : 'Eroare de rețea';
+    return { success: false, error: message };
+  }
+};
+
