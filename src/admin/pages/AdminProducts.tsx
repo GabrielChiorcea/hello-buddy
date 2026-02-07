@@ -37,6 +37,7 @@ import { Switch } from '@/components/ui/switch';
 import { Plus, MoreHorizontal, Pencil, Trash2, Eye, Upload, X, Loader2 } from 'lucide-react';
 import { Pagination } from '@/types/admin';
 import { toast } from '@/hooks/use-toast';
+import { getImageUrl } from '@/lib/imageUrl';
 
 interface ProductIngredient {
   id?: number;
@@ -286,8 +287,11 @@ export default function AdminProducts() {
     
     setIsDeleting(true);
     try {
-      await deleteProduct(deleteConfirm.id);
-      toast({ title: 'Succes', description: 'Produs șters cu succes' });
+      const result = await deleteProduct(deleteConfirm.id);
+      toast({
+        title: 'Succes',
+        description: result.softDeleted ? result.message : 'Produs șters cu succes',
+      });
       setDeleteConfirm(null);
       fetchProducts();
     } catch (error) {
@@ -314,7 +318,7 @@ export default function AdminProducts() {
       className: 'w-16',
       cell: (product) => (
         <img
-          src={product.image || '/placeholder.svg'}
+          src={getImageUrl(product.image)}
           alt={product.name}
           className="h-10 w-10 rounded-md object-cover"
         />
@@ -451,7 +455,7 @@ export default function AdminProducts() {
                   {imagePreview ? (
                     <>
                       <img
-                        src={imagePreview}
+                        src={getImageUrl(imagePreview)}
                         alt="Preview"
                         className="h-full w-full object-cover"
                       />

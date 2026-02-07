@@ -1,12 +1,29 @@
 /**
  * Middleware pentru rate limiting
  * Include rate limiters pentru diferite scenarii de securitate
+ * Folosește Redis pentru persistență dacă REDIS_URL este configurat
  */
 
 import rateLimit from 'express-rate-limit';
+import { RedisStore } from 'rate-limit-redis';
 import { Request, Response } from 'express';
 import { env } from '../config/env.js';
+import { getRedisClient } from '../config/redis.js';
 import { logRateLimitExceeded } from '../utils/securityLogger.js';
+
+/**
+ * Creează store Redis pentru un limiter (prefix unic per limiter)
+ */
+function createStoreForLimiter(prefix: string) {
+  const client = getRedisClient();
+  if (!client) return {};
+  return {
+    store: new RedisStore({
+      sendCommand: (...args: string[]) => client.sendCommand(args),
+      prefix: `rl:${prefix}:`,
+    }),
+  };
+}
 
 /**
  * Handler pentru când rate limit este atins
@@ -30,6 +47,7 @@ export const apiLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   handler: createRateLimitHandler('api'),
+  ...createStoreForLimiter('api'),
 });
 
 /**
@@ -45,11 +63,11 @@ export const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   handler: createRateLimitHandler('auth'),
-  // Key generator bazat pe IP + email (dacă există)
   keyGenerator: (req: Request) => {
     const email = req.body?.email || '';
     return `${req.ip}-${email}`;
   },
+  ...createStoreForLimiter('auth'),
 });
 
 /**
@@ -64,6 +82,7 @@ export const sensitiveLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   handler: createRateLimitHandler('sensitive'),
+  ...createStoreForLimiter('sensitive'),
 });
 
 /**
@@ -79,12 +98,11 @@ export const orderLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   handler: createRateLimitHandler('order'),
-  // Key generator bazat pe user ID sau IP
   keyGenerator: (req: Request) => {
-    // Preferă user ID dacă e autentificat, altfel folosește IP
     const userId = (req as any).userId || '';
     return userId || req.ip || 'unknown';
   },
+  ...createStoreForLimiter('order'),
 });
 
 /**
@@ -100,6 +118,7 @@ export const refreshLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   handler: createRateLimitHandler('refresh'),
+  ...createStoreForLimiter('refresh'),
 });
 
 /**
@@ -118,5 +137,36 @@ export const adminAuthLimiter = rateLimit({
   keyGenerator: (req: Request) => {
     const email = req.body?.email || '';
     return `admin-${req.ip}-${email}`;
+  },
+  ...createStoreForLimiter('admin-auth'),
+});
+
+/**
+ * Rate limiter pentru login GraphQL (mutația login)
+ * Aplicat doar la cereri care conțin mutația de autentificare
+ */
+export const graphqlLoginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minute
+  max: 10, // 10 încercări
+  message: {
+    error: 'Prea multe încercări de autentificare. Încercați din nou în 15 minute.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: createRateLimitHandler('graphql-login'),
+  ...createStoreForLimiter('graphql-login'),
+  skip: (req: Request) => {
+    if (req.path !== '/graphql' || req.method !== 'POST') return true;
+    const body = req.body as { operationName?: string; query?: string } | undefined;
+    if (!body) return true;
+    const opName = (body.operationName || '').toLowerCase();
+    const query = (body.query || '').toLowerCase();
+    const isLoginMutation = opName === 'login' || (query.includes('mutation') && query.includes('login'));
+    return !isLoginMutation; // skip = nu număra cererile care NU sunt login
+  },
+  keyGenerator: (req: Request) => {
+    const body = req.body as { variables?: { input?: { email?: string } } } | undefined;
+    const email = body?.variables?.input?.email || '';
+    return `graphql-login-${req.ip}-${email}`;
   },
 });

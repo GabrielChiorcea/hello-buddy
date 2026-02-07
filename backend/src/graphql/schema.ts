@@ -59,7 +59,7 @@ export const typeDefs = `#graphql
 
   type OrderItem {
     id: Int!
-    productId: ID!
+    productId: ID
     productName: String!
     productImage: String
     quantity: Int!

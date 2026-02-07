@@ -33,7 +33,7 @@ import { toast } from '@/hooks/use-toast';
 
 interface OrderItem {
   id: number;
-  productId: string;
+  productId: string | null;
   productName: string;
   productImage?: string;
   quantity: number;

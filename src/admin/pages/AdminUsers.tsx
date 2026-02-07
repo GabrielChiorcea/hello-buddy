@@ -32,9 +32,7 @@ import { toast } from '@/hooks/use-toast';
 
 interface AdminUser {
   id: string;
-  email: string;
   name: string;
-  phone?: string;
   createdAt: string;
   roles: AdminRole[];
   isBlocked: boolean;
@@ -152,16 +150,8 @@ export default function AdminUsers() {
       key: 'name',
       header: 'Utilizator',
       cell: (user) => (
-        <div>
-          <p className="font-medium text-foreground">{user.name}</p>
-          <p className="text-xs text-muted-foreground">{user.email}</p>
-        </div>
+        <p className="font-medium text-foreground">{user.name}</p>
       ),
-    },
-    {
-      key: 'phone',
-      header: 'Telefon',
-      cell: (user) => <span className="text-sm">{user.phone || '-'}</span>,
     },
     {
       key: 'orders',
@@ -303,14 +293,6 @@ export default function AdminUsers() {
                 <div>
                   <p className="text-sm text-muted-foreground">Nume</p>
                   <p className="font-medium">{selectedUser.name}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Email</p>
-                  <p className="font-medium">{selectedUser.email}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Telefon</p>
-                  <p className="font-medium">{selectedUser.phone || '-'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Înregistrat</p>

@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
-import { User, Package, Edit2, Save, X, Settings, MapPin } from 'lucide-react';
+import { User, Package, Edit2, Save, X, Settings, MapPin, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,9 +16,11 @@ import { FormInput } from '@/components/common/FormInput';
 import { Loader, PageLoader } from '@/components/common/Loader';
 import { AddressManager } from '@/components/profile/AddressManager';
 import { AccountSettings } from '@/components/profile/AccountSettings';
+import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { updateProfile, fetchOrders } from '@/store/slices/userSlice';
+import { updateProfile, fetchOrders, logout } from '@/store/slices/userSlice';
 import { texts } from '@/config/texts';
+import { routes } from '@/config/routes';
 import { toast } from '@/hooks/use-toast';
 import { ProfileUpdateData, OrderStatus } from '@/types';
 import { format, isValid } from 'date-fns';
@@ -50,7 +52,14 @@ const orderStatusLabels: Record<OrderStatus, { label: string; variant: 'default'
 
 const Profile: React.FC = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { user, isLoading, orders, ordersLoading } = useAppSelector((state) => state.user);
+
+  const handleLogout = async () => {
+    await dispatch(logout());
+    toast({ title: texts.notifications.logoutSuccess });
+    navigate(routes.home);
+  };
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<ProfileUpdateData>({
@@ -206,7 +215,7 @@ const Profile: React.FC = () => {
                       {texts.profile.editProfile}
                     </Button>
                   ) : (
-                    <div className="flex gap-2">
+                    <div className="flex flex-col md:flex-row gap-2">
                       <Button variant="outline" onClick={handleCancel}>
                         <X className="mr-2 h-4 w-4" />
                         {texts.profile.cancel}
@@ -265,6 +274,15 @@ const Profile: React.FC = () => {
                       disabled={!isEditing || isLoading}
                     />
                   </div>
+                  <Separator className="my-6" />
+                  <Button
+                    variant="outline"
+                    onClick={handleLogout}
+                    className="w-full sm:w-auto text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    {texts.nav.logout}
+                  </Button>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -317,7 +335,7 @@ const Profile: React.FC = () => {
                             
                             <div className="space-y-2 mb-4">
                               {order.items.map((item) => (
-                                <div key={item.id ?? `${item.productId}-${item.productName}`} className="flex justify-between text-sm">
+                                <div key={item.id ?? `${item.productId ?? 'deleted'}-${item.productName}`} className="flex justify-between text-sm">
                                   <span>{item.productName} x {item.quantity}</span>
                                   <span>
                                     {(item.priceAtOrder * item.quantity).toFixed(2)} {texts.common.currency}

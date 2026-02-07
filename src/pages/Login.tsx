@@ -183,15 +183,17 @@ const Login: React.FC = () => {
                 </Link>
               </div>
 
-              {/* Demo credentials hint */}
-              <div className="mt-6 p-4 rounded-lg bg-muted">
-                <p className="text-xs text-muted-foreground text-center mb-2">
-                  Cont demo pentru testare:
-                </p>
-                <p className="text-xs text-center font-mono">
-                  test@test.com / test123
-                </p>
-              </div>
+              {/* Demo credentials - doar în development */}
+              {import.meta.env.DEV && (
+                <div className="mt-6 p-4 rounded-lg bg-muted">
+                  <p className="text-xs text-muted-foreground text-center mb-2">
+                    Cont demo pentru testare:
+                  </p>
+                  <p className="text-xs text-center font-mono">
+                    test@test.com / test123
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

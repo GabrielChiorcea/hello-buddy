@@ -189,7 +189,7 @@ export interface CartState {
 /** Item dintr-o comandă (snapshot la momentul plasării) */
 export interface OrderItem {
   id: number;
-  productId: string;
+  productId: string | null; // null când produsul a fost șters (comenzi livrate/anulate)
   productName: string;
   productImage?: string | null;
   quantity: number;

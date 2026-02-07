@@ -128,9 +128,10 @@ export const useAdminApi = () => {
 
   const deleteProduct = useCallback(
     (id: string) =>
-      fetchWithAuth<{ success: boolean }>(`/admin/products/${id}`, {
-        method: 'DELETE',
-      }),
+      fetchWithAuth<{ success: boolean; softDeleted?: boolean; message?: string }>(
+        `/admin/products/${id}?hard=true`,
+        { method: 'DELETE' }
+      ),
     [fetchWithAuth]
   );
 

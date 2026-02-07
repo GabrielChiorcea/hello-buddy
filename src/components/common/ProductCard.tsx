@@ -15,6 +15,7 @@ import { useAppDispatch } from '@/store';
 import { addItem } from '@/store/slices/cartSlice';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { getImageUrl } from '@/lib/imageUrl';
 
 // Category display names mapping
 const categoryNames: Record<string, string> = {
@@ -53,7 +54,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLi
     <Card className={cn('group overflow-hidden transition-all hover:shadow-lg', className)}>
       <div className="relative aspect-[4/3] overflow-hidden">
         <img
-          src={product.image}
+          src={getImageUrl(product.image)}
           alt={product.name}
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           loading="lazy"

@@ -16,11 +16,11 @@ import { expressMiddleware } from '@apollo/server/express4';
 
 import { env, isDevelopment } from './config/env.js';
 import { testConnection } from './config/database.js';
+import { connectRedis } from './config/redis.js';
 import { typeDefs } from './graphql/schema.js';
 import { resolvers } from './graphql/resolvers/index.js';
 import { createContext } from './graphql/context.js';
-import { apiLimiter, authLimiter, refreshLimiter, orderLimiter } from './middleware/rateLimiter.js';
-import adminRouter from './admin/router.js';
+import { createAdminRouter } from './admin/router.js';
 import {
   verifyRefreshToken,
   rotateRefreshToken,
@@ -42,13 +42,24 @@ async function startServer() {
     process.exit(1);
   }
 
+  // Conectare Redis pentru rate limiting (opțional) - înainte de load rate limiters
+  await connectRedis();
+
+  // Import dinamic: rate limiters folosesc RedisStore care necesită client conectat
+  const rateLimiters = await import('./middleware/rateLimiter.js');
+  const { apiLimiter, authLimiter, refreshLimiter, orderLimiter, graphqlLoginLimiter, adminAuthLimiter } = rateLimiters;
+
   const app = express();
 
   // Middleware de securitate
-  app.use(helmet({ contentSecurityPolicy: isDevelopment ? false : undefined }));
+  app.use(helmet({
+    contentSecurityPolicy: isDevelopment ? false : undefined,
+    crossOriginResourcePolicy: { policy: 'same-site' }, // Doar same-site (localhost:5173+4000, sau app+api pe același domeniu)
+  }));
   app.use(cors({
     origin: [env.FRONTEND_URL, env.ADMIN_URL],
     credentials: true, // IMPORTANT: permite cookies
+    maxAge: 86400, // Cache preflight 24h (secunde) - reduce round-trip-urile OPTIONS
   }));
   app.use(cookieParser()); // Parser pentru cookies
   app.use(express.json({ limit: '50mb' })); // Mărit pentru upload imagini
@@ -60,6 +71,7 @@ async function startServer() {
   app.use('/api/', apiLimiter);
   app.use('/api/auth/', authLimiter);
   app.use('/api/auth/refresh', refreshLimiter);
+  app.use('/graphql', graphqlLoginLimiter); // Login GraphQL - 10 încercări/15 min
 
   // Inițializare Apollo Server
   const apolloServer = new ApolloServer({
@@ -74,7 +86,11 @@ async function startServer() {
   }));
 
   // Admin API
-  app.use('/admin', adminRouter);
+  app.use('/admin', createAdminRouter({
+    adminAuthLimiter,
+    refreshLimiter,
+    orderLimiter,
+  }));
 
   // ============================================
   // REST endpoint pentru refresh token cu TOKEN ROTATION

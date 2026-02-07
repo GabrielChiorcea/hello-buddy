@@ -152,7 +152,21 @@ export async function deleteProduct(req: Request, res: Response): Promise<void> 
     const { hard } = req.query;
     
     if (hard === 'true') {
-      await ProductModel.hardDelete(id);
+      try {
+        await ProductModel.hardDelete(id);
+      } catch (err) {
+        if (err instanceof Error && err.message === 'PRODUCT_HAS_ORDERS') {
+          // Produsul apare în comenzi - fallback la soft delete
+          await ProductModel.softDelete(id);
+          res.json({
+            success: true,
+            softDeleted: true,
+            message: 'Produs marcat ca indisponibil (nu poate fi șters definitiv - apare în comenzi)',
+          });
+          return;
+        }
+        throw err;
+      }
     } else {
       await ProductModel.softDelete(id);
     }

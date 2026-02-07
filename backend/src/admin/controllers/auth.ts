@@ -120,6 +120,19 @@ export async function refreshToken(req: Request, res: Response): Promise<void> {
       return;
     }
     
+    // Verifică dacă contul nu este blocat
+    const user = await UserModel.findById(payload.userId);
+    if (!user) {
+      clearAdminRefreshTokenCookie(res);
+      res.status(401).json({ error: 'Utilizator negăsit' });
+      return;
+    }
+    if (user.isBlocked) {
+      clearAdminRefreshTokenCookie(res);
+      res.status(403).json({ error: 'Contul este blocat' });
+      return;
+    }
+    
     // TOKEN ROTATION: Rotează token-ul (revocă vechiul, generează nou)
     const rotationResult = await rotateRefreshToken(
       payload.tokenId,
@@ -132,14 +145,6 @@ export async function refreshToken(req: Request, res: Response): Promise<void> {
     if (!rotationResult) {
       clearAdminRefreshTokenCookie(res);
       res.status(401).json({ error: 'Sesiune expirată sau compromisă' });
-      return;
-    }
-    
-    // Obține utilizatorul pentru răspuns
-    const user = await UserModel.findById(payload.userId);
-    if (!user) {
-      clearAdminRefreshTokenCookie(res);
-      res.status(401).json({ error: 'Utilizator negăsit' });
       return;
     }
     

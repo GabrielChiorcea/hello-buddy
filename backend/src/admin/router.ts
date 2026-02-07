@@ -3,9 +3,8 @@
  * Include rate limiting pentru autentificare admin
  */
 
-import { Router } from 'express';
+import { Router, RequestHandler } from 'express';
 import { requireAdmin } from '../middleware/adminAuth.js';
-import { adminAuthLimiter, refreshLimiter, orderLimiter } from '../middleware/rateLimiter.js';
 
 // Importă controllere
 import * as dashboardController from './controllers/dashboard.js';
@@ -16,13 +15,20 @@ import * as usersController from './controllers/users.js';
 import * as settingsController from './controllers/settings.js';
 import * as authController from './controllers/auth.js';
 
-const router = Router();
+export type AdminRateLimiters = {
+  adminAuthLimiter: RequestHandler;
+  refreshLimiter: RequestHandler;
+  orderLimiter: RequestHandler;
+};
 
-// ============================================
-// Rute publice (autentificare admin) cu rate limiting strict
-// ============================================
-router.post('/auth/login', adminAuthLimiter, authController.login);
-router.post('/auth/refresh', refreshLimiter, authController.refreshToken);
+export function createAdminRouter(limiters: AdminRateLimiters) {
+  const router = Router();
+
+  // ============================================
+  // Rute publice (autentificare admin) cu rate limiting strict
+  // ============================================
+  router.post('/auth/login', limiters.adminAuthLimiter, authController.login);
+  router.post('/auth/refresh', limiters.refreshLimiter, authController.refreshToken);
 router.post('/auth/logout', authController.logout);
 
 // ============================================
@@ -65,4 +71,5 @@ router.put('/users/:id/block', usersController.toggleBlockUser);
 router.get('/settings', settingsController.getSettings);
 router.put('/settings', settingsController.updateSettings);
 
-export default router;
+  return router;
+}

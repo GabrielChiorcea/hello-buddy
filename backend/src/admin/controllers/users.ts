@@ -42,8 +42,9 @@ export async function getUsers(req: Request, res: Response): Promise<void> {
           [user.id]
         );
         
+        const { email, phone, ...safeUser } = user;
         return {
-          ...user,
+          ...safeUser,
           roles,
           ordersCount: orderStats[0]?.count || 0,
           totalSpent: parseFloat(orderStats[0]?.total || '0'),

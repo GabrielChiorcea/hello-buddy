@@ -351,9 +351,20 @@ export async function softDelete(id: string): Promise<boolean> {
 }
 
 /**
- * Șterge definitiv un produs
+ * Șterge definitiv un produs.
+ * Blochează doar dacă produsul apare în comenzi active (în curs) - nu în delivered/cancelled.
+ * product_ingredients se șterg automat (ON DELETE CASCADE).
  */
 export async function hardDelete(id: string): Promise<boolean> {
+  const hasActiveOrders = await queryOne<{ count: number }>(
+    `SELECT COUNT(*) as count FROM order_items oi
+     JOIN orders o ON o.id = oi.order_id
+     WHERE oi.product_id = ? AND o.status NOT IN ('delivered', 'cancelled')`,
+    [id]
+  );
+  if (hasActiveOrders && hasActiveOrders.count > 0) {
+    throw new Error('PRODUCT_HAS_ORDERS');
+  }
   await query('DELETE FROM products WHERE id = ?', [id]);
   return true;
 }

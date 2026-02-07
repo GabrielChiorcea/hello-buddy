@@ -19,6 +19,7 @@ import {
 import { useAppSelector, useAppDispatch } from '@/store';
 import { addItem } from '@/store/slices/cartSlice';
 import { texts } from '@/config/texts';
+import { getImageUrl } from '@/lib/imageUrl';
 
 // Category display names mapping
 const categoryNames: Record<string, string> = {
@@ -110,7 +111,7 @@ const ProductDetails: React.FC = () => {
           {/* Product Image */}
           <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted">
             <img
-              src={product.image}
+              src={getImageUrl(product.image)}
               alt={product.name}
               className="h-full w-full object-cover"
             />

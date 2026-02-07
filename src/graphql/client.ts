@@ -56,18 +56,22 @@ const httpLink = new HttpLink({
 const errorLink = onError(({ graphQLErrors, networkError }) => {
   // Procesare erori GraphQL
   if (graphQLErrors) {
-    graphQLErrors.forEach(({ message, locations, path, extensions }) => {
+    for (const { message, locations, path, extensions } of graphQLErrors) {
       console.error(
         `[Eroare GraphQL]: Mesaj: ${message}, Locație: ${JSON.stringify(locations)}, Cale: ${path}`
       );
       
-      // Gestionare erori de autentificare - redirecționare la login
+      // Gestionare erori de autentificare - curățare Redux și redirecționare
       if (extensions?.code === 'UNAUTHENTICATED') {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
+        import('@/store').then(({ store }) =>
+          import('@/store/slices/userSlice').then(({ clearAuth }) => {
+            store.dispatch(clearAuth());
+            window.location.href = '/login';
+          })
+        );
+        return;
       }
-    });
+    }
   }
   
   // Procesare erori de rețea (conexiune, timeout, etc.)

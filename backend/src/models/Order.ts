@@ -10,7 +10,7 @@ export type PaymentMethod = 'cash' | 'card';
 
 export interface OrderItem {
   id: number;
-  productId: string;
+  productId: string | null; // null când produsul a fost șters (comenzi livrate/anulate)
   productName: string;
   productImage: string | null;
   quantity: number;
@@ -61,7 +61,7 @@ interface OrderRow {
 interface OrderItemRow {
   id: number;
   order_id: string;
-  product_id: string;
+  product_id: string | null;
   product_name: string;
   product_image: string | null;
   quantity: number;

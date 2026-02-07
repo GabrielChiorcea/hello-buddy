@@ -13,6 +13,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { removeItem, changeQuantity } from '@/store/slices/cartSlice';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
+import { getImageUrl } from '@/lib/imageUrl';
 import { toast } from '@/hooks/use-toast';
 
 const Cart: React.FC = () => {
@@ -85,7 +86,7 @@ const Cart: React.FC = () => {
                     {/* Product Image */}
                     <div className="shrink-0">
                       <img
-                        src={product.image}
+                        src={getImageUrl(product.image)}
                         alt={product.name}
                         className="h-24 w-24 rounded-lg object-cover"
                       />

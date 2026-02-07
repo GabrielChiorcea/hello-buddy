@@ -37,6 +37,9 @@ const envSchema = z.object({
   // Rate limiting
   RATE_LIMIT_WINDOW_MS: z.string().default('900000').transform(Number),
   RATE_LIMIT_MAX_REQUESTS: z.string().default('100').transform(Number),
+
+  // Redis (opțional - pentru rate limiting persistent)
+  REDIS_URL: z.string().optional(),
 });
 
 // Validează și exportă configurația
