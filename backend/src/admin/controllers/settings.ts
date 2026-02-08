@@ -3,6 +3,7 @@
  */
 
 import { Request, Response } from 'express';
+import { logError } from '../../utils/safeErrorLogger.js';
 import { query, queryOne } from '../../config/database.js';
 
 interface AppSetting {
@@ -33,7 +34,7 @@ export async function getSettings(req: Request, res: Response): Promise<void> {
     
     res.json(settingsMap);
   } catch (error) {
-    console.error('Eroare citire setări:', error);
+    logError('citire setări', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }
@@ -63,6 +64,8 @@ export async function updateSettings(req: Request, res: Response): Promise<void>
       'max_items_per_order',
       'contact_phone',
       'contact_email',
+      'points_per_order',
+      'points_per_ron',
     ];
     
     for (const [key, value] of Object.entries(updates)) {
@@ -112,7 +115,7 @@ export async function updateSettings(req: Request, res: Response): Promise<void>
     
     res.json(settingsMap);
   } catch (error) {
-    console.error('Eroare actualizare setări:', error);
+    logError('actualizare setări', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }

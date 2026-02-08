@@ -2,9 +2,8 @@
  * Profile page component
  */
 
-import React, { useState, useEffect } from 'react';
-import { z } from 'zod';
-import { User, Package, Edit2, Save, X, Settings, MapPin, LogOut } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { User, Package, Settings, MapPin, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,34 +11,19 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
-import { FormInput } from '@/components/common/FormInput';
 import { Loader, PageLoader } from '@/components/common/Loader';
 import { AddressManager } from '@/components/profile/AddressManager';
 import { AccountSettings } from '@/components/profile/AccountSettings';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { updateProfile, fetchOrders, logout } from '@/store/slices/userSlice';
+import { fetchOrders, logout } from '@/store/slices/userSlice';
 import { texts } from '@/config/texts';
 import { routes } from '@/config/routes';
 import { toast } from '@/hooks/use-toast';
-import { ProfileUpdateData, OrderStatus } from '@/types';
+import { OrderStatus } from '@/types';
+import { PointsBalance, PointsOrderBadge } from '@/plugins/points';
 import { format, isValid } from 'date-fns';
 import { ro } from 'date-fns/locale';
-
-// Validation schema
-const profileSchema = z.object({
-  name: z.string().trim().min(2, texts.validation.invalidName).max(100),
-  phone: z
-    .string()
-    .trim()
-    .min(10, texts.validation.invalidPhone)
-    .max(15)
-    .regex(/^[0-9+\s-]+$/, texts.validation.invalidPhone),
-  address: z.string().trim().max(200).optional(),
-  city: z.string().trim().max(100).optional(),
-});
-
-type FormErrors = Partial<Record<keyof ProfileUpdateData, string>>;
 
 const orderStatusLabels: Record<OrderStatus, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   pending: { label: 'În așteptare', variant: 'outline' },
@@ -53,7 +37,7 @@ const orderStatusLabels: Record<OrderStatus, { label: string; variant: 'default'
 const Profile: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { user, isLoading, orders, ordersLoading } = useAppSelector((state) => state.user);
+  const { user, orders, ordersLoading } = useAppSelector((state) => state.user);
 
   const handleLogout = async () => {
     await dispatch(logout());
@@ -61,19 +45,18 @@ const Profile: React.FC = () => {
     navigate(routes.home);
   };
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState<ProfileUpdateData>({
-    name: '',
-    phone: '',
-    address: '',
-    city: '',
-  });
-  const [errors, setErrors] = useState<FormErrors>({});
-
   const formatOrderDate = (value: unknown): string => {
     try {
-      if (typeof value !== 'string' || !value) return '—';
-      const d = new Date(value);
+      if (value == null || value === '') return '—';
+      let d: Date;
+      if (typeof value === 'number') {
+        d = new Date(value);
+      } else if (typeof value === 'string' && /^\d+$/.test(value)) {
+        // Backend poate trimite timestamp ca string "1770570765000"
+        d = new Date(parseInt(value, 10));
+      } else {
+        d = new Date(value as string | number);
+      }
       if (!isValid(d)) return '—';
       return format(d, 'PPpp', { locale: ro });
     } catch {
@@ -83,85 +66,9 @@ const Profile: React.FC = () => {
 
   useEffect(() => {
     if (user) {
-      setFormData({
-        name: user.name,
-        phone: user.phone,
-        address: user.address || '',
-        city: user.city || '',
-      });
       dispatch(fetchOrders());
     }
   }, [user, dispatch]);
-
-  // Sanitize input
-  const sanitizeInput = (value: string): string => {
-    return value.replace(/[<>]/g, '');
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: sanitizeInput(value),
-    }));
-    if (errors[name as keyof FormErrors]) {
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
-    }
-  };
-
-  const handleEdit = () => {
-    setIsEditing(true);
-  };
-
-  const handleCancel = () => {
-    setIsEditing(false);
-    if (user) {
-      setFormData({
-        name: user.name,
-        phone: user.phone,
-        address: user.address || '',
-        city: user.city || '',
-      });
-    }
-    setErrors({});
-  };
-
-  const validateForm = (): boolean => {
-    try {
-      profileSchema.parse(formData);
-      setErrors({});
-      return true;
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        const newErrors: FormErrors = {};
-        err.errors.forEach((error) => {
-          const field = error.path[0] as keyof FormErrors;
-          newErrors[field] = error.message;
-        });
-        setErrors(newErrors);
-      }
-      return false;
-    }
-  };
-
-  const handleSave = async () => {
-    if (!validateForm() || !user) return;
-
-    const result = await dispatch(updateProfile({ userId: user.id, data: formData }));
-    
-    if (updateProfile.fulfilled.match(result)) {
-      toast({
-        title: texts.notifications.profileUpdated,
-      });
-      setIsEditing(false);
-    } else if (updateProfile.rejected.match(result)) {
-      toast({
-        title: texts.common.error,
-        description: result.payload as string,
-        variant: 'destructive',
-      });
-    }
-  };
 
   if (!user) {
     return (
@@ -204,85 +111,12 @@ const Profile: React.FC = () => {
             {/* Profile Tab */}
             <TabsContent value="profile">
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div>
-                    <CardTitle>{texts.profile.personalInfo}</CardTitle>
-                    <CardDescription>{user.email}</CardDescription>
-                  </div>
-                  {!isEditing ? (
-                    <Button variant="outline" onClick={handleEdit}>
-                      <Edit2 className="mr-2 h-4 w-4" />
-                      {texts.profile.editProfile}
-                    </Button>
-                  ) : (
-                    <div className="flex flex-col md:flex-row gap-2">
-                      <Button variant="outline" onClick={handleCancel}>
-                        <X className="mr-2 h-4 w-4" />
-                        {texts.profile.cancel}
-                      </Button>
-                      <Button onClick={handleSave} disabled={isLoading}>
-                        {isLoading ? (
-                          <Loader size="sm" className="mr-2" />
-                        ) : (
-                          <Save className="mr-2 h-4 w-4" />
-                        )}
-                        {texts.profile.saveChanges}
-                      </Button>
-                    </div>
-                  )}
+                <CardHeader>
+                  <CardTitle>{texts.profile.personalInfo}</CardTitle>
+                  <CardDescription>{user.email}</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <FormInput
-                      name="name"
-                      type="text"
-                      label={texts.auth.nameLabel}
-                      value={formData.name}
-                      onChange={handleChange}
-                      error={errors.name}
-                      disabled={!isEditing || isLoading}
-                    />
-                    <FormInput
-                      name="phone"
-                      type="tel"
-                      label={texts.auth.phoneLabel}
-                      value={formData.phone}
-                      onChange={handleChange}
-                      error={errors.phone}
-                      disabled={!isEditing || isLoading}
-                    />
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <FormInput
-                      name="address"
-                      type="text"
-                      label={texts.profile.addressLabel}
-                      placeholder={texts.profile.addressPlaceholder}
-                      value={formData.address}
-                      onChange={handleChange}
-                      error={errors.address}
-                      disabled={!isEditing || isLoading}
-                    />
-                    <FormInput
-                      name="city"
-                      type="text"
-                      label={texts.profile.cityLabel}
-                      placeholder={texts.profile.cityPlaceholder}
-                      value={formData.city}
-                      onChange={handleChange}
-                      error={errors.city}
-                      disabled={!isEditing || isLoading}
-                    />
-                  </div>
-                  <Separator className="my-6" />
-                  <Button
-                    variant="outline"
-                    onClick={handleLogout}
-                    className="w-full sm:w-auto text-destructive hover:text-destructive hover:bg-destructive/10"
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    {texts.nav.logout}
-                  </Button>
+                <CardContent>
+                  <PointsBalance points={user.pointsBalance ?? 0} />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -325,8 +159,13 @@ const Profile: React.FC = () => {
                                   Comandă #{order.id.slice(-6).toUpperCase()}
                                 </p>
                                 <p className="text-sm text-muted-foreground">
-                                  {formatOrderDate(order.createdAt)}
+                                  Plasată pe {formatOrderDate(order.createdAt)}
                                 </p>
+                                {order.deliveredAt && (
+                                  <p className="text-sm text-muted-foreground mt-0.5">
+                                    Livrată pe {formatOrderDate(order.deliveredAt)}
+                                  </p>
+                                )}
                               </div>
                               <Badge variant={orderStatusLabels[order.status].variant}>
                                 {orderStatusLabels[order.status].label}
@@ -334,8 +173,8 @@ const Profile: React.FC = () => {
                             </div>
                             
                             <div className="space-y-2 mb-4">
-                              {order.items.map((item) => (
-                                <div key={item.id ?? `${item.productId ?? 'deleted'}-${item.productName}`} className="flex justify-between text-sm">
+                              {order.items.map((item, idx) => (
+                                <div key={item.id ?? `${order.id}-${item.productName}-${idx}`} className="flex justify-between text-sm">
                                   <span>{item.productName} x {item.quantity}</span>
                                   <span>
                                     {(item.priceAtOrder * item.quantity).toFixed(2)} {texts.common.currency}
@@ -343,6 +182,8 @@ const Profile: React.FC = () => {
                                 </div>
                               ))}
                             </div>
+                            
+                            <PointsOrderBadge order={order} />
                             
                             <Separator className="my-4" />
                             
@@ -366,6 +207,17 @@ const Profile: React.FC = () => {
               <AccountSettings userId={user.id} userEmail={user.email} />
             </TabsContent>
           </Tabs>
+
+          <div className="mt-8 flex justify-end">
+            <Button
+              variant="outline"
+              onClick={handleLogout}
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              {texts.nav.logout}
+            </Button>
+          </div>
         </div>
       </Layout>
     </ProtectedRoute>

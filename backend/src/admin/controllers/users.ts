@@ -3,6 +3,7 @@
  */
 
 import { Request, Response } from 'express';
+import { logError } from '../../utils/safeErrorLogger.js';
 import * as UserModel from '../../models/User.js';
 import * as UserRoleModel from '../../models/UserRole.js';
 import * as OrderModel from '../../models/Order.js';
@@ -68,7 +69,7 @@ export async function getUsers(req: Request, res: Response): Promise<void> {
       },
     });
   } catch (error) {
-    console.error('Eroare listare utilizatori:', error);
+    logError('listare utilizatori', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }
@@ -109,7 +110,7 @@ export async function getUser(req: Request, res: Response): Promise<void> {
       recentOrders: orders.slice(0, 10),
     });
   } catch (error) {
-    console.error('Eroare detalii utilizator:', error);
+    logError('detalii utilizator', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }
@@ -153,7 +154,7 @@ export async function updateUserRole(req: Request, res: Response): Promise<void>
       roles: updatedRoles,
     });
   } catch (error) {
-    console.error('Eroare actualizare rol utilizator:', error);
+    logError('actualizare rol utilizator', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }
@@ -188,7 +189,7 @@ export async function toggleBlockUser(req: Request, res: Response): Promise<void
     
     res.json(user);
   } catch (error) {
-    console.error('Eroare blocare utilizator:', error);
+    logError('blocare utilizator', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }

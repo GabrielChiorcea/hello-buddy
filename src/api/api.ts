@@ -23,7 +23,6 @@ import {
   SIGNUP,
   LOGOUT,
   REFRESH_TOKEN,
-  UPDATE_PROFILE,
   CHANGE_PASSWORD,
   REQUEST_PASSWORD_RESET,
   DELETE_ACCOUNT,
@@ -40,7 +39,6 @@ import {
   Order, 
   LoginCredentials, 
   SignupData, 
-  ProfileUpdateData,
   CheckoutData,
   ApiResponse,
   CartItem,
@@ -182,32 +180,6 @@ export const getCurrentUserApi = async (): Promise<ApiResponse<User>> => {
   } catch (error) {
     console.error('Get current user API error:', error);
     return { success: false, error: 'Eroare la obținerea profilului' };
-  }
-};
-
-export const updateProfileApi = async (
-  _userId: string, // Ignorat - backend-ul folosește JWT context
-  profileData: ProfileUpdateData
-): Promise<ApiResponse<User>> => {
-  try {
-    const { data } = await apolloClient.mutate<{ updateProfile: User }>({
-      mutation: UPDATE_PROFILE,
-      variables: { input: profileData },
-    });
-    
-    if (!data?.updateProfile) {
-      return { success: false, error: 'Actualizare eșuată' };
-    }
-    
-    return { 
-      success: true, 
-      data: data.updateProfile,
-      message: 'Profil actualizat cu succes'
-    };
-  } catch (error) {
-    console.error('Update profile API error:', error);
-    const message = error instanceof Error ? error.message : 'Eroare de rețea';
-    return { success: false, error: message };
   }
 };
 
@@ -393,12 +365,13 @@ export const placeOrderApi = async (
       phone: checkoutData.phone,
       notes: checkoutData.notes || null,
       paymentMethod: checkoutData.paymentMethod,
+      pointsToUse: checkoutData.pointsToUse || undefined,
     };
-    
+
     const { data } = await apolloClient.mutate<{ createOrder: Order }>({
       mutation: CREATE_ORDER,
       variables: { input: orderInput },
-      refetchQueries: [{ query: GET_USER_ORDERS }],
+      refetchQueries: [{ query: GET_USER_ORDERS }, { query: GET_CURRENT_USER }],
     });
     
     if (!data?.createOrder) {

@@ -14,6 +14,7 @@ import * as ordersController from './controllers/orders.js';
 import * as usersController from './controllers/users.js';
 import * as settingsController from './controllers/settings.js';
 import * as authController from './controllers/auth.js';
+import { pointsPlugin } from '../plugins/points/index.js';
 
 export type AdminRateLimiters = {
   adminAuthLimiter: RequestHandler;
@@ -70,6 +71,9 @@ router.put('/users/:id/block', usersController.toggleBlockUser);
 // Setări
 router.get('/settings', settingsController.getSettings);
 router.put('/settings', settingsController.updateSettings);
+
+// Puncte loialitate (plugin)
+pointsPlugin.registerAdminRoutes(router);
 
   return router;
 }

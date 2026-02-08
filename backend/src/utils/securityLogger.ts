@@ -12,6 +12,7 @@
  */
 
 import { Request } from 'express';
+import { securityLogger as winstonSecurityLogger } from '../config/logger.js';
 
 export enum SecurityEventType {
   // Autentificare
@@ -114,19 +115,13 @@ export function logSecurityEvent(
     success,
   };
   
-  const formattedMessage = formatEvent(event);
-  
-  // Log to console (în producție, asta ar trebui să meargă către un sistem centralizat)
+  const formattedMessage = `[SECURITY] ${formatEvent(event)}`;
+
   if (success) {
-    console.log(`[SECURITY] ${formattedMessage}`);
+    winstonSecurityLogger.info(formattedMessage, { type, userId, email, ip, userAgent, details });
   } else {
-    console.warn(`[SECURITY] ${formattedMessage}`);
+    winstonSecurityLogger.warn(formattedMessage, { type, userId, email, ip, userAgent, details });
   }
-  
-  // TODO: În producție, trimite către:
-  // - Sistem de logging centralizat (ELK, Datadog, etc.)
-  // - Alerting pentru evenimente critice
-  // - Audit trail persistent în baza de date
 }
 
 /**

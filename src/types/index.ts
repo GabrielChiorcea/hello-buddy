@@ -24,8 +24,7 @@ export interface User {
   email: string;
   name: string;
   phone: string;
-  address?: string;
-  city?: string;
+  pointsBalance?: number;
   createdAt: string;
 }
 
@@ -78,8 +77,6 @@ export interface SignupData {
 export interface ProfileUpdateData {
   name?: string;
   phone?: string;
-  address?: string;
-  city?: string;
 }
 
 // =============================================================================
@@ -188,8 +185,8 @@ export interface CartState {
 
 /** Item dintr-o comandă (snapshot la momentul plasării) */
 export interface OrderItem {
-  id: number;
-  productId: string | null; // null când produsul a fost șters (comenzi livrate/anulate)
+  id?: number;
+  productId?: string | null;
   productName: string;
   productImage?: string | null;
   quantity: number;
@@ -197,7 +194,7 @@ export interface OrderItem {
   priceAtOrder: number;
 }
 
-/** Comandă completă */
+/** Comandă - exclude date sensibile în răspunsul pentru listă (phone, notes, paymentMethod) */
 export interface Order {
   id: string;
   subtotal: number;
@@ -206,9 +203,12 @@ export interface Order {
   status: OrderStatus;
   deliveryAddress: string;
   deliveryCity: string;
-  phone: string;
+  phone?: string;
   notes?: string | null;
-  paymentMethod: PaymentMethod;
+  paymentMethod?: PaymentMethod;
+  pointsEarned?: number;
+  pointsUsed?: number;
+  discountFromPoints?: number;
   items: OrderItem[];
   createdAt: string;
   estimatedDelivery?: string | null;
@@ -234,6 +234,15 @@ export interface CheckoutData {
   phone: string;
   notes?: string;
   paymentMethod: PaymentMethod;
+  pointsToUse?: number;
+}
+
+/** Prag puncte loialitate */
+export interface PointsReward {
+  id: string;
+  pointsCost: number;
+  discountAmount: number;
+  isActive: boolean;
 }
 
 /** Categorie produs din backend */

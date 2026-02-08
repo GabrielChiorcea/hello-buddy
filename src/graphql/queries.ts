@@ -16,8 +16,7 @@ export const USER_FRAGMENT = gql`
     email
     name
     phone
-    address
-    city
+    pointsBalance
     createdAt
   }
 `;
@@ -84,6 +83,15 @@ export const ORDER_ITEM_FRAGMENT = gql`
   }
 `;
 
+/** Fragment pentru listă comenzi - exclude date sensibile (phone, notes, paymentMethod) */
+export const ORDER_ITEM_FRAGMENT_LITE = gql`
+  fragment OrderItemFieldsLite on OrderItem {
+    productName
+    quantity
+    priceAtOrder
+  }
+`;
+
 export const ORDER_FRAGMENT = gql`
   fragment OrderFields on Order {
     id
@@ -104,6 +112,28 @@ export const ORDER_FRAGMENT = gql`
     deliveredAt
   }
   ${ORDER_ITEM_FRAGMENT}
+`;
+
+/** Fragment pentru listă comenzi - exclude date sensibile (phone, notes, paymentMethod, productId, productImage) */
+export const ORDER_FRAGMENT_LITE = gql`
+  fragment OrderFieldsLite on Order {
+    id
+    subtotal
+    deliveryFee
+    total
+    status
+    deliveryAddress
+    deliveryCity
+    pointsEarned
+    pointsUsed
+    discountFromPoints
+    items {
+      ...OrderItemFieldsLite
+    }
+    createdAt
+    deliveredAt
+  }
+  ${ORDER_ITEM_FRAGMENT_LITE}
 `;
 
 // ============================================================================
@@ -179,19 +209,19 @@ export const GET_CURRENT_USER = gql`
 export const GET_USER_ORDERS = gql`
   query GetOrders {
     orders {
-      ...OrderFields
+      ...OrderFieldsLite
     }
   }
-  ${ORDER_FRAGMENT}
+  ${ORDER_FRAGMENT_LITE}
 `;
 
 export const GET_ORDER_BY_ID = gql`
   query GetOrderById($id: ID!) {
     order(id: $id) {
-      ...OrderFields
+      ...OrderFieldsLite
     }
   }
-  ${ORDER_FRAGMENT}
+  ${ORDER_FRAGMENT_LITE}
 `;
 
 // ============================================================================
@@ -215,3 +245,5 @@ export const GET_ADDRESS_BY_ID = gql`
   }
   ${ADDRESS_FRAGMENT}
 `;
+
+// Puncte loialitate: GET_POINTS_REWARDS este în plugins/points/queries.ts

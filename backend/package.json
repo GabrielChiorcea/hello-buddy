@@ -21,7 +21,9 @@
     "dotenv": "^16.4.1",
     "express": "^4.18.2",
     "express-rate-limit": "^7.1.5",
+    "file-type": "^21.3.0",
     "graphql": "^16.8.1",
+    "graphql-depth-limit": "^1.1.0",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
@@ -30,6 +32,8 @@
     "redis": "^5.10.0",
     "sharp": "^0.33.2",
     "uuid": "^9.0.1",
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^5.0.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {

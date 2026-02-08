@@ -29,6 +29,7 @@ import {
   logSecurityEvent,
   SecurityEventType,
 } from '../../utils/securityLogger.js';
+import { logError } from '../../utils/safeErrorLogger.js';
 
 /**
  * POST /admin/auth/login
@@ -60,7 +61,7 @@ export async function login(req: Request, res: Response): Promise<void> {
     }
     
     // Generează token-uri
-    const accessToken = generateAccessToken(user.id, user.email);
+    const accessToken = generateAccessToken(user.id);
     const { token: refreshToken } = await generateRefreshToken(
       user.id,
       req.headers['user-agent'],
@@ -83,7 +84,7 @@ export async function login(req: Request, res: Response): Promise<void> {
       expiresIn: jwtConfig.access.expiresIn,
     });
   } catch (error) {
-    console.error('Eroare autentificare admin:', error);
+    logError('autentificare admin', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }
@@ -161,7 +162,7 @@ export async function refreshToken(req: Request, res: Response): Promise<void> {
       expiresIn: rotationResult.expiresIn,
     });
   } catch (error) {
-    console.error('Eroare refresh token admin:', error);
+    logError('refresh token admin', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }
@@ -190,7 +191,7 @@ export async function logout(req: Request, res: Response): Promise<void> {
     clearAdminRefreshTokenCookie(res);
     res.json({ success: true });
   } catch (error) {
-    console.error('Eroare logout admin:', error);
+    logError('logout admin', error);
     clearAdminRefreshTokenCookie(res);
     res.json({ success: true });
   }

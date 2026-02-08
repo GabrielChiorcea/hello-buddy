@@ -17,6 +17,7 @@ import {
   LogOut,
   ChefHat,
 } from 'lucide-react';
+import { pointsPlugin } from '@/plugins/points';
 import {
   Sidebar,
   SidebarContent,
@@ -35,13 +36,14 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { adminLogout } from '@/store/slices/adminSlice';
 import { Separator } from '@/components/ui/separator';
 
-const mainNavItems = [
+const baseNavItems = [
   { title: 'Dashboard', url: '/admin', icon: LayoutDashboard },
   { title: 'Produse', url: '/admin/products', icon: Package },
   { title: 'Categorii', url: '/admin/categories', icon: FolderOpen },
   { title: 'Comenzi', url: '/admin/orders', icon: ShoppingCart },
   { title: 'Utilizatori', url: '/admin/users', icon: Users },
 ];
+const mainNavItems = [...baseNavItems, ...pointsPlugin.navItems];
 
 const settingsNavItems = [
   { title: 'Setări', url: '/admin/settings', icon: Settings },

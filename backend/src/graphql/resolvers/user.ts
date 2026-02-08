@@ -8,8 +8,6 @@ import * as UserModel from '../../models/User.js';
 interface ProfileUpdateInput {
   name?: string;
   phone?: string;
-  address?: string;
-  city?: string;
 }
 
 export const userResolvers = {

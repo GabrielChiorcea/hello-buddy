@@ -16,17 +16,17 @@ import {
   AuthState, 
   LoginCredentials, 
   SignupData, 
-  ProfileUpdateData, 
   User, 
   Order, 
-  AuthTokens
+  AuthTokens,
+  DeliveryAddress
 } from '@/types';
 import { 
   loginApi, 
   signupApi, 
   logoutApi, 
-  updateProfileApi, 
-  fetchOrdersApi 
+  fetchOrdersApi,
+  fetchAddressesApi
 } from '@/api/api';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
@@ -35,7 +35,13 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
 // STARE INIȚIALĂ - Fără refresh token în localStorage
 // =============================================================================
 
-const initialState: AuthState & { orders: Order[]; ordersLoading: boolean } = {
+const initialState: AuthState & { 
+  orders: Order[]; 
+  ordersLoading: boolean;
+  addresses: DeliveryAddress[];
+  addressesLoading: boolean;
+  addressesFetched: boolean;
+} = {
   user: null,
   token: null,
   tokens: null,
@@ -45,6 +51,9 @@ const initialState: AuthState & { orders: Order[]; ordersLoading: boolean } = {
   isRefreshing: false,
   orders: [],
   ordersLoading: false,
+  addresses: [],
+  addressesLoading: false,
+  addressesFetched: false,
 };
 
 // =============================================================================
@@ -154,23 +163,6 @@ export const logout = createAsyncThunk(
 );
 
 /**
- * Actualizare profil utilizator
- */
-export const updateProfile = createAsyncThunk(
-  'user/updateProfile',
-  async (
-    { userId, data }: { userId: string; data: ProfileUpdateData }, 
-    { rejectWithValue }
-  ) => {
-    const response = await updateProfileApi(userId, data);
-    if (!response.success || !response.data) {
-      return rejectWithValue(response.error || 'Actualizare eșuată');
-    }
-    return response.data;
-  }
-);
-
-/**
  * Obține comenzile utilizatorului
  */
 export const fetchOrders = createAsyncThunk(
@@ -179,6 +171,20 @@ export const fetchOrders = createAsyncThunk(
     const response = await fetchOrdersApi();
     if (!response.success || !response.data) {
       return rejectWithValue(response.error || 'Eroare la încărcarea comenzilor');
+    }
+    return response.data;
+  }
+);
+
+/**
+ * Obține adresele utilizatorului (salvate în Redux pentru Checkout și Profil)
+ */
+export const fetchAddresses = createAsyncThunk(
+  'user/fetchAddresses',
+  async (_: void, { rejectWithValue }) => {
+    const response = await fetchAddressesApi();
+    if (!response.success || !response.data) {
+      return rejectWithValue(response.error || 'Eroare la încărcarea adreselor');
     }
     return response.data;
   }
@@ -224,9 +230,30 @@ const userSlice = createSlice({
       state.tokens = null;
       state.isAuthenticated = false;
       state.orders = [];
+      state.addresses = [];
+      state.addressesFetched = false;
       state.isRefreshing = false;
       state.isLoading = false;
       // Nu mai este nevoie să ștergem din localStorage
+    },
+    setAddresses: (state, action: PayloadAction<DeliveryAddress[]>) => {
+      state.addresses = action.payload;
+    },
+    addAddress: (state, action: PayloadAction<DeliveryAddress>) => {
+      state.addresses.push(action.payload);
+    },
+    updateAddress: (state, action: PayloadAction<DeliveryAddress>) => {
+      const idx = state.addresses.findIndex((a) => a.id === action.payload.id);
+      if (idx >= 0) state.addresses[idx] = action.payload;
+    },
+    removeAddress: (state, action: PayloadAction<string>) => {
+      state.addresses = state.addresses.filter((a) => a.id !== action.payload);
+    },
+    setDefaultAddress: (state, action: PayloadAction<string>) => {
+      state.addresses = state.addresses.map((a) => ({
+        ...a,
+        isDefault: a.id === action.payload,
+      }));
     },
   },
   
@@ -324,20 +351,9 @@ const userSlice = createSlice({
         state.tokens = null;
         state.isAuthenticated = false;
         state.orders = [];
+        state.addresses = [];
+        state.addressesFetched = false;
         state.isRefreshing = false;
-      })
-    
-    // UPDATE PROFILE
-      .addCase(updateProfile.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(updateProfile.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.user = action.payload;
-      })
-      .addCase(updateProfile.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
       })
     
     // FETCH ORDERS
@@ -350,6 +366,18 @@ const userSlice = createSlice({
       })
       .addCase(fetchOrders.rejected, (state) => {
         state.ordersLoading = false;
+      })
+    // FETCH ADDRESSES
+      .addCase(fetchAddresses.pending, (state) => {
+        state.addressesLoading = true;
+      })
+      .addCase(fetchAddresses.fulfilled, (state, action) => {
+        state.addressesLoading = false;
+        state.addresses = action.payload;
+        state.addressesFetched = true;
+      })
+      .addCase(fetchAddresses.rejected, (state) => {
+        state.addressesLoading = false;
       });
   },
 });
@@ -364,7 +392,12 @@ export const {
   setTokens, 
   setIsRefreshing, 
   setIsLoading,
-  clearAuth 
+  clearAuth,
+  setAddresses,
+  addAddress,
+  updateAddress,
+  removeAddress,
+  setDefaultAddress,
 } = userSlice.actions;
 
 export default userSlice.reducer;

@@ -62,7 +62,7 @@ export const authResolvers = {
       }
       
       // Generează token-uri
-      const accessToken = generateAccessToken(user.id, user.email);
+      const accessToken = generateAccessToken(user.id);
       const { token: refreshToken } = await generateRefreshToken(
         user.id,
         context.req.headers['user-agent'],
@@ -117,7 +117,7 @@ export const authResolvers = {
       const user = await UserModel.create({ email, password, name, phone: normalizedPhone });
       
       // Generează token-uri
-      const accessToken = generateAccessToken(user.id, user.email);
+      const accessToken = generateAccessToken(user.id);
       const { token: refreshToken } = await generateRefreshToken(
         user.id,
         context.req.headers['user-agent'],

@@ -131,8 +131,6 @@ export interface SignupInput {
 export interface ProfileUpdateInput {
   name?: string;    // Nume nou
   phone?: string;   // Telefon nou
-  address?: string; // Adresă nouă
-  city?: string;    // Oraș nou
 }
 
 /**

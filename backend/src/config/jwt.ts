@@ -21,7 +21,6 @@ export const jwtConfig = {
 // Tipuri pentru payload-ul token-urilor
 export interface AccessTokenPayload {
   userId: string;
-  email: string;
   type: 'access';
 }
 

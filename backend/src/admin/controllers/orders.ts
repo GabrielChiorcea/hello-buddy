@@ -3,8 +3,10 @@
  */
 
 import { Request, Response } from 'express';
+import { logError } from '../../utils/safeErrorLogger.js';
 import * as OrderModel from '../../models/Order.js';
 import { query } from '../../config/database.js';
+import { pointsPlugin } from '../../plugins/points/index.js';
 
 /**
  * GET /admin/orders
@@ -60,7 +62,7 @@ export async function getOrders(req: Request, res: Response): Promise<void> {
       },
     });
   } catch (error) {
-    console.error('Eroare listare comenzi:', error);
+    logError('listare comenzi', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }
@@ -112,7 +114,7 @@ export async function getOrder(req: Request, res: Response): Promise<void> {
       })),
     });
   } catch (error) {
-    console.error('Eroare detalii comandă:', error);
+    logError('detalii comandă', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }
@@ -141,15 +143,24 @@ export async function updateOrderStatus(req: Request, res: Response): Promise<vo
       req.user?.id,
       notes
     );
-    
+
     if (!order) {
       res.status(404).json({ error: 'Comanda nu a fost găsită' });
       return;
     }
-    
-    res.json(order);
+
+    if (status === 'delivered' && order.pointsEarned === 0) {
+      await pointsPlugin.hooks.onOrderDelivered(id, {
+        userId: order.userId,
+        total: order.total,
+        pointsEarned: order.pointsEarned,
+      });
+    }
+
+    const updatedOrder = await OrderModel.findById(id);
+    res.json(updatedOrder ?? order);
   } catch (error) {
-    console.error('Eroare actualizare status comandă:', error);
+    logError('actualizare status comandă', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }
@@ -200,7 +211,7 @@ export async function exportOrders(req: Request, res: Response): Promise<void> {
     res.setHeader('Content-Disposition', `attachment; filename=comenzi-${new Date().toISOString().split('T')[0]}.csv`);
     res.send('\uFEFF' + csv); // BOM pentru Excel
   } catch (error) {
-    console.error('Eroare export comenzi:', error);
+    logError('export comenzi', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }

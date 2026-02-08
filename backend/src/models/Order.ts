@@ -4,6 +4,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { query, queryOne, beginTransaction } from '../config/database.js';
+import { pointsPlugin } from '../plugins/points/index.js';
 
 export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'delivering' | 'delivered' | 'cancelled';
 export type PaymentMethod = 'cash' | 'card';
@@ -33,6 +34,9 @@ export interface Order {
   deliveredAt: Date | null;
   cancelledAt: Date | null;
   cancellationReason: string | null;
+  pointsEarned: number;
+  pointsUsed: number;
+  discountFromPoints: number;
   items: OrderItem[];
   createdAt: Date;
   updatedAt: Date;
@@ -54,6 +58,9 @@ interface OrderRow {
   delivered_at: Date | null;
   cancelled_at: Date | null;
   cancellation_reason: string | null;
+  points_earned: number;
+  points_used: number;
+  discount_from_points: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -79,6 +86,7 @@ export interface CreateOrderInput {
   phone: string;
   notes?: string;
   paymentMethod: PaymentMethod;
+  pointsToUse?: number;
 }
 
 function mapRowToOrder(row: OrderRow, items: OrderItem[] = []): Order {
@@ -98,6 +106,9 @@ function mapRowToOrder(row: OrderRow, items: OrderItem[] = []): Order {
     deliveredAt: row.delivered_at,
     cancelledAt: row.cancelled_at,
     cancellationReason: row.cancellation_reason,
+    pointsEarned: row.points_earned ?? 0,
+    pointsUsed: row.points_used ?? 0,
+    discountFromPoints: parseFloat(row.discount_from_points ?? '0'),
     items,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -252,15 +263,28 @@ export async function create(input: CreateOrderInput): Promise<Order> {
       'SELECT value FROM app_settings WHERE id = "delivery_fee"'
     );
     const deliveryFee = settingsRows.length > 0 ? parseFloat(settingsRows[0].value) : 10;
-    
-    const total = subtotal + deliveryFee;
-    
+
+    const { pointsUsed, discountFromPoints } = await pointsPlugin.service.applyAtCheckout(
+      connection,
+      { userId: input.userId, pointsToUse: input.pointsToUse }
+    );
+    const total = Math.max(0, subtotal + deliveryFee - discountFromPoints);
+
     // Inserează comanda
     await connection.execute(
-      `INSERT INTO orders (id, user_id, subtotal, delivery_fee, total, delivery_address, delivery_city, phone, notes, payment_method)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, input.userId, subtotal, deliveryFee, total, input.deliveryAddress, input.deliveryCity, input.phone, input.notes || null, input.paymentMethod]
+      `INSERT INTO orders (id, user_id, subtotal, delivery_fee, total, delivery_address, delivery_city, phone, notes, payment_method, points_used, discount_from_points)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, input.userId, subtotal, deliveryFee, total, input.deliveryAddress, input.deliveryCity, input.phone, input.notes || null, input.paymentMethod, pointsUsed, discountFromPoints]
     );
+
+    if (pointsUsed > 0) {
+      await pointsPlugin.service.deductPointsInTransaction(
+        connection,
+        input.userId,
+        id,
+        pointsUsed
+      );
+    }
     
     // Inserează produsele comenzii
     for (const item of itemDetails) {
@@ -333,6 +357,16 @@ export async function updateStatus(
  */
 export async function cancel(id: string, reason?: string): Promise<Order | null> {
   return updateStatus(id, 'cancelled', undefined, reason);
+}
+
+/**
+ * Actualizează punctele câștigate pentru o comandă livrată
+ */
+export async function setPointsEarned(id: string, pointsEarned: number): Promise<void> {
+  await query(
+    'UPDATE orders SET points_earned = ? WHERE id = ?',
+    [pointsEarned, id]
+  );
 }
 
 /**

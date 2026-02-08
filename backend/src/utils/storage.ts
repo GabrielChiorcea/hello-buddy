@@ -4,6 +4,7 @@
  */
 
 import fs from 'fs';
+import { logError } from './safeErrorLogger.js';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -78,7 +79,7 @@ export async function deleteProductImage(imagePath: string): Promise<void> {
       await fs.promises.unlink(fullPath);
     }
   } catch (error) {
-    console.error('Eroare la ștergerea imaginii:', error);
+    logError('ștergere imagine', error);
   }
 }
 

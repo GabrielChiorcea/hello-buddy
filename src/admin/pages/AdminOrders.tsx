@@ -25,6 +25,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Eye, Download, Bell, Loader2 } from 'lucide-react';
+import { PointsOrderDetails } from '@/plugins/points';
 import { OrderStatus } from '@/types';
 import { Pagination } from '@/types/admin';
 import { format } from 'date-fns';
@@ -55,6 +56,9 @@ interface AdminOrder {
   phone: string;
   notes?: string;
   paymentMethod: 'cash' | 'card';
+  pointsEarned?: number;
+  pointsUsed?: number;
+  discountFromPoints?: number;
   createdAt: string;
   estimatedDelivery?: string;
 }
@@ -405,6 +409,7 @@ export default function AdminOrders() {
                     <span>Livrare</span>
                     <span>{selectedOrder.deliveryFee} RON</span>
                   </div>
+                  <PointsOrderDetails order={selectedOrder} currency="RON" />
                   <div className="flex justify-between border-t border-border pt-2 font-semibold">
                     <span>Total</span>
                     <span>{selectedOrder.total} RON</span>

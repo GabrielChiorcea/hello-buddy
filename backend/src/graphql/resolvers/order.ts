@@ -19,6 +19,7 @@ interface CreateOrderInput {
   phone: string;
   notes?: string;
   paymentMethod: 'cash' | 'card';
+  pointsToUse?: number;
 }
 
 interface ReviewInput {
@@ -49,7 +50,26 @@ function checkOrderRateLimit(userId: string): boolean {
   return true;
 }
 
+/** Serializează Date la ISO string pentru GraphQL */
+function toISOString(value: Date | string | null | undefined): string | null {
+  if (value == null) return null;
+  try {
+    const d = value instanceof Date ? value : new Date(value);
+    return isNaN(d.getTime()) ? null : d.toISOString();
+  } catch {
+    return null;
+  }
+}
+
 export const orderResolvers = {
+  Order: {
+    createdAt: (parent: { createdAt?: Date | string | null }) =>
+      toISOString(parent.createdAt) ?? '',
+    deliveredAt: (parent: { deliveredAt?: Date | string | null }) =>
+      toISOString(parent.deliveredAt),
+    estimatedDelivery: (parent: { estimatedDelivery?: Date | string | null }) =>
+      toISOString(parent.estimatedDelivery),
+  },
   Query: {
     /**
      * Listează comenzile utilizatorului autentificat
@@ -125,6 +145,7 @@ export const orderResolvers = {
         phone: input.phone,
         notes: input.notes,
         paymentMethod: input.paymentMethod,
+        pointsToUse: input.pointsToUse,
       });
       
       // Log order placed

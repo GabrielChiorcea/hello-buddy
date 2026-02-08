@@ -4,6 +4,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { fetchAddresses, addAddress, updateAddress, removeAddress, setDefaultAddress } from '@/store/slices/userSlice';
 import { z } from 'zod';
 import { MapPin, Plus, Edit2, Trash2, Star, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -36,7 +38,6 @@ import { toast } from '@/hooks/use-toast';
 import { texts } from '@/config/texts';
 import { DeliveryAddress } from '@/types';
 import {
-  fetchAddressesApi,
   saveAddressApi,
   updateAddressApi,
   deleteAddressApi,
@@ -68,8 +69,8 @@ interface AddressFormData {
 type FormErrors = Partial<Record<keyof AddressFormData, string>>;
 
 export const AddressManager: React.FC = () => {
-  const [addresses, setAddresses] = useState<DeliveryAddress[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const dispatch = useAppDispatch();
+  const { addresses, addressesLoading: isLoading, addressesFetched } = useAppSelector((state) => state.user);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -89,25 +90,12 @@ export const AddressManager: React.FC = () => {
   });
   const [formErrors, setFormErrors] = useState<FormErrors>({});
 
-  // Fetch addresses on mount
+  // Încarcă adresele din Redux (o singură cerere, apoi folosim cache-ul)
   useEffect(() => {
-    fetchAddresses();
-  }, []);
-
-  const fetchAddresses = async () => {
-    setIsLoading(true);
-    setError(null);
-    
-    const result = await fetchAddressesApi();
-    
-    if (result.success && result.data) {
-      setAddresses(result.data);
-    } else {
-      setError(result.error || 'Eroare la încărcarea adreselor');
+    if (!addressesFetched) {
+      dispatch(fetchAddresses());
     }
-    
-    setIsLoading(false);
-  };
+  }, [addressesFetched, dispatch]);
 
   const resetForm = () => {
     setFormData({
@@ -182,9 +170,7 @@ export const AddressManager: React.FC = () => {
         const result = await updateAddressApi(editingAddress.id, '', formData);
         
         if (result.success && result.data) {
-          setAddresses((prev) =>
-            prev.map((a) => (a.id === editingAddress.id ? result.data! : a))
-          );
+          dispatch(updateAddress(result.data));
           toast({ title: texts.notifications.addressSaved });
           setIsDialogOpen(false);
           resetForm();
@@ -196,7 +182,7 @@ export const AddressManager: React.FC = () => {
         const result = await saveAddressApi('', formData);
         
         if (result.success && result.data) {
-          setAddresses((prev) => [...prev, result.data!]);
+          dispatch(addAddress(result.data));
           toast({ title: texts.notifications.addressSaved });
           setIsDialogOpen(false);
           resetForm();
@@ -213,7 +199,7 @@ export const AddressManager: React.FC = () => {
     const result = await deleteAddressApi(addressId);
     
     if (result.success) {
-      setAddresses((prev) => prev.filter((a) => a.id !== addressId));
+      dispatch(removeAddress(addressId));
       toast({ title: texts.notifications.addressDeleted });
     } else {
       toast({
@@ -230,12 +216,7 @@ export const AddressManager: React.FC = () => {
     const result = await setDefaultAddressApi(addressId);
     
     if (result.success) {
-      setAddresses((prev) =>
-        prev.map((a) => ({
-          ...a,
-          isDefault: a.id === addressId,
-        }))
-      );
+      dispatch(setDefaultAddress(addressId));
       toast({ title: texts.notifications.addressSaved });
     } else {
       toast({
@@ -301,7 +282,7 @@ export const AddressManager: React.FC = () => {
                   <p className="text-sm text-muted-foreground italic">{address.notes}</p>
                 )}
                 
-                <div className="flex gap-2 pt-2">
+                <div className="flex flex-wrap gap-2 pt-2">
                   <Button
                     variant="outline"
                     size="sm"

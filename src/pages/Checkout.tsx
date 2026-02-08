@@ -2,10 +2,10 @@
  * Checkout page component
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
-import { CreditCard, Banknote, MapPin, Phone, CheckCircle, ChevronDown, Plus } from 'lucide-react';
+import { CreditCard, Banknote, MapPin, CheckCircle, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -16,19 +16,16 @@ import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import { FormInput } from '@/components/common/FormInput';
 import { Loader } from '@/components/common/Loader';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { resetCart } from '@/store/slices/cartSlice';
-import { placeOrderApi, fetchAddressesApi } from '@/api/api';
+import { fetchAddresses } from '@/store/slices/userSlice';
+import { placeOrderApi } from '@/api/api';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { toast } from '@/hooks/use-toast';
 import { PaymentMethod, CheckoutData, DeliveryAddress } from '@/types';
 import { cn } from '@/lib/utils';
+import { PointsCheckoutSelector, usePointsRewards } from '@/plugins/points';
 
 // Validation schema
 const checkoutSchema = z.object({
@@ -56,18 +53,16 @@ type FormErrors = Partial<Record<keyof CheckoutData, string>>;
 const Checkout: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { user } = useAppSelector((state) => state.user);
+  const { user, addresses: savedAddresses, addressesLoading: isLoadingAddresses, addressesFetched } = useAppSelector((state) => state.user);
   const { items, subtotal, deliveryFee, total } = useAppSelector((state) => state.cart);
 
-  // Saved addresses
-  const [savedAddresses, setSavedAddresses] = useState<DeliveryAddress[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
-  const [isLoadingAddresses, setIsLoadingAddresses] = useState(true);
   const [showManualForm, setShowManualForm] = useState(false);
+  const manualFormRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState<CheckoutData>({
-    deliveryAddress: user?.address || '',
-    deliveryCity: user?.city || '',
+    deliveryAddress: '',
+    deliveryCity: '',
     phone: user?.phone || '',
     paymentMethod: 'cash',
   });
@@ -75,36 +70,18 @@ const Checkout: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  const { pointsRewards } = usePointsRewards();
+  const userPoints = user?.pointsBalance ?? 0;
+
+  const selectedReward = formData.pointsToUse
+    ? pointsRewards.find((r) => r.pointsCost === formData.pointsToUse)
+    : null;
+  const discountFromPoints = selectedReward?.discountAmount ?? 0;
+  const displayTotal = Math.max(0, subtotal + deliveryFee - discountFromPoints);
+
   const isCartEmpty = items.length === 0;
 
-  // Fetch saved addresses on mount
-  useEffect(() => {
-    if (user) {
-      fetchAddresses();
-    }
-  }, [user]);
-
-  const fetchAddresses = async () => {
-    if (!user) return;
-    
-    setIsLoadingAddresses(true);
-    const result = await fetchAddressesApi(user.id);
-    
-    if (result.success && result.data) {
-      setSavedAddresses(result.data);
-      // Auto-select default address
-      const defaultAddr = result.data.find(a => a.isDefault);
-      if (defaultAddr) {
-        selectAddress(defaultAddr);
-      } else if (result.data.length === 0) {
-        setShowManualForm(true);
-      }
-    }
-    
-    setIsLoadingAddresses(false);
-  };
-
-  const selectAddress = (address: DeliveryAddress) => {
+  const selectAddress = useCallback((address: DeliveryAddress) => {
     setSelectedAddressId(address.id);
     setFormData(prev => ({
       ...prev,
@@ -114,17 +91,44 @@ const Checkout: React.FC = () => {
     }));
     setShowManualForm(false);
     setErrors({});
-  };
+  }, []);
+
+  // Încarcă adresele din Redux (o singură cerere, apoi folosim cache-ul)
+  useEffect(() => {
+    if (user && !addressesFetched) {
+      dispatch(fetchAddresses());
+    }
+  }, [user, addressesFetched, dispatch]);
+
+  // Auto-select adresa implicită când adresele se încarcă (nu când user a ales manual entry)
+  useEffect(() => {
+    if (showManualForm) return; // User a ales explicit "Introdu altă adresă"
+    if (savedAddresses.length > 0 && !selectedAddressId) {
+      const defaultAddr = savedAddresses.find(a => a.isDefault);
+      if (defaultAddr) {
+        selectAddress(defaultAddr);
+      } else {
+        setShowManualForm(true);
+      }
+    } else if (addressesFetched && savedAddresses.length === 0) {
+      // Așteptăm fetch-ul să se termine; doar dacă avem 0 adrese după fetch, afișăm formularul.
+      setShowManualForm(true);
+    }
+  }, [savedAddresses, isLoadingAddresses, addressesFetched, selectedAddressId, showManualForm, selectAddress]);
 
   const handleManualEntry = () => {
-    setSelectedAddressId(null);
-    setShowManualForm(true);
-    setFormData(prev => ({
-      ...prev,
-      deliveryAddress: '',
-      deliveryCity: '',
-      phone: user?.phone || '',
-    }));
+    // Defer state updates pentru a evita flushSync/conflict cu Radix RadioGroup în timpul render
+    queueMicrotask(() => {
+      setSelectedAddressId(null);
+      setShowManualForm(true);
+      setFormData(prev => ({
+        ...prev,
+        deliveryAddress: '',
+        deliveryCity: '',
+        phone: user?.phone || '',
+      }));
+    });
+    setTimeout(() => manualFormRef.current?.scrollIntoView({ behavior: 'smooth' }), 150);
   };
 
   // Sanitize input
@@ -179,7 +183,7 @@ const Checkout: React.FC = () => {
         formData,
         subtotal,
         deliveryFee,
-        total
+        displayTotal
       );
 
       if (result.success) {
@@ -268,7 +272,7 @@ const Checkout: React.FC = () => {
                       <div className="flex justify-center py-4">
                         <Loader size="md" />
                       </div>
-                    ) : savedAddresses.length > 0 ? (
+                    ) : savedAddresses.length > 0 && !showManualForm ? (
                       <div className="space-y-3">
                         <p className="text-sm font-medium text-muted-foreground">
                           Selectează o adresă salvată sau introdu una nouă
@@ -320,51 +324,49 @@ const Checkout: React.FC = () => {
 
                     {/* Manual Address Form */}
                     {(showManualForm || savedAddresses.length === 0) && (
-                      <Collapsible open={showManualForm || savedAddresses.length === 0}>
-                        <CollapsibleContent className="space-y-4">
-                          {savedAddresses.length > 0 && (
-                            <Alert>
-                              <AlertDescription>
-                                Completează adresa de livrare pentru această comandă
-                              </AlertDescription>
-                            </Alert>
-                          )}
-                          
-                          <FormInput
-                            name="deliveryAddress"
-                            type="text"
-                            label={texts.profile.addressLabel}
-                            placeholder={texts.profile.addressPlaceholder}
-                            value={formData.deliveryAddress}
-                            onChange={handleChange}
-                            error={errors.deliveryAddress}
-                            required
-                            disabled={isLoading}
-                          />
-                          <FormInput
-                            name="deliveryCity"
-                            type="text"
-                            label={texts.profile.cityLabel}
-                            placeholder={texts.profile.cityPlaceholder}
-                            value={formData.deliveryCity}
-                            onChange={handleChange}
-                            error={errors.deliveryCity}
-                            required
-                            disabled={isLoading}
-                          />
-                          <FormInput
-                            name="phone"
-                            type="tel"
-                            label={texts.auth.phoneLabel}
-                            placeholder={texts.auth.phonePlaceholder}
-                            value={formData.phone}
-                            onChange={handleChange}
-                            error={errors.phone}
-                            required
-                            disabled={isLoading}
-                          />
-                        </CollapsibleContent>
-                      </Collapsible>
+                      <div ref={manualFormRef} className="space-y-4 mt-4">
+                        {savedAddresses.length > 0 && (
+                          <Alert>
+                            <AlertDescription>
+                              Completează adresa de livrare pentru această comandă
+                            </AlertDescription>
+                          </Alert>
+                        )}
+
+                        <FormInput
+                          name="deliveryAddress"
+                          type="text"
+                          label={texts.profile.addressLabel}
+                          placeholder={texts.profile.addressPlaceholder}
+                          value={formData.deliveryAddress}
+                          onChange={handleChange}
+                          error={errors.deliveryAddress}
+                          required
+                          disabled={isLoading}
+                        />
+                        <FormInput
+                          name="deliveryCity"
+                          type="text"
+                          label={texts.profile.cityLabel}
+                          placeholder={texts.profile.cityPlaceholder}
+                          value={formData.deliveryCity}
+                          onChange={handleChange}
+                          error={errors.deliveryCity}
+                          required
+                          disabled={isLoading}
+                        />
+                        <FormInput
+                          name="phone"
+                          type="tel"
+                          label={texts.auth.phoneLabel}
+                          placeholder={texts.auth.phonePlaceholder}
+                          value={formData.phone}
+                          onChange={handleChange}
+                          error={errors.phone}
+                          required
+                          disabled={isLoading}
+                        />
+                      </div>
                     )}
 
                     {/* Show selected address summary when not in manual mode */}
@@ -423,6 +425,14 @@ const Checkout: React.FC = () => {
                         </Label>
                       </div>
                     </RadioGroup>
+
+                    <PointsCheckoutSelector
+                      userPoints={userPoints}
+                      rewards={pointsRewards}
+                      formData={formData}
+                      onPointsChange={(p) => setFormData((prev) => ({ ...prev, pointsToUse: p }))}
+                      currency={texts.common.currency}
+                    />
                   </CardContent>
                 </Card>
               </div>
@@ -462,12 +472,16 @@ const Checkout: React.FC = () => {
                         )}
                       </span>
                     </div>
-                    
+                    {discountFromPoints > 0 && (
+                      <div className="flex justify-between text-sm text-primary">
+                        <span>Reducere puncte</span>
+                        <span>-{discountFromPoints} {texts.common.currency}</span>
+                      </div>
+                    )}
                     <Separator />
-                    
                     <div className="flex justify-between text-lg font-bold">
                       <span>{texts.cart.total}</span>
-                      <span className="text-primary">{total} {texts.common.currency}</span>
+                      <span className="text-primary">{displayTotal} {texts.common.currency}</span>
                     </div>
                   </CardContent>
                   <CardFooter>

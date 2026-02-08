@@ -262,6 +262,41 @@ export const useAdminApi = () => {
     [fetchWithAuth]
   );
 
+  // Puncte loialitate
+  const getPointsRewards = useCallback(
+    (includeInactive?: boolean) =>
+      fetchWithAuth<any[]>(
+        `/admin/points/rewards${includeInactive ? '?includeInactive=true' : ''}`
+      ),
+    [fetchWithAuth]
+  );
+
+  const createPointsReward = useCallback(
+    (data: { pointsCost: number; discountAmount: number }) =>
+      fetchWithAuth<any>('/admin/points/rewards', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    [fetchWithAuth]
+  );
+
+  const updatePointsReward = useCallback(
+    (id: string, data: { pointsCost?: number; discountAmount?: number; isActive?: boolean }) =>
+      fetchWithAuth<any>(`/admin/points/rewards/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    [fetchWithAuth]
+  );
+
+  const deletePointsReward = useCallback(
+    (id: string) =>
+      fetchWithAuth<{ success: boolean }>(`/admin/points/rewards/${id}`, {
+        method: 'DELETE',
+      }),
+    [fetchWithAuth]
+  );
+
   // Upload imagine
   const uploadImage = useCallback(
     async (file: File): Promise<string> => {
@@ -315,6 +350,11 @@ export const useAdminApi = () => {
     // Setări
     getSettings,
     updateSettings,
+    // Puncte
+    getPointsRewards,
+    createPointsReward,
+    updatePointsReward,
+    deletePointsReward,
     // Upload
     uploadImage,
   };

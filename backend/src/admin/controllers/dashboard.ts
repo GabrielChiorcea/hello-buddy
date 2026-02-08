@@ -3,6 +3,7 @@
  */
 
 import { Request, Response } from 'express';
+import { logError } from '../../utils/safeErrorLogger.js';
 import { query, queryOne } from '../../config/database.js';
 import * as OrderModel from '../../models/Order.js';
 
@@ -162,7 +163,7 @@ export async function getDashboard(req: Request, res: Response): Promise<void> {
       unavailableProducts,
     });
   } catch (error) {
-    console.error('Eroare dashboard:', error);
+    logError('dashboard', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }
@@ -243,7 +244,7 @@ export async function getStats(req: Request, res: Response): Promise<void> {
       })),
     });
   } catch (error) {
-    console.error('Eroare statistici:', error);
+    logError('statistici', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }

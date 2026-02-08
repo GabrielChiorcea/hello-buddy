@@ -3,6 +3,7 @@
  */
 
 import { Request, Response } from 'express';
+import { logError } from '../../utils/safeErrorLogger.js';
 import * as ProductModel from '../../models/Product.js';
 import { processProductImage } from '../../utils/storage.js';
 
@@ -45,7 +46,7 @@ export async function getProducts(req: Request, res: Response): Promise<void> {
       },
     });
   } catch (error) {
-    console.error('Eroare listare produse:', error);
+    logError('listare produse', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }
@@ -66,7 +67,7 @@ export async function getProduct(req: Request, res: Response): Promise<void> {
     
     res.json(product);
   } catch (error) {
-    console.error('Eroare detalii produs:', error);
+    logError('detalii produs', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }
@@ -92,7 +93,7 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
       name,
       description,
       price: parseFloat(price),
-      image: imagePath,
+      image: imagePath ?? undefined,
       categoryId,
       preparationTime: preparationTime ? parseInt(preparationTime) : undefined,
       ingredients,
@@ -100,7 +101,7 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
     
     res.status(201).json(product);
   } catch (error) {
-    console.error('Eroare creare produs:', error);
+    logError('creare produs', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }
@@ -128,7 +129,7 @@ export async function updateProduct(req: Request, res: Response): Promise<void> 
       name,
       description,
       price: price !== undefined ? parseFloat(price) : undefined,
-      image: imagePath,
+      image: imagePath ?? undefined,
       categoryId,
       isAvailable,
       preparationTime: preparationTime !== undefined ? parseInt(preparationTime) : undefined,
@@ -137,7 +138,7 @@ export async function updateProduct(req: Request, res: Response): Promise<void> 
     
     res.json(product);
   } catch (error) {
-    console.error('Eroare actualizare produs:', error);
+    logError('actualizare produs', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }
@@ -173,7 +174,7 @@ export async function deleteProduct(req: Request, res: Response): Promise<void> 
     
     res.json({ success: true });
   } catch (error) {
-    console.error('Eroare ștergere produs:', error);
+    logError('ștergere produs', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }

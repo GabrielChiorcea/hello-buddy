@@ -4,6 +4,7 @@
  */
 
 import { Request, Response } from 'express';
+import { logError } from '../../utils/safeErrorLogger.js';
 import * as CategoryModel from '../../models/Category.js';
 
 /**
@@ -16,7 +17,7 @@ export async function getCategories(req: Request, res: Response): Promise<void> 
     const categories = await CategoryModel.findAll(includeInactive === 'true');
     res.json(categories);
   } catch (error) {
-    console.error('Eroare listare categorii:', error);
+    logError('listare categorii', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }
@@ -37,7 +38,7 @@ export async function getCategory(req: Request, res: Response): Promise<void> {
     
     res.json(category);
   } catch (error) {
-    console.error('Eroare detalii categorie:', error);
+    logError('detalii categorie', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }
@@ -72,7 +73,7 @@ export async function createCategory(req: Request, res: Response): Promise<void>
     
     res.status(201).json(category);
   } catch (error) {
-    console.error('Eroare creare categorie:', error);
+    logError('creare categorie', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }
@@ -102,7 +103,7 @@ export async function updateCategory(req: Request, res: Response): Promise<void>
     
     res.json(category);
   } catch (error) {
-    console.error('Eroare actualizare categorie:', error);
+    logError('actualizare categorie', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }
@@ -123,7 +124,7 @@ export async function reorderCategories(req: Request, res: Response): Promise<vo
     await CategoryModel.reorder(categoryIds);
     res.json({ success: true });
   } catch (error) {
-    console.error('Eroare reordonare categorii:', error);
+    logError('reordonare categorii', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }
@@ -140,7 +141,7 @@ export async function deleteCategory(req: Request, res: Response): Promise<void>
     res.json({ success: true });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Eroare internă server';
-    console.error('Eroare ștergere categorie:', error);
+    logError('ștergere categorie', error);
     res.status(400).json({ error: errorMessage });
   }
 }

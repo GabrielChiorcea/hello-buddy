@@ -2,7 +2,9 @@
  * Schema GraphQL completă pentru API-ul public
  */
 
-export const typeDefs = `#graphql
+import { schemaExtension as pointsSchemaExtension } from '../plugins/points/index.js';
+
+const coreTypeDefs = `#graphql
   # ============================================
   # Tipuri de bază
   # ============================================
@@ -12,8 +14,7 @@ export const typeDefs = `#graphql
     email: String!
     name: String!
     phone: String
-    address: String
-    city: String
+    pointsBalance: Int!
     createdAt: String!
   }
 
@@ -77,6 +78,9 @@ export const typeDefs = `#graphql
     phone: String!
     notes: String
     paymentMethod: PaymentMethod!
+    pointsEarned: Int!
+    pointsUsed: Int!
+    discountFromPoints: Float!
     items: [OrderItem!]!
     createdAt: String!
     estimatedDelivery: String
@@ -132,8 +136,6 @@ export const typeDefs = `#graphql
   input ProfileUpdateInput {
     name: String
     phone: String
-    address: String
-    city: String
   }
 
   input AddressInput {
@@ -157,6 +159,7 @@ export const typeDefs = `#graphql
     phone: String!
     notes: String
     paymentMethod: PaymentMethod!
+    pointsToUse: Int
   }
 
   # ============================================
@@ -214,3 +217,5 @@ export const typeDefs = `#graphql
     cancelOrder(id: ID!): Order!
   }
 `;
+
+export const typeDefs = coreTypeDefs + '\n' + pointsSchemaExtension;

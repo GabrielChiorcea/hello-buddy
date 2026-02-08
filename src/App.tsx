@@ -65,6 +65,7 @@ import AdminProducts from "./admin/pages/AdminProducts";
 import AdminCategories from "./admin/pages/AdminCategories";
 import AdminOrders from "./admin/pages/AdminOrders";
 import AdminUsers from "./admin/pages/AdminUsers";
+import { AdminPoints } from "./plugins/points";
 import AdminSettings from "./admin/pages/AdminSettings";
 
 // ============================================================================
@@ -152,6 +153,7 @@ const App = () => (
                   <Route index element={<AdminDashboard />} />
                   <Route path="products" element={<AdminProducts />} />
                   <Route path="categories" element={<AdminCategories />} />
+                  <Route path="points" element={<AdminPoints />} />
                   <Route path="orders" element={<AdminOrders />} />
                   <Route path="users" element={<AdminUsers />} />
                   <Route path="settings" element={<AdminSettings />} />

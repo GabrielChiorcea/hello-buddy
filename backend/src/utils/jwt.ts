@@ -9,15 +9,15 @@ import { jwtConfig, AccessTokenPayload, RefreshTokenPayload } from '../config/jw
 import { query, queryOne } from '../config/database.js';
 import { hashPassword } from './password.js';
 import { logTokenRotation, logTokenInvalid } from './securityLogger.js';
+import { securityLogger } from '../config/logger.js';
 import { Request } from 'express';
 
 /**
  * Generează un access token
  */
-export function generateAccessToken(userId: string, email: string): string {
+export function generateAccessToken(userId: string): string {
   const payload: AccessTokenPayload = {
     userId,
-    email,
     type: 'access',
   };
   
@@ -152,8 +152,7 @@ export async function rotateRefreshToken(
   if (oldToken.revoked) {
     // Potențial token theft detectat!
     // Revocă TOATE token-urile utilizatorului pentru siguranță
-    console.warn(`[SECURITY ALERT] Potential token theft detected for user ${userId}!`);
-    console.warn(`Revoking all tokens for user ${userId} as a precaution.`);
+    securityLogger.warn(`[SECURITY ALERT] Potential token theft detected for user ${userId}! Revoking all tokens as a precaution.`, { userId });
     await revokeAllUserRefreshTokens(userId);
     
     logTokenInvalid(req!, 'Token reuse detected - potential theft');
@@ -170,28 +169,19 @@ export async function rotateRefreshToken(
     ipAddress
   );
   
-  // Obține email-ul pentru access token
-  const user = await queryOne<{ email: string }>(
-    `SELECT email FROM users WHERE id = ?`,
-    [userId]
-  );
-  
-  if (!user) {
-    return null;
-  }
-  
-  const accessToken = generateAccessToken(userId, user.email);
-  
+  const accessToken = generateAccessToken(userId);
+  const expiresIn = jwtConfig.access.expiresIn;
+
   // Log token rotation
   if (req) {
     logTokenRotation(req, userId, oldTokenId, newTokenId);
   }
-  
+
   return {
     accessToken,
     refreshToken: newRefreshToken,
     tokenId: newTokenId,
-    expiresIn: jwtConfig.access.expiresIn,
+    expiresIn,
   };
 }
 

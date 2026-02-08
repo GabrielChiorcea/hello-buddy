@@ -33,6 +33,7 @@ import {
 import * as UserModel from './models/User.js';
 import { jwtConfig } from './config/jwt.js';
 import { logTokenInvalid, logSecurityEvent, SecurityEventType } from './utils/securityLogger.js';
+import { logError } from './utils/safeErrorLogger.js';
 
 async function startServer() {
   // Testează conexiunea la DB
@@ -142,12 +143,13 @@ async function startServer() {
           email: user.email,
           name: user.name,
           phone: user.phone,
+          pointsBalance: user.pointsBalance,
         },
         accessToken: rotationResult.accessToken,
         expiresIn: rotationResult.expiresIn,
       });
     } catch (error) {
-      console.error('Eroare refresh token:', error);
+      logError('refresh token', error);
       clearRefreshTokenCookie(res);
       res.status(500).json({ error: 'Eroare internă server' });
     }
@@ -165,4 +167,7 @@ async function startServer() {
   });
 }
 
-startServer().catch(console.error);
+startServer().catch((err) => {
+  logError('startServer', err);
+  process.exit(1);
+});

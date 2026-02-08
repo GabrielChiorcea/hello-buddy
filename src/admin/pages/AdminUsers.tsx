@@ -25,6 +25,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { MoreHorizontal, Shield, ShieldOff, Eye, Loader2 } from 'lucide-react';
+import { PointsBalance } from '@/plugins/points';
 import { AdminRole, Pagination } from '@/types/admin';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
@@ -37,6 +38,7 @@ interface AdminUser {
   roles: AdminRole[];
   isBlocked: boolean;
   ordersCount?: number;
+  pointsBalance?: number;
 }
 
 const roleLabels: Record<AdminRole, { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
@@ -328,6 +330,9 @@ export default function AdminUsers() {
                   <p className="text-sm text-muted-foreground">Total comenzi</p>
                   <p className="text-2xl font-bold">{selectedUser.ordersCount}</p>
                 </div>
+              )}
+              {selectedUser.pointsBalance !== undefined && (
+                <PointsBalance points={selectedUser.pointsBalance} />
               )}
             </div>
           )}

@@ -142,9 +142,9 @@ async function seedComplete() {
       const passwordHash = await hashPassword(user.password);
       
       await query(
-        `INSERT INTO users (id, email, password_hash, name, phone, address, city, is_blocked) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [id, user.email, passwordHash, user.name, user.phone, user.address || null, user.city || null, user.blocked || false]
+        `INSERT INTO users (id, email, password_hash, name, phone, is_blocked) 
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [id, user.email, passwordHash, user.name, user.phone, user.blocked || false]
       );
       
       // Inserare roluri

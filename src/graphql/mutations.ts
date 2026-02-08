@@ -5,7 +5,7 @@
  */
 
 import { gql } from '@apollo/client';
-import { USER_FRAGMENT, ORDER_FRAGMENT, ADDRESS_FRAGMENT } from './queries';
+import { USER_FRAGMENT, ORDER_FRAGMENT_LITE, ADDRESS_FRAGMENT } from './queries';
 
 // ============================================================================
 // MUTAȚII - AUTENTIFICARE
@@ -69,18 +69,6 @@ export const REFRESH_TOKEN = gql`
 // ============================================================================
 // MUTAȚII - PROFIL UTILIZATOR
 // ============================================================================
-
-/**
- * Actualizare profil - folosește JWT context pentru userId
- */
-export const UPDATE_PROFILE = gql`
-  mutation UpdateProfile($input: ProfileUpdateInput!) {
-    updateProfile(input: $input) {
-      ...UserFields
-    }
-  }
-  ${USER_FRAGMENT}
-`;
 
 /**
  * Schimbare parolă
@@ -162,18 +150,18 @@ export const SET_DEFAULT_ADDRESS = gql`
 export const CREATE_ORDER = gql`
   mutation CreateOrder($input: CreateOrderInput!) {
     createOrder(input: $input) {
-      ...OrderFields
+      ...OrderFieldsLite
     }
   }
-  ${ORDER_FRAGMENT}
+  ${ORDER_FRAGMENT_LITE}
 `;
 
 export const CANCEL_ORDER = gql`
   mutation CancelOrder($id: ID!) {
     cancelOrder(id: $id) {
-      ...OrderFields
+      ...OrderFieldsLite
     }
   }
-  ${ORDER_FRAGMENT}
+  ${ORDER_FRAGMENT_LITE}
 `;
 

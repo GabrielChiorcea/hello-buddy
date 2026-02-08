@@ -12,9 +12,8 @@ export interface User {
   email: string;
   name: string;
   phone: string | null;
-  address: string | null;
-  city: string | null;
   isBlocked: boolean;
+  pointsBalance: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,9 +24,8 @@ interface UserRow {
   password_hash: string;
   name: string;
   phone: string | null;
-  address: string | null;
-  city: string | null;
   is_blocked: boolean;
+  points_balance: number;
   created_at: Date;
   updated_at: Date;
 }
@@ -42,8 +40,6 @@ export interface CreateUserInput {
 export interface UpdateUserInput {
   name?: string;
   phone?: string;
-  address?: string;
-  city?: string;
 }
 
 // Mapper pentru a transforma row-ul din DB în obiectul User
@@ -53,9 +49,8 @@ function mapRowToUser(row: UserRow): User {
     email: row.email,
     name: row.name,
     phone: row.phone,
-    address: row.address,
-    city: row.city,
     isBlocked: row.is_blocked,
+    pointsBalance: row.points_balance ?? 0,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -167,14 +162,6 @@ export async function update(id: string, input: UpdateUserInput): Promise<User |
   if (input.phone !== undefined) {
     updates.push('phone = ?');
     values.push(input.phone);
-  }
-  if (input.address !== undefined) {
-    updates.push('address = ?');
-    values.push(input.address);
-  }
-  if (input.city !== undefined) {
-    updates.push('city = ?');
-    values.push(input.city);
   }
   
   if (updates.length === 0) return findById(id);

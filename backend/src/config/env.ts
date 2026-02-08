@@ -40,6 +40,11 @@ const envSchema = z.object({
 
   // Redis (opțional - pentru rate limiting persistent)
   REDIS_URL: z.string().optional(),
+
+  // Logging
+  LOG_DIR: z.string().default('./logs'),
+  LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
+  LOG_TO_CONSOLE: z.string().default('true').transform((v) => v === 'true' || v === '1'),
 });
 
 // Validează și exportă configurația

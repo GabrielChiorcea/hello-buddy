@@ -25,6 +25,7 @@ const routeTitles: Record<string, string> = {
   '/admin/categories': 'Categorii',
   '/admin/orders': 'Comenzi',
   '/admin/users': 'Utilizatori',
+  '/admin/points': 'Puncte',
   '/admin/settings': 'Setări',
 };
 

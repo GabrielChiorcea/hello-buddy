@@ -151,6 +151,7 @@ export const texts = {
     orderSuccess: 'Comandă plasată cu succes!',
     orderSuccessMessage: 'Vei primi un email de confirmare în curând.',
     backToHome: 'Înapoi acasă',
+    backToSavedAddresses: 'Alege o adresă salvată',
   },
 
   // Validation messages
