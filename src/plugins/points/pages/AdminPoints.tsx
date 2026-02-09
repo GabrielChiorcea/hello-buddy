@@ -1,6 +1,6 @@
 /**
  * Pagina Puncte loialitate - Admin
- * Configurare pragmatic puncte / reducere
+ * Configurare praguri puncte / reducere
  * Plugin: plugins/points
  */
 
