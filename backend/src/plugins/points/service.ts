@@ -32,7 +32,12 @@ export async function applyAtCheckout(
   let pointsUsed = 0;
   let discountFromPoints = 0;
 
+  // Verifică dacă plugin-ul este activat înainte de a aplica puncte
   if (input.pointsToUse && input.pointsToUse > 0) {
+    const enabled = await isPluginEnabled('points');
+    if (!enabled) {
+      return { pointsUsed: 0, discountFromPoints: 0 };
+    }
     const reward = await PointsModel.getRewardForPoints(input.pointsToUse);
     if (!reward) {
       throw new Error('Prag invalid pentru puncte. Verifică opțiunile disponibile.');
