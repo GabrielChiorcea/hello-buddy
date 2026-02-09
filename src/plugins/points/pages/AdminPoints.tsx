@@ -21,6 +21,8 @@ import {
 import { Gift, Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import type { PointsReward } from '../types';
+import { usePluginEnabled } from '@/hooks/usePluginEnabled';
+import { Navigate } from 'react-router-dom';
 
 interface PointsRewardWithId extends PointsReward {
   id: string;
@@ -29,6 +31,8 @@ interface PointsRewardWithId extends PointsReward {
 }
 
 export default function AdminPoints() {
+  const { enabled: pointsEnabled, loading: flagLoading } = usePluginEnabled('points');
+
   const { getPointsRewards, createPointsReward, updatePointsReward, deletePointsReward } =
     useAdminApi();
   const [rewards, setRewards] = useState<PointsRewardWithId[]>([]);
@@ -126,12 +130,17 @@ export default function AdminPoints() {
     }
   };
 
-  if (isLoading) {
+  if (flagLoading || isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
+  }
+
+  // Redirecționează la dashboard dacă plugin-ul este dezactivat
+  if (!pointsEnabled) {
+    return <Navigate to="/admin" replace />;
   }
 
   return (

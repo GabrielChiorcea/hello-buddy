@@ -10,6 +10,7 @@ import * as UserModel from '../../models/User.js';
 import { query } from '../../config/database.js';
 import { sendPointsEarnedEmail } from './email.js';
 import { logError } from '../../utils/safeErrorLogger.js';
+import { isPluginEnabled } from '../../utils/pluginFlags.js';
 
 export interface ApplyAtCheckoutResult {
   pointsUsed: number;
@@ -31,7 +32,12 @@ export async function applyAtCheckout(
   let pointsUsed = 0;
   let discountFromPoints = 0;
 
+  // Verifică dacă plugin-ul este activat înainte de a aplica puncte
   if (input.pointsToUse && input.pointsToUse > 0) {
+    const enabled = await isPluginEnabled('points');
+    if (!enabled) {
+      return { pointsUsed: 0, discountFromPoints: 0 };
+    }
     const reward = await PointsModel.getRewardForPoints(input.pointsToUse);
     if (!reward) {
       throw new Error('Prag invalid pentru puncte. Verifică opțiunile disponibile.');
@@ -81,10 +87,8 @@ export async function awardOnDelivery(orderId: string, order: { userId: string; 
   if (order.pointsEarned > 0) return; // deja acordate
 
   // Verifică dacă plugin-ul este activat
-  const [enabledRow] = await query<{ value: string }[]>(
-    "SELECT value FROM app_settings WHERE id = 'plugin_points_enabled'"
-  );
-  if (enabledRow && (enabledRow.value === 'false' || enabledRow.value === '0')) return;
+  const enabled = await isPluginEnabled('points');
+  if (!enabled) return;
 
   try {
     const [pointsPerOrderRow] = await query<{ value: string }[]>(
