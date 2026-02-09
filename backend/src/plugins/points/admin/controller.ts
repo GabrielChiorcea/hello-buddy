@@ -17,7 +17,7 @@ export async function getRewards(req: Request, res: Response): Promise<void> {
     const rewards = await PointsModel.getRewards(includeInactive);
     res.json(rewards);
   } catch (error) {
-    logError('listare pragmatic puncte', error);
+    logError('listare praguri puncte', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }

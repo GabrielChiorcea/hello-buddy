@@ -162,7 +162,7 @@ export default function AdminPoints() {
         <CardContent>
           {rewards.length === 0 ? (
             <p className="text-muted-foreground py-8 text-center">
-              Nu există pragmatic configurate. Adaugă un prag nou.
+              Nu există praguri configurate. Adaugă un prag nou.
             </p>
           ) : (
             <div className="space-y-3">
