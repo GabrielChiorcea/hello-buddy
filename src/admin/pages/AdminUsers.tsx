@@ -333,7 +333,7 @@ export default function AdminUsers() {
                   <p className="text-2xl font-bold">{selectedUser.ordersCount}</p>
                 </div>
               )}
-              {selectedUser.pointsBalance !== undefined && (
+              {pointsEnabled && selectedUser.pointsBalance !== undefined && (
                 <PointsBalance points={selectedUser.pointsBalance} />
               )}
             </div>
