@@ -186,6 +186,9 @@ const coreTypeDefs = `#graphql
     # Adrese (necesită autentificare)
     addresses: [Address!]!
     address(id: ID!): Address
+
+    # Setări aplicație (feature flags)
+    appSetting(key: String!): String
   }
 
   # ============================================
