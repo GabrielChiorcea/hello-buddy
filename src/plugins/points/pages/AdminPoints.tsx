@@ -140,7 +140,7 @@ export default function AdminPoints() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Puncte loialitate</h1>
           <p className="text-muted-foreground">
-            Configurează pragmatic de puncte pentru reduceri la checkout
+            Configurează pragurile de puncte pentru reduceri la checkout
           </p>
         </div>
         <Button onClick={() => setShowCreate(true)}>
