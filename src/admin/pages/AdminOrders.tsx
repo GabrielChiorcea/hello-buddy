@@ -411,7 +411,7 @@ export default function AdminOrders() {
                     <span>Livrare</span>
                     <span>{selectedOrder.deliveryFee} RON</span>
                   </div>
-                  <PointsOrderDetails order={selectedOrder} currency="RON" />
+                  {pointsEnabled && <PointsOrderDetails order={selectedOrder} currency="RON" />}
                   <div className="flex justify-between border-t border-border pt-2 font-semibold">
                     <span>Total</span>
                     <span>{selectedOrder.total} RON</span>

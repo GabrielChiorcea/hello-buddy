@@ -50,6 +50,7 @@ const roleLabels: Record<AdminRole, { label: string; variant: 'default' | 'secon
 
 export default function AdminUsers() {
   const { getUsers, updateUserRole, toggleBlockUser } = useAdminApi();
+  const { enabled: pointsEnabled } = usePluginEnabled('points');
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
