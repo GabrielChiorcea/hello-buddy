@@ -80,6 +80,12 @@ export async function deductPointsInTransaction(
 export async function awardOnDelivery(orderId: string, order: { userId: string; total: number; pointsEarned: number }): Promise<void> {
   if (order.pointsEarned > 0) return; // deja acordate
 
+  // Verifică dacă plugin-ul este activat
+  const [enabledRow] = await query<{ value: string }[]>(
+    "SELECT value FROM app_settings WHERE id = 'plugin_points_enabled'"
+  );
+  if (enabledRow && (enabledRow.value === 'false' || enabledRow.value === '0')) return;
+
   try {
     const [pointsPerOrderRow] = await query<{ value: string }[]>(
       "SELECT value FROM app_settings WHERE id = 'points_per_order'"
