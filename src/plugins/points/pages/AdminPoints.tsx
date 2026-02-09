@@ -44,10 +44,10 @@ export default function AdminPoints() {
       const data = await getPointsRewards(true);
       setRewards(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error('Eroare la încărcarea pragmatic:', error);
+      console.error('Eroare la încărcarea pragurilor:', error);
       toast({
         title: 'Eroare',
-        description: 'Nu s-au putut încărca pragmatic de puncte',
+        description: 'Nu s-au putut încărca pragurile de puncte',
         variant: 'destructive',
       });
     } finally {
