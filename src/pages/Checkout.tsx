@@ -71,8 +71,9 @@ const Checkout: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  const { enabled: pointsEnabled } = usePluginEnabled('points');
   const { pointsRewards } = usePointsRewards();
-  const userPoints = user?.pointsBalance ?? 0;
+  const userPoints = pointsEnabled ? (user?.pointsBalance ?? 0) : 0;
 
   const selectedReward = formData.pointsToUse
     ? pointsRewards.find((r) => r.pointsCost === formData.pointsToUse)
