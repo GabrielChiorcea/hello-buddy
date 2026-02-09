@@ -73,6 +73,8 @@ const coreTypeDefs = `#graphql
     deliveryFee: Float!
     total: Float!
     status: OrderStatus!
+    fulfillmentType: FulfillmentType!
+    tableNumber: String
     deliveryAddress: String!
     deliveryCity: String!
     phone: String!
@@ -85,6 +87,11 @@ const coreTypeDefs = `#graphql
     createdAt: String!
     estimatedDelivery: String
     deliveredAt: String
+  }
+
+  enum FulfillmentType {
+    delivery
+    in_location
   }
 
   enum OrderStatus {
@@ -154,6 +161,8 @@ const coreTypeDefs = `#graphql
 
   input CreateOrderInput {
     items: [OrderItemInput!]!
+    fulfillmentType: FulfillmentType
+    tableNumber: String
     deliveryAddress: String!
     deliveryCity: String!
     phone: String!

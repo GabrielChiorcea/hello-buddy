@@ -16,7 +16,7 @@ import { AddressManager } from '@/components/profile/AddressManager';
 import { AccountSettings } from '@/components/profile/AccountSettings';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { fetchOrders, logout } from '@/store/slices/userSlice';
+import { fetchOrders, fetchCurrentUser, logout } from '@/store/slices/userSlice';
 import { texts } from '@/config/texts';
 import { routes } from '@/config/routes';
 import { toast } from '@/hooks/use-toast';
@@ -71,6 +71,12 @@ const Profile: React.FC = () => {
       dispatch(fetchOrders());
     }
   }, [user, dispatch]);
+
+  useEffect(() => {
+    if (pointsEnabled && user) {
+      dispatch(fetchCurrentUser());
+    }
+  }, [pointsEnabled, user?.id, dispatch]);
 
   if (!user) {
     return (

@@ -35,6 +35,7 @@ interface EditableSettings {
   contact_email: string;
   contact_phone: string;
   plugin_points_enabled: boolean;
+  has_tables: boolean;
 }
 
 function parseSettings(map: SettingsMap): EditableSettings {
@@ -47,6 +48,7 @@ function parseSettings(map: SettingsMap): EditableSettings {
     contact_email: map.contact_email?.value ?? '',
     contact_phone: map.contact_phone?.value ?? '',
     plugin_points_enabled: (map.plugin_points_enabled?.value ?? 'true') === 'true',
+    has_tables: (map.has_tables?.value ?? 'true') === 'true',
   };
 }
 
@@ -94,6 +96,7 @@ export default function AdminSettings() {
         contact_email: settings.contact_email,
         contact_phone: settings.contact_phone,
         plugin_points_enabled: settings.plugin_points_enabled ? 'true' : 'false',
+        has_tables: settings.has_tables ? 'true' : 'false',
       });
       toast({
         title: 'Setări salvate',
@@ -151,12 +154,12 @@ export default function AdminSettings() {
         </Button>
       </div>
 
-      {/* Setări livrare */}
+      {/* Setări livrare și comenzi în locație */}
       <Card>
         <CardHeader>
-          <CardTitle>Livrare</CardTitle>
+          <CardTitle>Livrare și comenzi în locație</CardTitle>
           <CardDescription>
-            Configurează taxele și condițiile de livrare
+            Configurează taxele, condițiile de livrare și opțiunile pentru comenzi ridicate în locație
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -191,6 +194,19 @@ export default function AdminSettings() {
                 onChange={(e) => updateField('free_delivery_threshold', e.target.value)}
               />
             </div>
+          </div>
+          <Separator />
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Locația are mese</Label>
+              <p className="text-sm text-muted-foreground">
+                Dacă este activat, în admin la comenzi în locație se afișează câmpul pentru număr de masă. Dezactivează pentru covrigării sau magazine fără mese.
+              </p>
+            </div>
+            <Switch
+              checked={settings.has_tables}
+              onCheckedChange={(checked) => updateField('has_tables', checked)}
+            />
           </div>
         </CardContent>
       </Card>

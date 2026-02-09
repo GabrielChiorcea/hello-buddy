@@ -5,11 +5,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
-import { CreditCard, Banknote, MapPin, CheckCircle, Plus } from 'lucide-react';
+import { CreditCard, Banknote, MapPin, CheckCircle, Plus, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
@@ -18,36 +16,33 @@ import { Loader } from '@/components/common/Loader';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { resetCart } from '@/store/slices/cartSlice';
-import { fetchAddresses } from '@/store/slices/userSlice';
+import { fetchAddresses, fetchCurrentUser } from '@/store/slices/userSlice';
 import { placeOrderApi } from '@/api/api';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { toast } from '@/hooks/use-toast';
-import { PaymentMethod, CheckoutData, DeliveryAddress } from '@/types';
+import { PaymentMethod, CheckoutData, DeliveryAddress, FulfillmentType } from '@/types';
 import { cn } from '@/lib/utils';
 import { PointsCheckoutSelector, usePointsRewards } from '@/plugins/points';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 
-// Validation schema
-const checkoutSchema = z.object({
-  deliveryAddress: z
-    .string()
-    .trim()
-    .min(5, 'Adresa trebuie să aibă minim 5 caractere')
-    .max(200),
-  deliveryCity: z
-    .string()
-    .trim()
-    .min(2, 'Orașul trebuie să aibă minim 2 caractere')
-    .max(100),
-  phone: z
-    .string()
-    .trim()
-    .min(10, texts.validation.invalidPhone)
-    .max(15)
-    .regex(/^[0-9+\s-]+$/, texts.validation.invalidPhone),
-  paymentMethod: z.enum(['cash', 'card']),
-});
+// Validation schema - adresa obligatorie doar pentru livrare
+const createCheckoutSchema = (fulfillmentType: FulfillmentType) =>
+  z.object({
+    deliveryAddress: fulfillmentType === 'in_location'
+      ? z.string().optional()
+      : z.string().trim().min(5, 'Adresa trebuie să aibă minim 5 caractere').max(200),
+    deliveryCity: fulfillmentType === 'in_location'
+      ? z.string().optional()
+      : z.string().trim().min(2, 'Orașul trebuie să aibă minim 2 caractere').max(100),
+    phone: z
+      .string()
+      .trim()
+      .min(10, texts.validation.invalidPhone)
+      .max(15)
+      .regex(/^[0-9+\s-]+$/, texts.validation.invalidPhone),
+    paymentMethod: z.enum(['cash', 'card']),
+  });
 
 type FormErrors = Partial<Record<keyof CheckoutData, string>>;
 
@@ -62,6 +57,8 @@ const Checkout: React.FC = () => {
   const manualFormRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState<CheckoutData>({
+    fulfillmentType: 'delivery',
+    tableNumber: '',
     deliveryAddress: '',
     deliveryCity: '',
     phone: user?.phone || '',
@@ -79,7 +76,9 @@ const Checkout: React.FC = () => {
     ? pointsRewards.find((r) => r.pointsCost === formData.pointsToUse)
     : null;
   const discountFromPoints = selectedReward?.discountAmount ?? 0;
-  const displayTotal = Math.max(0, subtotal + deliveryFee - discountFromPoints);
+  const isInLocation = formData.fulfillmentType === 'in_location';
+  const effectiveDeliveryFee = isInLocation ? 0 : deliveryFee;
+  const displayTotal = Math.max(0, subtotal + effectiveDeliveryFee - discountFromPoints);
 
   const isCartEmpty = items.length === 0;
 
@@ -102,6 +101,13 @@ const Checkout: React.FC = () => {
     }
   }, [user, addressesFetched, dispatch]);
 
+  // Sincronizează puncte la intrare pe Checkout (când admin poate fi marcat livrarea în alt tab)
+  useEffect(() => {
+    if (pointsEnabled && user) {
+      dispatch(fetchCurrentUser());
+    }
+  }, [pointsEnabled, user?.id, dispatch]);
+
   // Auto-select adresa implicită când adresele se încarcă (nu când user a ales manual entry)
   useEffect(() => {
     if (showManualForm) return; // User a ales explicit "Introdu altă adresă"
@@ -119,7 +125,7 @@ const Checkout: React.FC = () => {
   }, [savedAddresses, isLoadingAddresses, addressesFetched, selectedAddressId, showManualForm, selectAddress]);
 
   const handleManualEntry = () => {
-    // Defer state updates pentru a evita flushSync/conflict cu Radix RadioGroup în timpul render
+    // Defer state updates pentru a evita conflict în timpul render
     queueMicrotask(() => {
       setSelectedAddressId(null);
       setShowManualForm(true);
@@ -153,9 +159,18 @@ const Checkout: React.FC = () => {
     setFormData((prev) => ({ ...prev, paymentMethod: value }));
   };
 
+  const handleFulfillmentChange = (value: FulfillmentType) => {
+    setFormData((prev) => ({
+      ...prev,
+      fulfillmentType: value,
+      ...(value === 'in_location' ? { deliveryAddress: '', deliveryCity: '', tableNumber: prev.tableNumber ?? '' } : { tableNumber: '' }),
+    }));
+    setErrors({});
+  };
+
   const validateForm = (): boolean => {
     try {
-      checkoutSchema.parse(formData);
+      createCheckoutSchema(formData.fulfillmentType ?? 'delivery').parse(formData);
       setErrors({});
       return true;
     } catch (err) {
@@ -184,13 +199,14 @@ const Checkout: React.FC = () => {
         items,
         formData,
         subtotal,
-        deliveryFee,
+        effectiveDeliveryFee,
         displayTotal
       );
 
       if (result.success) {
         setIsSuccess(true);
         dispatch(resetCart());
+        dispatch(fetchCurrentUser());
         toast({
           title: texts.notifications.orderPlaced,
         });
@@ -269,36 +285,102 @@ const Checkout: React.FC = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {/* Saved Addresses Section */}
-                    {isLoadingAddresses ? (
+                    {/* Fulfillment type: Livrare / În locație */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Cum dorești să primești comanda?
+                      </p>
+                      <div className="flex gap-4" role="radiogroup" aria-label="Selectează tip livrare">
+                        <div
+                          role="radio"
+                          aria-checked={formData.fulfillmentType === 'delivery'}
+                          tabIndex={0}
+                          className={cn(
+                            'flex-1 flex flex-col sm:flex-row items-start sm:items-center gap-3 rounded-lg border p-4 cursor-pointer transition-colors',
+                            formData.fulfillmentType === 'delivery' && 'border-primary bg-primary/5'
+                          )}
+                          onClick={() => handleFulfillmentChange('delivery')}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleFulfillmentChange('delivery');
+                            }
+                          }}
+                        >
+                          <MapPin className="h-5 w-5 shrink-0" />
+                          <div>
+                            <p className="font-medium">Livrare la adresă</p>
+                            <p className="text-xs text-muted-foreground">Comandă livrată la adresa ta</p>
+                          </div>
+                        </div>
+                        <div
+                          role="radio"
+                          aria-checked={formData.fulfillmentType === 'in_location'}
+                          tabIndex={0}
+                          className={cn(
+                            'flex-1 flex flex-col sm:flex-row items-start sm:items-center gap-3 rounded-lg border p-4 cursor-pointer transition-colors',
+                            formData.fulfillmentType === 'in_location' && 'border-primary bg-primary/5'
+                          )}
+                          onClick={() => handleFulfillmentChange('in_location')}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleFulfillmentChange('in_location');
+                            }
+                          }}
+                        >
+                          <Store className="h-5 w-5 shrink-0" />
+                          <div>
+                            <p className="font-medium">În locație</p>
+                            <p className="text-xs text-muted-foreground">Ridici comanda din locație</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Saved Addresses Section - doar pentru livrare */}
+                    {!isInLocation && isLoadingAddresses ? (
                       <div className="flex justify-center py-4">
                         <Loader size="md" />
                       </div>
-                    ) : savedAddresses.length > 0 && !showManualForm ? (
+                    ) : !isInLocation && savedAddresses.length > 0 && !showManualForm ? (
                       <div className="space-y-3">
                         <p className="text-sm font-medium text-muted-foreground">
                           Selectează o adresă salvată sau introdu una nouă
                         </p>
                         
-                        <RadioGroup
-                          value={selectedAddressId || ''}
-                          onValueChange={(id) => {
-                            const addr = savedAddresses.find(a => a.id === id);
-                            if (addr) selectAddress(addr);
-                          }}
-                          className="space-y-2"
-                        >
+                        <div className="space-y-2" role="radiogroup" aria-label="Selectează adresa de livrare">
                           {savedAddresses.map((address) => (
                             <div
                               key={address.id}
+                              role="radio"
+                              aria-checked={selectedAddressId === address.id}
+                              tabIndex={0}
                               className={cn(
                                 'flex items-start space-x-3 rounded-lg border p-4 cursor-pointer transition-colors',
                                 selectedAddressId === address.id && 'border-primary bg-primary/5'
                               )}
                               onClick={() => selectAddress(address)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  selectAddress(address);
+                                }
+                              }}
                             >
-                              <RadioGroupItem value={address.id} id={address.id} className="mt-1" />
-                              <Label htmlFor={address.id} className="cursor-pointer flex-1">
+                              <div
+                                className={cn(
+                                  'mt-1 h-4 w-4 shrink-0 rounded-full border-2 flex items-center justify-center',
+                                  selectedAddressId === address.id
+                                    ? 'border-primary bg-primary'
+                                    : 'border-muted-foreground'
+                                )}
+                              >
+                                {selectedAddressId === address.id && (
+                                  <div className="h-2 w-2 rounded-full bg-primary-foreground" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
                                 <div className="font-medium">{address.label}</div>
                                 <div className="text-sm text-muted-foreground">
                                   {address.address}, {address.city}
@@ -306,10 +388,10 @@ const Checkout: React.FC = () => {
                                 <div className="text-sm text-muted-foreground">
                                   {address.phone}
                                 </div>
-                              </Label>
+                              </div>
                             </div>
                           ))}
-                        </RadioGroup>
+                        </div>
 
                         <Button
                           type="button"
@@ -324,8 +406,8 @@ const Checkout: React.FC = () => {
                       </div>
                     ) : null}
 
-                    {/* Manual Address Form */}
-                    {(showManualForm || savedAddresses.length === 0) && (
+                    {/* Manual Address Form - doar pentru livrare */}
+                    {!isInLocation && (showManualForm || savedAddresses.length === 0) && (
                       <div ref={manualFormRef} className="space-y-4 mt-4">
                         {savedAddresses.length > 0 && (
                           <Alert>
@@ -371,8 +453,40 @@ const Checkout: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Show selected address summary when not in manual mode */}
-                    {selectedAddressId && !showManualForm && (
+                    {/* Pentru în locație - telefon și număr masă */}
+                    {isInLocation && (
+                      <div ref={manualFormRef} className="space-y-4">
+                        <Alert>
+                          <AlertDescription>
+                            Vei ridica comanda din locație. Indicați numărul de telefon și masa la care așteptați (dacă aveți).
+                          </AlertDescription>
+                        </Alert>
+                        <FormInput
+                          name="phone"
+                          type="tel"
+                          label={texts.auth.phoneLabel}
+                          placeholder={texts.auth.phonePlaceholder}
+                          value={formData.phone}
+                          onChange={handleChange}
+                          error={errors.phone}
+                          required
+                          disabled={isLoading}
+                        />
+                        <FormInput
+                          name="tableNumber"
+                          type="text"
+                          label="Număr masă"
+                          placeholder="Ex: 5 (opțional dacă nu sunt mese)"
+                          value={formData.tableNumber ?? ''}
+                          onChange={handleChange}
+                          error={errors.tableNumber}
+                          disabled={isLoading}
+                        />
+                      </div>
+                    )}
+
+                    {/* Show selected address summary when not in manual mode (livrare) */}
+                    {!isInLocation && selectedAddressId && !showManualForm && (
                       <div className="rounded-lg bg-muted/50 p-4 mt-4">
                         <p className="text-sm font-medium mb-1">Adresa selectată:</p>
                         <p className="text-sm">{formData.deliveryAddress}</p>
@@ -392,41 +506,77 @@ const Checkout: React.FC = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <RadioGroup
-                      value={formData.paymentMethod}
-                      onValueChange={(value) => handlePaymentChange(value as PaymentMethod)}
-                      className="space-y-3"
-                    >
+                    <div className="space-y-3" role="radiogroup" aria-label="Selectează metoda de plată">
                       <div
+                        role="radio"
+                        aria-checked={formData.paymentMethod === 'cash'}
+                        tabIndex={0}
                         className={cn(
                           'flex items-center space-x-3 rounded-lg border p-4 cursor-pointer transition-colors',
                           formData.paymentMethod === 'cash' && 'border-primary bg-primary/5'
                         )}
                         onClick={() => handlePaymentChange('cash')}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handlePaymentChange('cash');
+                          }
+                        }}
                       >
-                        <RadioGroupItem value="cash" id="cash" />
-                        <Label htmlFor="cash" className="flex items-center gap-2 cursor-pointer flex-1">
+                        <div
+                          className={cn(
+                            'h-4 w-4 shrink-0 rounded-full border-2 flex items-center justify-center',
+                            formData.paymentMethod === 'cash'
+                              ? 'border-primary bg-primary'
+                              : 'border-muted-foreground'
+                          )}
+                        >
+                          {formData.paymentMethod === 'cash' && (
+                            <div className="h-2 w-2 rounded-full bg-primary-foreground" />
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 flex-1">
                           <Banknote className="h-5 w-5" />
                           {texts.checkout.cash}
-                        </Label>
+                        </div>
                       </div>
                       <div
+                        role="radio"
+                        aria-checked={formData.paymentMethod === 'card'}
+                        tabIndex={0}
                         className={cn(
                           'flex items-center space-x-3 rounded-lg border p-4 cursor-pointer transition-colors',
                           formData.paymentMethod === 'card' && 'border-primary bg-primary/5'
                         )}
                         onClick={() => handlePaymentChange('card')}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handlePaymentChange('card');
+                          }
+                        }}
                       >
-                        <RadioGroupItem value="card" id="card" />
-                        <Label htmlFor="card" className="flex items-center gap-2 cursor-pointer flex-1">
+                        <div
+                          className={cn(
+                            'h-4 w-4 shrink-0 rounded-full border-2 flex items-center justify-center',
+                            formData.paymentMethod === 'card'
+                              ? 'border-primary bg-primary'
+                              : 'border-muted-foreground'
+                          )}
+                        >
+                          {formData.paymentMethod === 'card' && (
+                            <div className="h-2 w-2 rounded-full bg-primary-foreground" />
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 flex-1">
                           <CreditCard className="h-5 w-5" />
                           {texts.checkout.card}
                           <span className="text-xs text-muted-foreground ml-auto">
                             (TODO: Integrare plată online)
                           </span>
-                        </Label>
+                        </div>
                       </div>
-                    </RadioGroup>
+                    </div>
 
                     {pointsEnabled && (
                       <PointsCheckoutSelector
@@ -469,7 +619,7 @@ const Checkout: React.FC = () => {
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{texts.cart.delivery}</span>
                       <span className="font-medium">
-                        {deliveryFee === 0 ? (
+                        {effectiveDeliveryFee === 0 ? (
                           <span className="text-primary">{texts.cart.freeDelivery}</span>
                         ) : (
                           `${deliveryFee} ${texts.common.currency}`

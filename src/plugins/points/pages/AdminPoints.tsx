@@ -119,12 +119,12 @@ export default function AdminPoints() {
   const handleDelete = async (id: string) => {
     try {
       await deletePointsReward(id);
-      toast({ title: 'Prag dezactivat' });
+      toast({ title: 'Prag șters' });
       fetchRewards();
     } catch (error) {
       toast({
         title: 'Eroare',
-        description: error instanceof Error ? error.message : 'Nu s-a putut dezactiva',
+        description: error instanceof Error ? error.message : 'Nu s-a putut șterge',
         variant: 'destructive',
       });
     }
@@ -203,7 +203,6 @@ export default function AdminPoints() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleDelete(r.id)}
-                      disabled={!r.isActive}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

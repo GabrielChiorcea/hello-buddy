@@ -199,6 +199,15 @@ export const useAdminApi = () => {
     [fetchWithAuth]
   );
 
+  const updateOrder = useCallback(
+    (id: string, data: { tableNumber?: string | null }) =>
+      fetchWithAuth<{ order: any }>(`/admin/orders/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    [fetchWithAuth]
+  );
+
   const getNewOrdersCount = useCallback(
     async (): Promise<number> => {
       try {
@@ -341,6 +350,7 @@ export const useAdminApi = () => {
     getOrders,
     getOrder,
     updateOrderStatus,
+    updateOrder,
     getNewOrdersCount,
     // Utilizatori
     getUsers,

@@ -100,6 +100,6 @@ export async function getRewardById(id: string): Promise<PointsReward | null> {
 }
 
 export async function deleteReward(id: string): Promise<boolean> {
-  await query('UPDATE points_rewards SET is_active = FALSE WHERE id = ?', [id]);
+  await query('DELETE FROM points_rewards WHERE id = ?', [id]);
   return true;
 }

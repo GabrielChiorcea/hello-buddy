@@ -87,7 +87,7 @@ export async function updateReward(req: Request, res: Response): Promise<void> {
 
 /**
  * DELETE /admin/points/rewards/:id
- * Dezactivează un prag
+ * Șterge definitiv un prag
  */
 export async function deleteReward(req: Request, res: Response): Promise<void> {
   try {

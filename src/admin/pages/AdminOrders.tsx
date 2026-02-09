@@ -24,7 +24,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Eye, Download, Bell, Loader2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Eye, Download, Bell, Loader2, Store } from 'lucide-react';
 import { PointsOrderDetails } from '@/plugins/points';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { OrderStatus } from '@/types';
@@ -52,6 +54,8 @@ interface AdminOrder {
   deliveryFee: number;
   total: number;
   status: OrderStatus;
+  fulfillmentType?: 'delivery' | 'in_location';
+  tableNumber?: string | null;
   deliveryAddress: string;
   deliveryCity: string;
   phone: string;
@@ -75,7 +79,7 @@ const statusConfig: Record<OrderStatus, { label: string; variant: 'default' | 's
 
 export default function AdminOrders() {
   const dispatch = useAppDispatch();
-  const { getOrders, updateOrderStatus } = useAdminApi();
+  const { getOrders, updateOrderStatus, updateOrder, getSettings } = useAdminApi();
   const { enabled: pointsEnabled } = usePluginEnabled('points');
   const newOrdersCount = useAppSelector((state) => state.admin.newOrdersCount);
   
@@ -83,6 +87,7 @@ export default function AdminOrders() {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [fulfillmentFilter, setFulfillmentFilter] = useState<string>('all');
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
     limit: 10,
@@ -91,6 +96,8 @@ export default function AdminOrders() {
   });
   const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+  const [editingTableNumber, setEditingTableNumber] = useState<string>('');
+  const [hasTables, setHasTables] = useState(true);
 
   // Ref pentru a urmări schimbările în numărul de comenzi noi (pentru notificări)
   const lastOrderCount = useRef<number>(0);
@@ -104,6 +111,7 @@ export default function AdminOrders() {
         limit: String(pagination.limit),
       });
       if (statusFilter !== 'all') params.append('status', statusFilter);
+      if (fulfillmentFilter !== 'all') params.append('fulfillmentType', fulfillmentFilter);
       if (search) params.append('search', search);
 
       const result = await getOrders(params.toString());
@@ -123,11 +131,27 @@ export default function AdminOrders() {
     } finally {
       setIsLoading(false);
     }
-  }, [pagination.page, pagination.limit, statusFilter, search, getOrders]);
+  }, [pagination.page, pagination.limit, statusFilter, fulfillmentFilter, search, getOrders]);
 
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
+
+  useEffect(() => {
+    getSettings()
+      .then((data: any) => {
+        const map = data?.settings ?? data;
+        const val = map?.has_tables?.value ?? 'true';
+        setHasTables(val === 'true');
+      })
+      .catch(() => setHasTables(true));
+  }, [getSettings]);
+
+  useEffect(() => {
+    if (selectedOrder) {
+      setEditingTableNumber(selectedOrder.tableNumber ?? '');
+    }
+  }, [selectedOrder?.id]);
 
   // Notificări și refresh când se schimbă numărul de comenzi noi (din Redux)
   useEffect(() => {
@@ -222,8 +246,22 @@ export default function AdminOrders() {
       ),
     },
     {
+      key: 'type',
+      header: 'Tip',
+      cell: (order) => (
+        order.fulfillmentType === 'in_location' ? (
+          <Badge variant="secondary" className="gap-1">
+            <Store className="h-3 w-3" />
+            În locație
+          </Badge>
+        ) : (
+          <Badge variant="outline">Livrare</Badge>
+        )
+      ),
+    },
+    {
       key: 'address',
-      header: 'Adresă livrare',
+      header: 'Adresă / Locație',
       cell: (order) => (
         <div className="max-w-xs">
           <p className="truncate text-sm">{order.deliveryAddress}</p>
@@ -331,6 +369,16 @@ export default function AdminOrders() {
             ))}
           </SelectContent>
         </Select>
+        <Select value={fulfillmentFilter} onValueChange={setFulfillmentFilter}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="Tip livrare" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Toate</SelectItem>
+            <SelectItem value="delivery">Livrare</SelectItem>
+            <SelectItem value="in_location">În locație</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Tabel */}
@@ -350,7 +398,13 @@ export default function AdminOrders() {
       />
 
       {/* Dialog detalii comandă */}
-      <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
+      <Dialog
+        open={!!selectedOrder}
+        onOpenChange={(open) => {
+          if (!open) setSelectedOrder(null);
+          else if (selectedOrder) setEditingTableNumber(selectedOrder.tableNumber ?? '');
+        }}
+      >
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Detalii comandă</DialogTitle>
@@ -369,15 +423,58 @@ export default function AdminOrders() {
                 <p className="text-sm">Tel: {selectedOrder.phone}</p>
               </div>
 
-              {/* Info livrare */}
+              {/* Info livrare / În locație */}
               <div className="rounded-lg border border-border p-4">
-                <h4 className="mb-2 font-medium">Adresă livrare</h4>
-                <p className="text-sm text-muted-foreground">
-                  {selectedOrder.deliveryAddress}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {selectedOrder.deliveryCity}
-                </p>
+                <h4 className="mb-2 font-medium">
+                  {selectedOrder.fulfillmentType === 'in_location' ? 'În locație' : 'Adresă livrare'}
+                </h4>
+                {selectedOrder.fulfillmentType === 'in_location' ? (
+                  <>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Comandă ridicată în locație. Duce comanda la masa indicată de client.
+                    </p>
+                    <div className="rounded-md bg-muted/60 p-3">
+                      <p className="text-sm font-medium text-muted-foreground">Masa la care duce comanda:</p>
+                      <p className="text-lg font-semibold mt-1">
+                        {selectedOrder.tableNumber ? `Masa ${selectedOrder.tableNumber}` : '— (clientul nu a indicat masa)'}
+                      </p>
+                    </div>
+                    {hasTables && (
+                      <div className="flex items-center gap-2 pt-1">
+                        <Label htmlFor="tableNumber" className="text-sm shrink-0">Corectare număr masă:</Label>
+                        <Input
+                          id="tableNumber"
+                          className="max-w-[100px]"
+                          placeholder="Ex: 5"
+                          value={editingTableNumber}
+                          onChange={(e) => setEditingTableNumber(e.target.value)}
+                          onBlur={async () => {
+                            const value = editingTableNumber.trim() || null;
+                            if (value !== (selectedOrder.tableNumber ?? '')) {
+                              try {
+                                await updateOrder(selectedOrder.id, { tableNumber: value });
+                                setSelectedOrder((prev) => prev ? { ...prev, tableNumber: value } : null);
+                                toast({ title: 'Număr masă actualizat' });
+                              } catch {
+                                toast({
+                                  title: 'Eroare',
+                                  description: 'Nu s-a putut actualiza numărul mesei',
+                                  variant: 'destructive',
+                                });
+                              }
+                            }
+                          }}
+                        />
+                        <span className="text-xs text-muted-foreground">(opțional, dacă clientul s-a înșelat)</span>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-muted-foreground">{selectedOrder.deliveryAddress}</p>
+                    <p className="text-sm text-muted-foreground">{selectedOrder.deliveryCity}</p>
+                  </>
+                )}
                 {selectedOrder.notes && (
                   <p className="mt-2 text-sm italic">
                     Note: {selectedOrder.notes}

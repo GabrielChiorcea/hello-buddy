@@ -14,6 +14,8 @@ interface OrderItemInput {
 
 interface CreateOrderInput {
   items: OrderItemInput[];
+  fulfillmentType?: 'delivery' | 'in_location';
+  tableNumber?: string | null;
   deliveryAddress: string;
   deliveryCity: string;
   phone: string;
@@ -129,8 +131,14 @@ export const orderResolvers = {
         }
       }
       
-      if (!input.deliveryAddress || input.deliveryAddress.length < 5) {
-        throw new Error('Adresa de livrare este invalidă');
+      const isInLocation = input.fulfillmentType === 'in_location';
+      if (!isInLocation) {
+        if (!input.deliveryAddress || input.deliveryAddress.length < 5) {
+          throw new Error('Adresa de livrare este invalidă');
+        }
+        if (!input.deliveryCity || input.deliveryCity.length < 2) {
+          throw new Error('Orașul este invalid');
+        }
       }
       
       if (!input.phone || input.phone.length < 9) {
@@ -140,8 +148,10 @@ export const orderResolvers = {
       const order = await OrderModel.create({
         userId: user.id,
         items: input.items,
-        deliveryAddress: input.deliveryAddress,
-        deliveryCity: input.deliveryCity,
+        fulfillmentType: input.fulfillmentType,
+        tableNumber: input.tableNumber,
+        deliveryAddress: isInLocation ? 'În locație' : input.deliveryAddress,
+        deliveryCity: isInLocation ? 'În locație' : input.deliveryCity,
         phone: input.phone,
         notes: input.notes,
         paymentMethod: input.paymentMethod,

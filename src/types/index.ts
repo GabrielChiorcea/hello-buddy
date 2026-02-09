@@ -194,6 +194,9 @@ export interface OrderItem {
   priceAtOrder: number;
 }
 
+/** Tip de îndeplinire a comenzii */
+export type FulfillmentType = 'delivery' | 'in_location';
+
 /** Comandă - exclude date sensibile în răspunsul pentru listă (phone, notes, paymentMethod) */
 export interface Order {
   id: string;
@@ -201,6 +204,8 @@ export interface Order {
   deliveryFee: number;
   total: number;
   status: OrderStatus;
+  fulfillmentType?: FulfillmentType;
+  tableNumber?: string | null;
   deliveryAddress: string;
   deliveryCity: string;
   phone?: string;
@@ -229,6 +234,8 @@ export type PaymentMethod = 'cash' | 'card';
 
 /** Date pentru finalizarea comenzii */
 export interface CheckoutData {
+  fulfillmentType?: FulfillmentType;
+  tableNumber?: string | null;
   deliveryAddress: string;
   deliveryCity: string;
   phone: string;

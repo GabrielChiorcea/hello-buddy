@@ -26,7 +26,8 @@ import {
   signupApi, 
   logoutApi, 
   fetchOrdersApi,
-  fetchAddressesApi
+  fetchAddressesApi,
+  getCurrentUserApi
 } from '@/api/api';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
@@ -171,6 +172,20 @@ export const fetchOrders = createAsyncThunk(
     const response = await fetchOrdersApi();
     if (!response.success || !response.data) {
       return rejectWithValue(response.error || 'Eroare la încărcarea comenzilor');
+    }
+    return response.data;
+  }
+);
+
+/**
+ * Sincronizează utilizatorul curent din backend (ex. puncte actualizate după comandă)
+ */
+export const fetchCurrentUser = createAsyncThunk(
+  'user/fetchCurrentUser',
+  async (_, { rejectWithValue }) => {
+    const response = await getCurrentUserApi();
+    if (!response.success) {
+      return rejectWithValue(response.error || 'Eroare la sincronizare');
     }
     return response.data;
   }
@@ -378,6 +393,12 @@ const userSlice = createSlice({
       })
       .addCase(fetchAddresses.rejected, (state) => {
         state.addressesLoading = false;
+      })
+    // FETCH CURRENT USER (sincronizare puncte etc.)
+      .addCase(fetchCurrentUser.fulfilled, (state, action) => {
+        if (action.payload) {
+          state.user = action.payload;
+        }
       });
   },
 });

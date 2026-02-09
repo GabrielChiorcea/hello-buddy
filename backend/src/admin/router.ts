@@ -58,9 +58,10 @@ router.delete('/categories/:id', categoriesController.deleteCategory);
 
 // Comenzi - cu rate limiting pentru actualizări
 router.get('/orders', ordersController.getOrders);
+router.get('/orders/export', ordersController.exportOrders);
 router.get('/orders/:id', ordersController.getOrder);
 router.put('/orders/:id/status', ordersController.updateOrderStatus);
-router.get('/orders/export', ordersController.exportOrders);
+router.put('/orders/:id', ordersController.updateOrder);
 
 // Utilizatori
 router.get('/users', usersController.getUsers);

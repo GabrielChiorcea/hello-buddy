@@ -46,7 +46,7 @@ export async function getSettings(req: Request, res: Response): Promise<void> {
 export async function updateSettings(req: Request, res: Response): Promise<void> {
   try {
     const updates = req.body;
-    
+
     if (typeof updates !== 'object' || updates === null) {
       res.status(400).json({ error: 'Obiect cu setări necesar' });
       return;
@@ -67,6 +67,7 @@ export async function updateSettings(req: Request, res: Response): Promise<void>
       'points_per_order',
       'points_per_ron',
       'plugin_points_enabled',
+      'has_tables',
     ];
     
     for (const [key, value] of Object.entries(updates)) {
@@ -88,6 +89,13 @@ export async function updateSettings(req: Request, res: Response): Promise<void>
         const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
         if (!timeRegex.test(value as string)) {
           res.status(400).json({ error: `Format oră invalid pentru ${key}` });
+          return;
+        }
+      }
+      if (key === 'has_tables') {
+        const v = String(value).toLowerCase();
+        if (!['true', 'false'].includes(v)) {
+          res.status(400).json({ error: 'has_tables trebuie să fie true sau false' });
           return;
         }
       }

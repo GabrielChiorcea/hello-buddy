@@ -18,6 +18,7 @@ export async function getOrders(req: Request, res: Response): Promise<void> {
       page = '1',
       limit = '20',
       status,
+      fulfillmentType,
       dateFrom,
       dateTo,
     } = req.query;
@@ -26,6 +27,7 @@ export async function getOrders(req: Request, res: Response): Promise<void> {
       page: parseInt(page as string),
       limit: parseInt(limit as string),
       status: status as OrderModel.OrderStatus,
+      fulfillmentType: fulfillmentType as OrderModel.FulfillmentType | undefined,
       dateFrom: dateFrom ? new Date(dateFrom as string) : undefined,
       dateTo: dateTo ? new Date(dateTo as string) : undefined,
     });
@@ -166,6 +168,38 @@ export async function updateOrderStatus(req: Request, res: Response): Promise<vo
 }
 
 /**
+ * PUT /admin/orders/:id
+ * Actualizează detalii comandă (ex: număr masă pentru comenzi în locație)
+ */
+export async function updateOrder(req: Request, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+    const { tableNumber } = req.body;
+    
+    const order = await OrderModel.findById(id);
+    if (!order) {
+      res.status(404).json({ error: 'Comanda nu a fost găsită' });
+      return;
+    }
+    
+    if (order.fulfillmentType !== 'in_location') {
+      res.status(400).json({ error: 'Numărul mesei se poate actualiza doar pentru comenzi în locație' });
+      return;
+    }
+    
+    const value = tableNumber === undefined || tableNumber === null || tableNumber === ''
+      ? null
+      : String(tableNumber).trim().slice(0, 20);
+    
+    const updatedOrder = await OrderModel.updateTableNumber(id, value);
+    res.json(updatedOrder);
+  } catch (error) {
+    logError('actualizare comandă', error);
+    res.status(500).json({ error: 'Eroare internă server' });
+  }
+}
+
+/**
  * GET /admin/orders/export
  * Exportă comenzile în format CSV
  */
@@ -184,7 +218,7 @@ export async function exportOrders(req: Request, res: Response): Promise<void> {
     // Generează CSV
     const headers = [
       'ID', 'Data', 'Client', 'Produse', 'Subtotal', 'Livrare', 'Total',
-      'Status', 'Adresa', 'Oraș', 'Telefon', 'Plată'
+      'Status', 'Tip', 'Masa', 'Adresa', 'Oraș', 'Telefon', 'Plată'
     ];
     
     const rows = orders.map(o => [
@@ -196,6 +230,8 @@ export async function exportOrders(req: Request, res: Response): Promise<void> {
       o.deliveryFee.toFixed(2),
       o.total.toFixed(2),
       o.status,
+      o.fulfillmentType === 'in_location' ? 'În locație' : 'Livrare',
+      o.tableNumber ?? '',
       o.deliveryAddress,
       o.deliveryCity,
       o.phone,

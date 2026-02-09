@@ -355,13 +355,17 @@ export const placeOrderApi = async (
   _total: number
 ): Promise<ApiResponse<Order>> => {
   try {
+    const isInLocation = checkoutData.fulfillmentType === 'in_location';
+    const tableNumberValue = checkoutData.tableNumber?.trim() || null;
     const orderInput = {
       items: items.map(item => ({
         productId: item.product.id,
         quantity: item.quantity,
       })),
-      deliveryAddress: checkoutData.deliveryAddress,
-      deliveryCity: checkoutData.deliveryCity,
+      fulfillmentType: checkoutData.fulfillmentType ?? 'delivery',
+      tableNumber: isInLocation ? tableNumberValue : undefined,
+      deliveryAddress: isInLocation ? 'În locație' : checkoutData.deliveryAddress,
+      deliveryCity: isInLocation ? 'În locație' : checkoutData.deliveryCity,
       phone: checkoutData.phone,
       notes: checkoutData.notes || null,
       paymentMethod: checkoutData.paymentMethod,

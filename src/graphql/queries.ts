@@ -99,6 +99,8 @@ export const ORDER_FRAGMENT = gql`
     deliveryFee
     total
     status
+    fulfillmentType
+    tableNumber
     deliveryAddress
     deliveryCity
     phone
@@ -122,6 +124,8 @@ export const ORDER_FRAGMENT_LITE = gql`
     deliveryFee
     total
     status
+    fulfillmentType
+    tableNumber
     deliveryAddress
     deliveryCity
     pointsEarned

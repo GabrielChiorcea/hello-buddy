@@ -8,6 +8,7 @@ import { pointsPlugin } from '../plugins/points/index.js';
 
 export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'delivering' | 'delivered' | 'cancelled';
 export type PaymentMethod = 'cash' | 'card';
+export type FulfillmentType = 'delivery' | 'in_location';
 
 export interface OrderItem {
   id: number;
@@ -25,6 +26,8 @@ export interface Order {
   deliveryFee: number;
   total: number;
   status: OrderStatus;
+  fulfillmentType: FulfillmentType;
+  tableNumber: string | null;
   deliveryAddress: string;
   deliveryCity: string;
   phone: string;
@@ -49,6 +52,8 @@ interface OrderRow {
   delivery_fee: string;
   total: string;
   status: OrderStatus;
+  fulfillment_type?: FulfillmentType;
+  table_number?: string | null;
   delivery_address: string;
   delivery_city: string;
   phone: string;
@@ -81,6 +86,8 @@ export interface CreateOrderInput {
     productId: string;
     quantity: number;
   }>;
+  fulfillmentType?: FulfillmentType;
+  tableNumber?: string | null;
   deliveryAddress: string;
   deliveryCity: string;
   phone: string;
@@ -97,6 +104,8 @@ function mapRowToOrder(row: OrderRow, items: OrderItem[] = []): Order {
     deliveryFee: parseFloat(row.delivery_fee),
     total: parseFloat(row.total),
     status: row.status,
+    fulfillmentType: row.fulfillment_type ?? 'delivery',
+    tableNumber: row.table_number ?? null,
     deliveryAddress: row.delivery_address,
     deliveryCity: row.delivery_city,
     phone: row.phone,
@@ -167,12 +176,13 @@ export async function findByUserId(userId: string): Promise<Order[]> {
  */
 export async function findAll(options: {
   status?: OrderStatus;
+  fulfillmentType?: FulfillmentType;
   dateFrom?: Date;
   dateTo?: Date;
   page?: number;
   limit?: number;
 } = {}): Promise<{ orders: Order[]; total: number }> {
-  const { status, dateFrom, dateTo, page = 1, limit = 20 } = options;
+  const { status, fulfillmentType, dateFrom, dateTo, page = 1, limit = 20 } = options;
   
   const conditions: string[] = [];
   const params: unknown[] = [];
@@ -180,6 +190,10 @@ export async function findAll(options: {
   if (status) {
     conditions.push('status = ?');
     params.push(status);
+  }
+  if (fulfillmentType) {
+    conditions.push('fulfillment_type = ?');
+    params.push(fulfillmentType);
   }
   if (dateFrom) {
     conditions.push('created_at >= ?');
@@ -258,11 +272,23 @@ export async function create(input: CreateOrderInput): Promise<Order> {
       });
     }
     
-    // Obține taxa de livrare din setări
-    const [settingsRows] = await connection.execute<any[]>(
-      'SELECT value FROM app_settings WHERE id = "delivery_fee"'
-    );
-    const deliveryFee = settingsRows.length > 0 ? parseFloat(settingsRows[0].value) : 10;
+    const fulfillmentType = input.fulfillmentType ?? 'delivery';
+    const isInLocation = fulfillmentType === 'in_location';
+
+    // Taxa de livrare: 0 pentru în locație, altfel din setări
+    let deliveryFee = 0;
+    let deliveryAddress = input.deliveryAddress;
+    let deliveryCity = input.deliveryCity;
+
+    if (!isInLocation) {
+      const [settingsRows] = await connection.execute<any[]>(
+        'SELECT value FROM app_settings WHERE id = "delivery_fee"'
+      );
+      deliveryFee = settingsRows.length > 0 ? parseFloat(settingsRows[0].value) : 10;
+    } else {
+      deliveryAddress = 'În locație';
+      deliveryCity = 'În locație';
+    }
 
     const { pointsUsed, discountFromPoints } = await pointsPlugin.service.applyAtCheckout(
       connection,
@@ -272,9 +298,9 @@ export async function create(input: CreateOrderInput): Promise<Order> {
 
     // Inserează comanda
     await connection.execute(
-      `INSERT INTO orders (id, user_id, subtotal, delivery_fee, total, delivery_address, delivery_city, phone, notes, payment_method, points_used, discount_from_points)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, input.userId, subtotal, deliveryFee, total, input.deliveryAddress, input.deliveryCity, input.phone, input.notes || null, input.paymentMethod, pointsUsed, discountFromPoints]
+      `INSERT INTO orders (id, user_id, subtotal, delivery_fee, total, fulfillment_type, table_number, delivery_address, delivery_city, phone, notes, payment_method, points_used, discount_from_points)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, input.userId, subtotal, deliveryFee, total, fulfillmentType, input.tableNumber ?? null, deliveryAddress, deliveryCity, input.phone, input.notes || null, input.paymentMethod, pointsUsed, discountFromPoints]
     );
 
     if (pointsUsed > 0) {
@@ -367,6 +393,17 @@ export async function setPointsEarned(id: string, pointsEarned: number): Promise
     'UPDATE orders SET points_earned = ? WHERE id = ?',
     [pointsEarned, id]
   );
+}
+
+/**
+ * Actualizează numărul mesei pentru o comandă în locație
+ */
+export async function updateTableNumber(id: string, tableNumber: string | null): Promise<Order | null> {
+  await query(
+    'UPDATE orders SET table_number = ? WHERE id = ?',
+    [tableNumber, id]
+  );
+  return findById(id);
 }
 
 /**
