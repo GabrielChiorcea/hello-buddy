@@ -1,6 +1,6 @@
 /**
  * Pagina Puncte loialitate - Admin
- * Configurare pragmatic puncte / reducere
+ * Configurare praguri puncte / reducere
  * Plugin: plugins/points
  */
 
@@ -44,10 +44,10 @@ export default function AdminPoints() {
       const data = await getPointsRewards(true);
       setRewards(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error('Eroare la încărcarea pragmatic:', error);
+      console.error('Eroare la încărcarea pragurilor:', error);
       toast({
         title: 'Eroare',
-        description: 'Nu s-au putut încărca pragmatic de puncte',
+        description: 'Nu s-au putut încărca pragurile de puncte',
         variant: 'destructive',
       });
     } finally {
@@ -140,7 +140,7 @@ export default function AdminPoints() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Puncte loialitate</h1>
           <p className="text-muted-foreground">
-            Configurează pragmatic de puncte pentru reduceri la checkout
+            Configurează pragurile de puncte pentru reduceri la checkout
           </p>
         </div>
         <Button onClick={() => setShowCreate(true)}>
@@ -162,7 +162,7 @@ export default function AdminPoints() {
         <CardContent>
           {rewards.length === 0 ? (
             <p className="text-muted-foreground py-8 text-center">
-              Nu există pragmatic configurate. Adaugă un prag nou.
+              Nu există praguri configurate. Adaugă un prag nou.
             </p>
           ) : (
             <div className="space-y-3">

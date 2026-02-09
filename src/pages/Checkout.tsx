@@ -26,6 +26,7 @@ import { toast } from '@/hooks/use-toast';
 import { PaymentMethod, CheckoutData, DeliveryAddress } from '@/types';
 import { cn } from '@/lib/utils';
 import { PointsCheckoutSelector, usePointsRewards } from '@/plugins/points';
+import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 
 // Validation schema
 const checkoutSchema = z.object({
@@ -70,8 +71,9 @@ const Checkout: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  const { enabled: pointsEnabled } = usePluginEnabled('points');
   const { pointsRewards } = usePointsRewards();
-  const userPoints = user?.pointsBalance ?? 0;
+  const userPoints = pointsEnabled ? (user?.pointsBalance ?? 0) : 0;
 
   const selectedReward = formData.pointsToUse
     ? pointsRewards.find((r) => r.pointsCost === formData.pointsToUse)
@@ -426,13 +428,15 @@ const Checkout: React.FC = () => {
                       </div>
                     </RadioGroup>
 
-                    <PointsCheckoutSelector
-                      userPoints={userPoints}
-                      rewards={pointsRewards}
-                      formData={formData}
-                      onPointsChange={(p) => setFormData((prev) => ({ ...prev, pointsToUse: p }))}
-                      currency={texts.common.currency}
-                    />
+                    {pointsEnabled && (
+                      <PointsCheckoutSelector
+                        userPoints={userPoints}
+                        rewards={pointsRewards}
+                        formData={formData}
+                        onPointsChange={(p) => setFormData((prev) => ({ ...prev, pointsToUse: p }))}
+                        currency={texts.common.currency}
+                      />
+                    )}
                   </CardContent>
                 </Card>
               </div>

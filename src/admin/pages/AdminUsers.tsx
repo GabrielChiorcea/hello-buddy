@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/dialog';
 import { MoreHorizontal, Shield, ShieldOff, Eye, Loader2 } from 'lucide-react';
 import { PointsBalance } from '@/plugins/points';
+import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { AdminRole, Pagination } from '@/types/admin';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
@@ -49,6 +50,7 @@ const roleLabels: Record<AdminRole, { label: string; variant: 'default' | 'secon
 
 export default function AdminUsers() {
   const { getUsers, updateUserRole, toggleBlockUser } = useAdminApi();
+  const { enabled: pointsEnabled } = usePluginEnabled('points');
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -331,7 +333,7 @@ export default function AdminUsers() {
                   <p className="text-2xl font-bold">{selectedUser.ordersCount}</p>
                 </div>
               )}
-              {selectedUser.pointsBalance !== undefined && (
+              {pointsEnabled && selectedUser.pointsBalance !== undefined && (
                 <PointsBalance points={selectedUser.pointsBalance} />
               )}
             </div>

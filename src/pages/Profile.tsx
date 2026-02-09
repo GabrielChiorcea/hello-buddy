@@ -22,6 +22,7 @@ import { routes } from '@/config/routes';
 import { toast } from '@/hooks/use-toast';
 import { OrderStatus } from '@/types';
 import { PointsBalance, PointsOrderBadge } from '@/plugins/points';
+import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { format, isValid } from 'date-fns';
 import { ro } from 'date-fns/locale';
 
@@ -38,6 +39,7 @@ const Profile: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { user, orders, ordersLoading } = useAppSelector((state) => state.user);
+  const { enabled: pointsEnabled } = usePluginEnabled('points');
 
   const handleLogout = async () => {
     await dispatch(logout());
@@ -116,7 +118,7 @@ const Profile: React.FC = () => {
                   <CardDescription>{user.email}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <PointsBalance points={user.pointsBalance ?? 0} />
+                  {pointsEnabled && <PointsBalance points={user.pointsBalance ?? 0} />}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -183,7 +185,7 @@ const Profile: React.FC = () => {
                               ))}
                             </div>
                             
-                            <PointsOrderBadge order={order} />
+                            {pointsEnabled && <PointsOrderBadge order={order} />}
                             
                             <Separator className="my-4" />
                             

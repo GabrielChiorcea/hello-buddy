@@ -9,7 +9,7 @@ import * as PointsModel from '../model.js';
 
 /**
  * GET /admin/points/rewards
- * Listează toate pragmatic de puncte
+ * Listează toate pragurile de puncte
  */
 export async function getRewards(req: Request, res: Response): Promise<void> {
   try {
@@ -17,7 +17,7 @@ export async function getRewards(req: Request, res: Response): Promise<void> {
     const rewards = await PointsModel.getRewards(includeInactive);
     res.json(rewards);
   } catch (error) {
-    logError('listare pragmatic puncte', error);
+    logError('listare praguri puncte', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }
@@ -57,8 +57,20 @@ export async function updateReward(req: Request, res: Response): Promise<void> {
     const { pointsCost, discountAmount, isActive } = req.body;
 
     const updates: { pointsCost?: number; discountAmount?: number; isActive?: boolean } = {};
-    if (typeof pointsCost === 'number' && pointsCost >= 1) updates.pointsCost = pointsCost;
-    if (typeof discountAmount === 'number' && discountAmount >= 0) updates.discountAmount = discountAmount;
+    if (pointsCost !== undefined) {
+      if (typeof pointsCost !== 'number' || pointsCost < 1) {
+        res.status(400).json({ error: 'pointsCost trebuie să fie un număr pozitiv (>= 1)' });
+        return;
+      }
+      updates.pointsCost = pointsCost;
+    }
+    if (discountAmount !== undefined) {
+      if (typeof discountAmount !== 'number' || discountAmount < 0) {
+        res.status(400).json({ error: 'discountAmount trebuie să fie un număr nenegativ' });
+        return;
+      }
+      updates.discountAmount = discountAmount;
+    }
     if (typeof isActive === 'boolean') updates.isActive = isActive;
 
     const reward = await PointsModel.updateReward(id, updates);

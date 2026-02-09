@@ -18,6 +18,7 @@ import {
   ChefHat,
 } from 'lucide-react';
 import { pointsPlugin } from '@/plugins/points';
+import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import {
   Sidebar,
   SidebarContent,
@@ -43,7 +44,6 @@ const baseNavItems = [
   { title: 'Comenzi', url: '/admin/orders', icon: ShoppingCart },
   { title: 'Utilizatori', url: '/admin/users', icon: Users },
 ];
-const mainNavItems = [...baseNavItems, ...pointsPlugin.navItems];
 
 const settingsNavItems = [
   { title: 'Setări', url: '/admin/settings', icon: Settings },
@@ -55,6 +55,11 @@ export function AdminSidebar() {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const admin = useAppSelector((state) => state.admin.admin);
+  const { enabled: pointsEnabled } = usePluginEnabled('points');
+
+  const mainNavItems = pointsEnabled
+    ? [...baseNavItems, ...pointsPlugin.navItems]
+    : baseNavItems;
 
   const isActive = (path: string) => {
     if (path === '/admin') {

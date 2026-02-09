@@ -66,6 +66,7 @@ export async function updateSettings(req: Request, res: Response): Promise<void>
       'contact_email',
       'points_per_order',
       'points_per_ron',
+      'plugin_points_enabled',
     ];
     
     for (const [key, value] of Object.entries(updates)) {

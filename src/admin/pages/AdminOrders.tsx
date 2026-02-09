@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/dialog';
 import { Eye, Download, Bell, Loader2 } from 'lucide-react';
 import { PointsOrderDetails } from '@/plugins/points';
+import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { OrderStatus } from '@/types';
 import { Pagination } from '@/types/admin';
 import { format } from 'date-fns';
@@ -75,6 +76,7 @@ const statusConfig: Record<OrderStatus, { label: string; variant: 'default' | 's
 export default function AdminOrders() {
   const dispatch = useAppDispatch();
   const { getOrders, updateOrderStatus } = useAdminApi();
+  const { enabled: pointsEnabled } = usePluginEnabled('points');
   const newOrdersCount = useAppSelector((state) => state.admin.newOrdersCount);
   
   const [orders, setOrders] = useState<AdminOrder[]>([]);
@@ -409,7 +411,7 @@ export default function AdminOrders() {
                     <span>Livrare</span>
                     <span>{selectedOrder.deliveryFee} RON</span>
                   </div>
-                  <PointsOrderDetails order={selectedOrder} currency="RON" />
+                  {pointsEnabled && <PointsOrderDetails order={selectedOrder} currency="RON" />}
                   <div className="flex justify-between border-t border-border pt-2 font-semibold">
                     <span>Total</span>
                     <span>{selectedOrder.total} RON</span>
