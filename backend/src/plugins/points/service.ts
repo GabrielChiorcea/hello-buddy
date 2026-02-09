@@ -10,6 +10,7 @@ import * as UserModel from '../../models/User.js';
 import { query } from '../../config/database.js';
 import { sendPointsEarnedEmail } from './email.js';
 import { logError } from '../../utils/safeErrorLogger.js';
+import { isPluginEnabled } from '../../utils/pluginFlags.js';
 
 export interface ApplyAtCheckoutResult {
   pointsUsed: number;
