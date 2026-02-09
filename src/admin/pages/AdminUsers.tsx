@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/dialog';
 import { MoreHorizontal, Shield, ShieldOff, Eye, Loader2 } from 'lucide-react';
 import { PointsBalance } from '@/plugins/points';
+import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { AdminRole, Pagination } from '@/types/admin';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';

@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/dialog';
 import { Eye, Download, Bell, Loader2 } from 'lucide-react';
 import { PointsOrderDetails } from '@/plugins/points';
+import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { OrderStatus } from '@/types';
 import { Pagination } from '@/types/admin';
 import { format } from 'date-fns';
