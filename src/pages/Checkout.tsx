@@ -26,6 +26,7 @@ import { toast } from '@/hooks/use-toast';
 import { PaymentMethod, CheckoutData, DeliveryAddress } from '@/types';
 import { cn } from '@/lib/utils';
 import { PointsCheckoutSelector, usePointsRewards } from '@/plugins/points';
+import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 
 // Validation schema
 const checkoutSchema = z.object({
