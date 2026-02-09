@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { pointsPlugin } from '@/plugins/points';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
+import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
@@ -43,7 +44,6 @@ const baseNavItems = [
   { title: 'Comenzi', url: '/admin/orders', icon: ShoppingCart },
   { title: 'Utilizatori', url: '/admin/users', icon: Users },
 ];
-const mainNavItems = [...baseNavItems, ...pointsPlugin.navItems];
 
 const settingsNavItems = [
   { title: 'Setări', url: '/admin/settings', icon: Settings },
