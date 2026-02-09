@@ -39,6 +39,7 @@ const Profile: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { user, orders, ordersLoading } = useAppSelector((state) => state.user);
+  const { enabled: pointsEnabled } = usePluginEnabled('points');
 
   const handleLogout = async () => {
     await dispatch(logout());
