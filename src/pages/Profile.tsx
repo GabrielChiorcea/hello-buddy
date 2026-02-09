@@ -22,6 +22,7 @@ import { routes } from '@/config/routes';
 import { toast } from '@/hooks/use-toast';
 import { OrderStatus } from '@/types';
 import { PointsBalance, PointsOrderBadge } from '@/plugins/points';
+import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { format, isValid } from 'date-fns';
 import { ro } from 'date-fns/locale';
 
