@@ -76,6 +76,7 @@ const statusConfig: Record<OrderStatus, { label: string; variant: 'default' | 's
 export default function AdminOrders() {
   const dispatch = useAppDispatch();
   const { getOrders, updateOrderStatus } = useAdminApi();
+  const { enabled: pointsEnabled } = usePluginEnabled('points');
   const newOrdersCount = useAppSelector((state) => state.admin.newOrdersCount);
   
   const [orders, setOrders] = useState<AdminOrder[]>([]);
