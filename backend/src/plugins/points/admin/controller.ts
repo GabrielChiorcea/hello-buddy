@@ -9,7 +9,7 @@ import * as PointsModel from '../model.js';
 
 /**
  * GET /admin/points/rewards
- * Listează toate pragmatic de puncte
+ * Listează toate pragurile de puncte
  */
 export async function getRewards(req: Request, res: Response): Promise<void> {
   try {
