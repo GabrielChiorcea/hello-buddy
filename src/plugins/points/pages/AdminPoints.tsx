@@ -21,6 +21,8 @@ import {
 import { Gift, Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import type { PointsReward } from '../types';
+import { usePluginEnabled } from '@/hooks/usePluginEnabled';
+import { Navigate } from 'react-router-dom';
 
 interface PointsRewardWithId extends PointsReward {
   id: string;
@@ -29,6 +31,8 @@ interface PointsRewardWithId extends PointsReward {
 }
 
 export default function AdminPoints() {
+  const { enabled: pointsEnabled, loading: flagLoading } = usePluginEnabled('points');
+
   const { getPointsRewards, createPointsReward, updatePointsReward, deletePointsReward } =
     useAdminApi();
   const [rewards, setRewards] = useState<PointsRewardWithId[]>([]);
