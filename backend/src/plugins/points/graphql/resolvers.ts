@@ -4,7 +4,7 @@
  */
 
 import * as PointsModel from '../model.js';
-import { queryOne } from '../../../config/database.js';
+import { isPluginEnabled } from '../../../utils/pluginFlags.js';
 
 export const pointsResolvers = {
   Query: {
@@ -13,13 +13,8 @@ export const pointsResolvers = {
      * Returnează [] dacă plugin-ul este dezactivat
      */
     async pointsRewards(): Promise<PointsModel.PointsReward[]> {
-      const row = await queryOne<{ value: string }>(
-        "SELECT value FROM app_settings WHERE id = 'plugin_points_enabled'",
-        []
-      );
-      if (row && (row.value === 'false' || row.value === '0')) {
-        return [];
-      }
+      const enabled = await isPluginEnabled('points');
+      if (!enabled) return [];
       return PointsModel.getRewards(false);
     },
   },

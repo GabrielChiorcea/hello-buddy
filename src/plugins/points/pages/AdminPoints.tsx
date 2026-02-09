@@ -130,12 +130,17 @@ export default function AdminPoints() {
     }
   };
 
-  if (isLoading) {
+  if (flagLoading || isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
+  }
+
+  // Redirecționează la dashboard dacă plugin-ul este dezactivat
+  if (!pointsEnabled) {
+    return <Navigate to="/admin" replace />;
   }
 
   return (

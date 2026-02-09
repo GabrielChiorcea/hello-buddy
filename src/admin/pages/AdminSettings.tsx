@@ -2,6 +2,7 @@
  * =============================================================================
  * PAGINA SETĂRI ADMIN
  * =============================================================================
+ * Conectată la API-ul real GET/PUT /admin/settings
  */
 
 import { useEffect, useState } from 'react';
@@ -12,27 +13,47 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { Save, Loader2 } from 'lucide-react';
-import { AppSettings } from '@/types/admin';
+import { Save, Loader2, Puzzle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Date mock
-const mockSettings: AppSettings = {
-  deliveryFee: 10,
-  minOrderAmount: 30,
-  openingHours: '10:00',
-  closingHours: '22:00',
-  isOpen: true,
-  maintenanceMode: false,
-  contactEmail: 'contact@foodorder.com',
-  contactPhone: '0800 123 456',
-};
+/**
+ * Structura internă a setărilor primite de la API
+ * API returnează Record<string, { value: string; description: string | null }>
+ */
+interface SettingsMap {
+  [key: string]: { value: string; description: string | null };
+}
+
+/** Stare editabilă locală */
+interface EditableSettings {
+  delivery_fee: string;
+  min_order_amount: string;
+  free_delivery_threshold: string;
+  opening_time: string;
+  closing_time: string;
+  contact_email: string;
+  contact_phone: string;
+  plugin_points_enabled: boolean;
+}
+
+function parseSettings(map: SettingsMap): EditableSettings {
+  return {
+    delivery_fee: map.delivery_fee?.value ?? '10',
+    min_order_amount: map.min_order_amount?.value ?? '30',
+    free_delivery_threshold: map.free_delivery_threshold?.value ?? '0',
+    opening_time: map.opening_time?.value ?? '10:00',
+    closing_time: map.closing_time?.value ?? '22:00',
+    contact_email: map.contact_email?.value ?? '',
+    contact_phone: map.contact_phone?.value ?? '',
+    plugin_points_enabled: (map.plugin_points_enabled?.value ?? 'true') === 'true',
+  };
+}
 
 export default function AdminSettings() {
   const { getSettings, updateSettings } = useAdminApi();
   const { toast } = useToast();
-  const [settings, setSettings] = useState<AppSettings | null>(null);
+  const [settings, setSettings] = useState<EditableSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -43,10 +64,17 @@ export default function AdminSettings() {
   const fetchSettings = async () => {
     setIsLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      setSettings(mockSettings);
+      const data = await getSettings();
+      // API returnează direct SettingsMap sau wrapped în { settings }
+      const map: SettingsMap = (data as any)?.settings ?? data;
+      setSettings(parseSettings(map as SettingsMap));
     } catch (error) {
       console.error('Eroare la încărcarea setărilor:', error);
+      toast({
+        title: 'Eroare',
+        description: 'Nu s-au putut încărca setările.',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -54,12 +82,19 @@ export default function AdminSettings() {
 
   const handleSave = async () => {
     if (!settings) return;
-    
+
     setIsSaving(true);
     try {
-      // În producție: await updateSettings(settings);
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      console.log('Salvare setări:', settings);
+      await updateSettings({
+        delivery_fee: settings.delivery_fee,
+        min_order_amount: settings.min_order_amount,
+        free_delivery_threshold: settings.free_delivery_threshold,
+        opening_time: settings.opening_time,
+        closing_time: settings.closing_time,
+        contact_email: settings.contact_email,
+        contact_phone: settings.contact_phone,
+        plugin_points_enabled: settings.plugin_points_enabled ? 'true' : 'false',
+      });
       toast({
         title: 'Setări salvate',
         description: 'Modificările au fost aplicate cu succes.',
@@ -73,6 +108,10 @@ export default function AdminSettings() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const updateField = (key: keyof EditableSettings, value: string | boolean) => {
+    setSettings((prev) => (prev ? { ...prev, [key]: value } : prev));
   };
 
   if (isLoading || !settings) {
@@ -121,18 +160,15 @@ export default function AdminSettings() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
               <Label htmlFor="deliveryFee">Taxă livrare (RON)</Label>
               <Input
                 id="deliveryFee"
                 type="number"
-                value={settings.deliveryFee}
-                onChange={(e) =>
-                  setSettings((prev) =>
-                    prev ? { ...prev, deliveryFee: Number(e.target.value) } : prev
-                  )
-                }
+                min={0}
+                value={settings.delivery_fee}
+                onChange={(e) => updateField('delivery_fee', e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -140,12 +176,19 @@ export default function AdminSettings() {
               <Input
                 id="minOrder"
                 type="number"
-                value={settings.minOrderAmount}
-                onChange={(e) =>
-                  setSettings((prev) =>
-                    prev ? { ...prev, minOrderAmount: Number(e.target.value) } : prev
-                  )
-                }
+                min={0}
+                value={settings.min_order_amount}
+                onChange={(e) => updateField('min_order_amount', e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="freeDelivery">Livrare gratuită de la (RON)</Label>
+              <Input
+                id="freeDelivery"
+                type="number"
+                min={0}
+                value={settings.free_delivery_threshold}
+                onChange={(e) => updateField('free_delivery_threshold', e.target.value)}
               />
             </div>
           </div>
@@ -163,50 +206,23 @@ export default function AdminSettings() {
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="openingHours">Ora deschidere</Label>
+              <Label htmlFor="openingTime">Ora deschidere</Label>
               <Input
-                id="openingHours"
+                id="openingTime"
                 type="time"
-                value={settings.openingHours}
-                onChange={(e) =>
-                  setSettings((prev) =>
-                    prev ? { ...prev, openingHours: e.target.value } : prev
-                  )
-                }
+                value={settings.opening_time}
+                onChange={(e) => updateField('opening_time', e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="closingHours">Ora închidere</Label>
+              <Label htmlFor="closingTime">Ora închidere</Label>
               <Input
-                id="closingHours"
+                id="closingTime"
                 type="time"
-                value={settings.closingHours}
-                onChange={(e) =>
-                  setSettings((prev) =>
-                    prev ? { ...prev, closingHours: e.target.value } : prev
-                  )
-                }
+                value={settings.closing_time}
+                onChange={(e) => updateField('closing_time', e.target.value)}
               />
             </div>
-          </div>
-
-          <Separator />
-
-          <div className="flex items-center justify-between">
-            <div>
-              <Label>Restaurantul este deschis</Label>
-              <p className="text-sm text-muted-foreground">
-                Dezactivează pentru a opri temporar comenzile
-              </p>
-            </div>
-            <Switch
-              checked={settings.isOpen}
-              onCheckedChange={(checked) =>
-                setSettings((prev) =>
-                  prev ? { ...prev, isOpen: checked } : prev
-                )
-              }
-            />
           </div>
         </CardContent>
       </Card>
@@ -226,12 +242,8 @@ export default function AdminSettings() {
               <Input
                 id="contactEmail"
                 type="email"
-                value={settings.contactEmail}
-                onChange={(e) =>
-                  setSettings((prev) =>
-                    prev ? { ...prev, contactEmail: e.target.value } : prev
-                  )
-                }
+                value={settings.contact_email}
+                onChange={(e) => updateField('contact_email', e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -239,41 +251,36 @@ export default function AdminSettings() {
               <Input
                 id="contactPhone"
                 type="tel"
-                value={settings.contactPhone}
-                onChange={(e) =>
-                  setSettings((prev) =>
-                    prev ? { ...prev, contactPhone: e.target.value } : prev
-                  )
-                }
+                value={settings.contact_phone}
+                onChange={(e) => updateField('contact_phone', e.target.value)}
               />
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Mod întreținere */}
+      {/* Plugin-uri */}
       <Card>
         <CardHeader>
-          <CardTitle>Mentenanță</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Puzzle className="h-5 w-5" />
+            Plugin-uri
+          </CardTitle>
           <CardDescription>
-            Opțiuni pentru modul de întreținere
+            Activează sau dezactivează module suplimentare
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
             <div>
-              <Label>Mod întreținere</Label>
+              <Label>Puncte loialitate</Label>
               <p className="text-sm text-muted-foreground">
-                Activează pentru a afișa o pagină de mentenanță utilizatorilor
+                Permite utilizatorilor să câștige și să folosească puncte pentru reduceri la checkout
               </p>
             </div>
             <Switch
-              checked={settings.maintenanceMode}
-              onCheckedChange={(checked) =>
-                setSettings((prev) =>
-                  prev ? { ...prev, maintenanceMode: checked } : prev
-                )
-              }
+              checked={settings.plugin_points_enabled}
+              onCheckedChange={(checked) => updateField('plugin_points_enabled', checked)}
             />
           </div>
         </CardContent>
