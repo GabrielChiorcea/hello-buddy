@@ -118,7 +118,7 @@ const Profile: React.FC = () => {
                   <CardDescription>{user.email}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <PointsBalance points={user.pointsBalance ?? 0} />
+                  {pointsEnabled && <PointsBalance points={user.pointsBalance ?? 0} />}
                 </CardContent>
               </Card>
             </TabsContent>
