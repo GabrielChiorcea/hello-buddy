@@ -55,6 +55,11 @@ export function AdminSidebar() {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const admin = useAppSelector((state) => state.admin.admin);
+  const { enabled: pointsEnabled } = usePluginEnabled('points');
+
+  const mainNavItems = pointsEnabled
+    ? [...baseNavItems, ...pointsPlugin.navItems]
+    : baseNavItems;
 
   const isActive = (path: string) => {
     if (path === '/admin') {
