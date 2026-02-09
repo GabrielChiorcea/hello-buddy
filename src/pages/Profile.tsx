@@ -185,7 +185,7 @@ const Profile: React.FC = () => {
                               ))}
                             </div>
                             
-                            <PointsOrderBadge order={order} />
+                            {pointsEnabled && <PointsOrderBadge order={order} />}
                             
                             <Separator className="my-4" />
                             

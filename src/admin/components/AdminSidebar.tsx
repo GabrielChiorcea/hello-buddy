@@ -18,7 +18,7 @@ import {
   ChefHat,
 } from 'lucide-react';
 import { pointsPlugin } from '@/plugins/points';
-import {
+import { usePluginEnabled } from '@/hooks/usePluginEnabled';
   Sidebar,
   SidebarContent,
   SidebarGroup,

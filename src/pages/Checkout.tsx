@@ -428,13 +428,15 @@ const Checkout: React.FC = () => {
                       </div>
                     </RadioGroup>
 
-                    <PointsCheckoutSelector
-                      userPoints={userPoints}
-                      rewards={pointsRewards}
-                      formData={formData}
-                      onPointsChange={(p) => setFormData((prev) => ({ ...prev, pointsToUse: p }))}
-                      currency={texts.common.currency}
-                    />
+                    {pointsEnabled && (
+                      <PointsCheckoutSelector
+                        userPoints={userPoints}
+                        rewards={pointsRewards}
+                        formData={formData}
+                        onPointsChange={(p) => setFormData((prev) => ({ ...prev, pointsToUse: p }))}
+                        currency={texts.common.currency}
+                      />
+                    )}
                   </CardContent>
                 </Card>
               </div>
