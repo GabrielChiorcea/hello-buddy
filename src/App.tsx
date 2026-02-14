@@ -53,6 +53,7 @@ import Catalog from "./pages/Catalog";
 import ProductDetails from "./pages/ProductDetails";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
+import CheckoutSuccess from "./pages/CheckoutSuccess";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
@@ -144,6 +145,7 @@ const App = () => (
                 
                 {/* Pagini care necesită autentificare */}
                 <Route path={routes.checkout} element={<Checkout />} />
+                <Route path={routes.checkoutSuccess} element={<CheckoutSuccess />} />
                 <Route path={routes.profile} element={<Profile />} />
 
                 {/* Rute Admin Panel */}

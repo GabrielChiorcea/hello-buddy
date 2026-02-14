@@ -7,6 +7,7 @@ import { productResolvers } from './product.js';
 import { userResolvers } from './user.js';
 import { addressResolvers } from './address.js';
 import { orderResolvers } from './order.js';
+import { paymentResolvers } from './payment.js';
 import { resolvers as pointsResolvers } from '../../plugins/points/index.js';
 import { queryOne } from '../../config/database.js';
 
@@ -37,6 +38,7 @@ export const resolvers: any = {
     ...userResolvers.Mutation,
     ...addressResolvers.Mutation,
     ...orderResolvers.Mutation,
+    ...paymentResolvers.Mutation,
   },
   // Field resolvers
   Product: productResolvers.Product,

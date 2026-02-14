@@ -32,7 +32,9 @@ import {
   DELETE_ADDRESS,
   SET_DEFAULT_ADDRESS,
   CREATE_ORDER,
-  CANCEL_ORDER
+  CANCEL_ORDER,
+  CREATE_PAYMENT_SESSION,
+  CONFIRM_PAYMENT_SESSION
 } from '@/graphql/mutations';
 import { 
   Product, 
@@ -360,6 +362,72 @@ export const fetchOrdersApi = async (
   } catch (error) {
     console.error('Fetch orders API error:', error);
     return { success: false, error: 'Eroare la încărcarea comenzilor' };
+  }
+};
+
+export interface CreatePaymentSessionResult {
+  clientSecret: string | null;
+  redirectUrl: string | null;
+  paymentId: string;
+  draftId: string;
+}
+
+export const createPaymentSessionApi = async (
+  items: CartItem[],
+  checkoutData: CheckoutData,
+  amountRon: number
+): Promise<ApiResponse<CreatePaymentSessionResult>> => {
+  try {
+    const isInLocation = checkoutData.fulfillmentType === 'in_location';
+    const tableNumberValue = checkoutData.tableNumber?.trim() || null;
+    const orderInput = {
+      items: items.map(item => ({
+        productId: item.product.id,
+        quantity: item.quantity,
+      })),
+      fulfillmentType: checkoutData.fulfillmentType ?? 'delivery',
+      tableNumber: isInLocation ? tableNumberValue : undefined,
+      deliveryAddress: isInLocation ? 'În locație' : checkoutData.deliveryAddress,
+      deliveryCity: isInLocation ? 'În locație' : checkoutData.deliveryCity,
+      phone: checkoutData.phone,
+      notes: checkoutData.notes || null,
+      paymentMethod: 'card' as const,
+      pointsToUse: checkoutData.pointsToUse || undefined,
+    };
+
+    const { data } = await apolloClient.mutate<{ createPaymentSession: CreatePaymentSessionResult }>({
+      mutation: CREATE_PAYMENT_SESSION,
+      variables: { input: orderInput, amountRon },
+    });
+
+    if (!data?.createPaymentSession) {
+      return { success: false, error: 'Eroare la crearea sesiunii de plată' };
+    }
+
+    return {
+      success: true,
+      data: data.createPaymentSession,
+    };
+  } catch (error) {
+    console.error('Create payment session API error:', error);
+    return { success: false, error: getErrorMessage(error) };
+  }
+};
+
+export const confirmPaymentSessionApi = async (sessionId: string): Promise<ApiResponse<Order>> => {
+  try {
+    const { data } = await apolloClient.mutate<{ confirmPaymentSession: Order }>({
+      mutation: CONFIRM_PAYMENT_SESSION,
+      variables: { sessionId },
+      refetchQueries: [{ query: GET_USER_ORDERS }, { query: GET_CURRENT_USER }],
+    });
+    if (!data?.confirmPaymentSession) {
+      return { success: false, error: 'Eroare la confirmarea plății' };
+    }
+    return { success: true, data: data.confirmPaymentSession };
+  } catch (error) {
+    console.error('Confirm payment session API error:', error);
+    return { success: false, error: getErrorMessage(error) };
   }
 };
 

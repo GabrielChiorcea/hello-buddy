@@ -17,7 +17,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { resetCart } from '@/store/slices/cartSlice';
 import { fetchAddresses, fetchCurrentUser } from '@/store/slices/userSlice';
-import { placeOrderApi } from '@/api/api';
+import { placeOrderApi, createPaymentSessionApi } from '@/api/api';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { toast } from '@/hooks/use-toast';
@@ -194,6 +194,37 @@ const Checkout: React.FC = () => {
     setIsLoading(true);
 
     try {
+      if (formData.paymentMethod === 'card') {
+        const result = await createPaymentSessionApi(items, formData, displayTotal);
+        if (result.success && result.data) {
+          if (result.data.redirectUrl) {
+            window.location.href = result.data.redirectUrl;
+            return;
+          }
+          if (result.data.clientSecret) {
+            toast({
+              title: texts.common.error,
+              description: 'Plata embedded nu este configurată. Folosiți redirect.',
+              variant: 'destructive',
+            });
+          } else {
+            toast({
+              title: texts.common.error,
+              description: result.error ?? 'Eroare la crearea sesiunii de plată',
+              variant: 'destructive',
+            });
+          }
+        } else {
+          toast({
+            title: texts.common.error,
+            description: result.error ?? texts.notifications.orderError,
+            variant: 'destructive',
+          });
+        }
+        setIsLoading(false);
+        return;
+      }
+
       const result = await placeOrderApi(
         user.id,
         items,

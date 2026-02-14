@@ -760,11 +760,23 @@ backend/
 │   ├── graphql/     # API public GraphQL
 │   ├── admin/       # API admin REST
 │   ├── models/      # Modele de date
+│   ├── payments/    # Plăți card (Stripe / Netopia)
 │   ├── middleware/  # Auth, rate limiting
 │   ├── plugins/     # Plugin-uri modulare
 │   └── config/      # Configurații DB
 └── migrations/      # Migrări SQL
 ```
+
+**Plăți cu cardul (Stripe / Netopia)**:
+- La **numerar**: comanda se creează imediat (flow existent).
+- La **card**: se creează un draft, se deschide sesiunea la provider (Stripe Checkout redirect); după plată, webhook-ul creează comanda și scade punctele.
+- Variabile de mediu (opționale, pentru Stripe test):
+  - `PAYMENT_PROVIDER=stripe` (implicit) sau `netopia`
+  - `STRIPE_SECRET_KEY` – cheie secretă Stripe
+  - `STRIPE_WEBHOOK_SECRET` – secret pentru verificarea semnăturii webhook (ex.: `whsec_...`)
+  - `STRIPE_PUBLISHABLE_KEY` – cheie publică (pentru frontend, dacă folosești Elements)
+- Webhook Stripe: `POST /webhooks/stripe` (body raw, înainte de `express.json()`).
+- Pentru producție cu Netopia: implementezi `netopiaProvider.ts` conform aceluiași contract și setezi `PAYMENT_PROVIDER=netopia`.
 
 ### Plugin System
 

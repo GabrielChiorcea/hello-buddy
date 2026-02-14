@@ -48,8 +48,11 @@ const Login: React.FC = () => {
   });
   const [errors, setErrors] = useState<FormErrors>({});
 
-  // Get the redirect path from state
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || routes.home;
+  // Get the redirect path from state (pathname + search for e.g. /checkout/success?session_id=...)
+  const fromState = location.state as { from?: { pathname: string; search?: string } } | undefined;
+  const from = fromState?.from
+    ? fromState.from.pathname + (fromState.from.search ?? '')
+    : routes.home;
 
   useEffect(() => {
     // Clear any previous errors when component mounts

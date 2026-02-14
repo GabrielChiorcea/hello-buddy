@@ -63,6 +63,16 @@ async function startServer() {
     maxAge: 86400, // Cache preflight 24h (secunde) - reduce round-trip-urile OPTIONS
   }));
   app.use(cookieParser()); // Parser pentru cookies
+
+  // Webhook Stripe – raw body (înainte de express.json) pentru verificare semnătură
+  const { createWebhookHandler } = await import('./payments/webhookHandler.js');
+  const { stripeProvider } = await import('./payments/stripeProvider.js');
+  app.post(
+    '/webhooks/stripe',
+    express.raw({ type: 'application/json' }),
+    createWebhookHandler(stripeProvider)
+  );
+
   app.use(express.json({ limit: '50mb' })); // Mărit pentru upload imagini
 
   // Servește fișierele statice din storage

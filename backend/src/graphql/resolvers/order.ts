@@ -34,7 +34,7 @@ const orderRateLimits = new Map<string, { count: number; resetAt: number }>();
 const ORDER_LIMIT = 10; // max 10 comenzi
 const ORDER_WINDOW = 60 * 60 * 1000; // per oră
 
-function checkOrderRateLimit(userId: string): boolean {
+export function checkOrderRateLimit(userId: string): boolean {
   const now = Date.now();
   const userLimit = orderRateLimits.get(userId);
   

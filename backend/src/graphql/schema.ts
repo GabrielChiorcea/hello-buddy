@@ -227,6 +227,15 @@ const coreTypeDefs = `#graphql
     # Comenzi (necesită autentificare)
     createOrder(input: CreateOrderInput!): Order!
     cancelOrder(id: ID!): Order!
+    createPaymentSession(input: CreateOrderInput!, amountRon: Float!): CreatePaymentSessionPayload!
+    confirmPaymentSession(sessionId: ID!): Order!
+  }
+
+  type CreatePaymentSessionPayload {
+    clientSecret: String
+    redirectUrl: String
+    paymentId: ID!
+    draftId: ID!
   }
 `;
 

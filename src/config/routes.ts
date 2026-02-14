@@ -9,6 +9,7 @@ export const routes = {
   product: '/product/:id',
   cart: '/cart',
   checkout: '/checkout',
+  checkoutSuccess: '/checkout/success',
   profile: '/profile',
   login: '/login',
   signup: '/signup',
@@ -43,6 +44,7 @@ export type RoutePath = (typeof routes)[RouteKey];
 export const protectedRoutes: RoutePath[] = [
   routes.profile,
   routes.checkout,
+  routes.checkoutSuccess,
 ];
 
 /**

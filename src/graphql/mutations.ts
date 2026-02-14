@@ -165,3 +165,24 @@ export const CANCEL_ORDER = gql`
   ${ORDER_FRAGMENT_LITE}
 `;
 
+export const CREATE_PAYMENT_SESSION = gql`
+  mutation CreatePaymentSession($input: CreateOrderInput!, $amountRon: Float!) {
+    createPaymentSession(input: $input, amountRon: $amountRon) {
+      clientSecret
+      redirectUrl
+      paymentId
+      draftId
+    }
+  }
+`;
+
+export const CONFIRM_PAYMENT_SESSION = gql`
+  mutation ConfirmPaymentSession($sessionId: ID!) {
+    confirmPaymentSession(sessionId: $sessionId) {
+      id
+      total
+      status
+    }
+  }
+`;
+

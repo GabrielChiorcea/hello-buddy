@@ -33,6 +33,7 @@ export interface Order {
   phone: string;
   notes: string | null;
   paymentMethod: PaymentMethod;
+  paymentId?: string | null;
   estimatedDelivery: Date | null;
   deliveredAt: Date | null;
   cancelledAt: Date | null;
@@ -59,6 +60,7 @@ interface OrderRow {
   phone: string;
   notes: string | null;
   payment_method: PaymentMethod;
+  payment_id?: string | null;
   estimated_delivery: Date | null;
   delivered_at: Date | null;
   cancelled_at: Date | null;
@@ -94,6 +96,8 @@ export interface CreateOrderInput {
   notes?: string;
   paymentMethod: PaymentMethod;
   pointsToUse?: number;
+  /** Set when order is created from card payment webhook */
+  paymentId?: string | null;
 }
 
 function mapRowToOrder(row: OrderRow, items: OrderItem[] = []): Order {
@@ -111,6 +115,7 @@ function mapRowToOrder(row: OrderRow, items: OrderItem[] = []): Order {
     phone: row.phone,
     notes: row.notes,
     paymentMethod: row.payment_method,
+    paymentId: row.payment_id ?? null,
     estimatedDelivery: row.estimated_delivery,
     deliveredAt: row.delivered_at,
     cancelledAt: row.cancelled_at,
@@ -150,6 +155,19 @@ export async function findById(id: string): Promise<Order | null> {
   if (!row) return null;
   
   const items = await getOrderItems(id);
+  return mapRowToOrder(row, items);
+}
+
+/**
+ * Găsește o comandă după payment_id (Stripe session id etc.)
+ */
+export async function findByPaymentId(paymentId: string): Promise<Order | null> {
+  const row = await queryOne<OrderRow>(
+    'SELECT * FROM orders WHERE payment_id = ?',
+    [paymentId]
+  );
+  if (!row) return null;
+  const items = await getOrderItems(row.id);
   return mapRowToOrder(row, items);
 }
 
@@ -226,6 +244,74 @@ export async function findAll(options: {
   return { orders, total };
 }
 
+export interface OrderItemDetail {
+  productId: string;
+  productName: string;
+  productImage: string | null;
+  quantity: number;
+  price: number;
+}
+
+export interface OrderTotals {
+  itemDetails: OrderItemDetail[];
+  subtotal: number;
+  deliveryFee: number;
+  pointsUsed: number;
+  discountFromPoints: number;
+  total: number;
+}
+
+type PoolConnection = Awaited<ReturnType<typeof beginTransaction>>;
+
+/**
+ * Calculează subtotal, livrare, discount puncte și total fără a crea comanda.
+ * Folosit la createPaymentSession pentru validare amountRon și la create() pentru itemDetails.
+ */
+export async function computeOrderTotal(
+  connection: PoolConnection,
+  input: CreateOrderInput
+): Promise<OrderTotals> {
+  let subtotal = 0;
+  const itemDetails: OrderItemDetail[] = [];
+  for (const item of input.items) {
+    const [productRows] = await connection.execute<any[]>(
+      'SELECT id, name, image, price, is_available FROM products WHERE id = ?',
+      [item.productId]
+    );
+    if (productRows.length === 0) {
+      throw new Error(`Produsul ${item.productId} nu a fost găsit`);
+    }
+    const product = productRows[0];
+    if (!product.is_available) {
+      throw new Error(`Produsul ${product.name} nu este disponibil`);
+    }
+    const price = parseFloat(product.price);
+    subtotal += price * item.quantity;
+    itemDetails.push({
+      productId: product.id,
+      productName: product.name,
+      productImage: product.image,
+      quantity: item.quantity,
+      price,
+    });
+  }
+  const fulfillmentType = input.fulfillmentType ?? 'delivery';
+  const isInLocation = fulfillmentType === 'in_location';
+  let deliveryFee = 0;
+  if (!isInLocation) {
+    const [settingsRows] = await connection.execute<any[]>(
+      'SELECT value FROM app_settings WHERE id = "delivery_fee"'
+    );
+    deliveryFee = settingsRows.length > 0 ? parseFloat(settingsRows[0].value) : 10;
+  }
+  const { pointsUsed, discountFromPoints } = await pointsPlugin.service.applyAtCheckout(connection, {
+    userId: input.userId,
+    pointsToUse: input.pointsToUse,
+  });
+  const total = Math.max(0, subtotal + deliveryFee - discountFromPoints);
+  return { itemDetails, subtotal, deliveryFee, pointsUsed, discountFromPoints, total };
+}
+
 /**
  * Creează o comandă nouă
  */
@@ -234,73 +320,20 @@ export async function create(input: CreateOrderInput): Promise<Order> {
   
   try {
     const id = uuidv4();
-    
-    // Calculează subtotal și obține detalii produse
-    let subtotal = 0;
-    const itemDetails: Array<{
-      productId: string;
-      productName: string;
-      productImage: string | null;
-      quantity: number;
-      price: number;
-    }> = [];
-    
-    for (const item of input.items) {
-      const [productRows] = await connection.execute<any[]>(
-        'SELECT id, name, image, price, is_available FROM products WHERE id = ?',
-        [item.productId]
-      );
-      
-      if (productRows.length === 0) {
-        throw new Error(`Produsul ${item.productId} nu a fost găsit`);
-      }
-      
-      const product = productRows[0];
-      if (!product.is_available) {
-        throw new Error(`Produsul ${product.name} nu este disponibil`);
-      }
-      
-      const price = parseFloat(product.price);
-      subtotal += price * item.quantity;
-      
-      itemDetails.push({
-        productId: product.id,
-        productName: product.name,
-        productImage: product.image,
-        quantity: item.quantity,
-        price,
-      });
-    }
+    const totals = await computeOrderTotal(connection, input);
+    const { itemDetails, subtotal, deliveryFee, pointsUsed, discountFromPoints, total } = totals;
     
     const fulfillmentType = input.fulfillmentType ?? 'delivery';
     const isInLocation = fulfillmentType === 'in_location';
+    const deliveryAddress = isInLocation ? 'În locație' : input.deliveryAddress;
+    const deliveryCity = isInLocation ? 'În locație' : input.deliveryCity;
 
-    // Taxa de livrare: 0 pentru în locație, altfel din setări
-    let deliveryFee = 0;
-    let deliveryAddress = input.deliveryAddress;
-    let deliveryCity = input.deliveryCity;
-
-    if (!isInLocation) {
-      const [settingsRows] = await connection.execute<any[]>(
-        'SELECT value FROM app_settings WHERE id = "delivery_fee"'
-      );
-      deliveryFee = settingsRows.length > 0 ? parseFloat(settingsRows[0].value) : 10;
-    } else {
-      deliveryAddress = 'În locație';
-      deliveryCity = 'În locație';
-    }
-
-    const { pointsUsed, discountFromPoints } = await pointsPlugin.service.applyAtCheckout(
-      connection,
-      { userId: input.userId, pointsToUse: input.pointsToUse }
-    );
-    const total = Math.max(0, subtotal + deliveryFee - discountFromPoints);
-
-    // Inserează comanda
+    // Inserează comanda (payment_id opțional - setat la plată card)
+    const paymentId = input.paymentId ?? null;
     await connection.execute(
-      `INSERT INTO orders (id, user_id, subtotal, delivery_fee, total, fulfillment_type, table_number, delivery_address, delivery_city, phone, notes, payment_method, points_used, discount_from_points)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, input.userId, subtotal, deliveryFee, total, fulfillmentType, input.tableNumber ?? null, deliveryAddress, deliveryCity, input.phone, input.notes || null, input.paymentMethod, pointsUsed, discountFromPoints]
+      `INSERT INTO orders (id, user_id, subtotal, delivery_fee, total, fulfillment_type, table_number, delivery_address, delivery_city, phone, notes, payment_method, payment_id, points_used, discount_from_points)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, input.userId, subtotal, deliveryFee, total, fulfillmentType, input.tableNumber ?? null, deliveryAddress, deliveryCity, input.phone, input.notes || null, input.paymentMethod, paymentId, pointsUsed, discountFromPoints]
     );
 
     if (pointsUsed > 0) {
