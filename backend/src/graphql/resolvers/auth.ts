@@ -28,6 +28,40 @@ import {
   logSecurityEvent,
   SecurityEventType,
 } from '../../utils/securityLogger.js';
+import { sendPasswordResetEmail } from '../../utils/passwordResetEmail.js';
+import { env } from '../../config/env.js';
+
+// Rate limiting în memorie pentru signup și requestPasswordReset (per IP)
+const signupRateLimits = new Map<string, { count: number; resetAt: number }>();
+const passwordResetRateLimits = new Map<string, { count: number; resetAt: number }>();
+const SIGNUP_LIMIT = 5;
+const SIGNUP_WINDOW_MS = 60 * 60 * 1000; // 1 oră
+const PASSWORD_RESET_LIMIT = 5;
+const PASSWORD_RESET_WINDOW_MS = 60 * 60 * 1000; // 1 oră
+
+function checkSignupRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = signupRateLimits.get(ip);
+  if (!entry || now > entry.resetAt) {
+    signupRateLimits.set(ip, { count: 1, resetAt: now + SIGNUP_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= SIGNUP_LIMIT) return false;
+  entry.count++;
+  return true;
+}
+
+function checkPasswordResetRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = passwordResetRateLimits.get(ip);
+  if (!entry || now > entry.resetAt) {
+    passwordResetRateLimits.set(ip, { count: 1, resetAt: now + PASSWORD_RESET_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= PASSWORD_RESET_LIMIT) return false;
+  entry.count++;
+  return true;
+}
 
 interface LoginInput {
   email: string;
@@ -90,6 +124,11 @@ export const authResolvers = {
       { input }: { input: SignupInput },
       context: GraphQLContext
     ) {
+      const ip = context.req.ip || context.req.socket?.remoteAddress || 'unknown';
+      if (!checkSignupRateLimit(ip)) {
+        throw new Error('Prea multe încercări de înregistrare. Încercați din nou în aproximativ o oră.');
+      }
+
       const { email, password, name, phone } = input;
       const normalizedPhone = phone?.trim() || undefined;
       
@@ -199,28 +238,49 @@ export const authResolvers = {
 
     /**
      * Cerere resetare parolă
+     * Returnează mereu true pentru a nu dezvălui dacă email-ul există.
      */
-    async requestPasswordReset(_: unknown, { email }: { email: string }) {
-      const user = await UserModel.findByEmail(email);
-      
-      // Nu dezvăluim dacă email-ul există sau nu
-      if (user) {
-        // TODO: Implementare trimitere email cu link de resetare
-        console.log(`Password reset requested for: ${email}`);
+    async requestPasswordReset(_: unknown, { email }: { email: string }, context: GraphQLContext) {
+      const ip = context.req.ip || context.req.socket?.remoteAddress || 'unknown';
+      if (!checkPasswordResetRateLimit(ip)) {
+        throw new Error('Prea multe cereri de resetare parolă. Încercați din nou în aproximativ o oră.');
       }
-      
+
+      const normalizedEmail = email.trim().toLowerCase();
+      const user = await UserModel.findByEmail(normalizedEmail);
+
+      if (user) {
+        const token = await UserModel.createPasswordResetToken(user.id);
+        if (token) {
+          const resetLink = `${env.FRONTEND_URL}/reset-password/${token}`;
+          sendPasswordResetEmail(normalizedEmail, resetLink, 1);
+        }
+      }
+
       return true;
     },
 
     /**
-     * Resetare parolă cu token
+     * Resetare parolă cu token (one-time use)
      */
     async resetPassword(
       _: unknown,
       { token, newPassword }: { token: string; newPassword: string }
     ) {
-      // TODO: Implementare verificare token de resetare
-      throw new Error('Funcționalitate în dezvoltare');
+      const userId = await UserModel.findUserIdByPasswordResetToken(token);
+      if (!userId) {
+        throw new Error('Link-ul de resetare este invalid sau a expirat. Solicită unul nou.');
+      }
+
+      const passwordErrors = validatePasswordStrength(newPassword);
+      if (passwordErrors.length > 0) {
+        throw new Error(passwordErrors.join('. '));
+      }
+
+      await UserModel.changePassword(userId, newPassword);
+      await UserModel.deletePasswordResetToken(token);
+
+      return true;
     },
 
     /**

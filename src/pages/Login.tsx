@@ -161,6 +161,15 @@ const Login: React.FC = () => {
                   disabled={isLoading}
                 />
 
+                <div className="text-right">
+                  <Link
+                    to={routes.forgotPassword}
+                    className="text-sm text-primary hover:underline"
+                  >
+                    {texts.auth.forgotPassword}
+                  </Link>
+                </div>
+
                 {error && (
                   <p className="text-sm text-destructive text-center">{error}</p>
                 )}

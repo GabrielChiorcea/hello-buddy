@@ -350,6 +350,18 @@ export async function updateStatus(
   changedBy?: string,
   notes?: string
 ): Promise<Order | null> {
+  // Dacă anulăm comanda, verificăm dacă trebuie să returnăm punctele
+  if (status === 'cancelled') {
+    const orderBeforeCancel = await findById(id);
+    if (orderBeforeCancel && orderBeforeCancel.pointsUsed > 0) {
+      // Returnăm punctele utilizatorului
+      await pointsPlugin.service.refundPointsOnCancellation(id, {
+        userId: orderBeforeCancel.userId,
+        pointsUsed: orderBeforeCancel.pointsUsed,
+      });
+    }
+  }
+
   const updates: string[] = ['status = ?'];
   const values: unknown[] = [status];
   

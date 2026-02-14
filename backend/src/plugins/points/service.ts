@@ -118,3 +118,29 @@ export async function awardOnDelivery(orderId: string, order: { userId: string; 
     logError('acordare puncte la livrare', err);
   }
 }
+
+/**
+ * Returnează punctele utilizatorului când o comandă este anulată
+ * Se apelează automat când o comandă cu points_used > 0 este anulată
+ */
+export async function refundPointsOnCancellation(orderId: string, order: { userId: string; pointsUsed: number }): Promise<void> {
+  // Nu face nimic dacă nu au fost folosite puncte
+  if (!order.pointsUsed || order.pointsUsed <= 0) return;
+
+  // Verifică dacă plugin-ul este activat
+  const enabled = await isPluginEnabled('points');
+  if (!enabled) return;
+
+  try {
+    // Returnează punctele utilizatorului
+    // Folosim type 'earned' pentru că este o returnare de puncte (nu un câștig nou)
+    await PointsModel.addPoints(order.userId, order.pointsUsed, orderId, 'earned');
+    
+    // Log pentru debugging (opțional - poate fi eliminat în producție)
+    console.log(`[Points] Returnate ${order.pointsUsed} puncte utilizatorului ${order.userId} pentru comanda anulată ${orderId}`);
+  } catch (err) {
+    logError('returnare puncte la anulare comandă', err);
+    // Nu aruncăm eroarea pentru a nu bloca anularea comenzii
+    // Logăm eroarea pentru debugging
+  }
+}

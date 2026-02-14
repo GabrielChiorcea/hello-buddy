@@ -29,6 +29,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Provider } from "react-redux";
 import { store } from "@/store";
 import { routes } from "@/config/routes";
@@ -46,6 +47,8 @@ import { apolloClient } from "@/graphql/client";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Catalog from "./pages/Catalog";
 import ProductDetails from "./pages/ProductDetails";
 import Cart from "./pages/Cart";
@@ -126,12 +129,15 @@ const App = () => (
             
             {/* Gestionare refresh token-uri JWT */}
             <TokenRefreshHandler>
-              {/* Definire rute aplicație */}
-              <Routes>
+              {/* Error Boundary - prinde erori React și afișează fallback */}
+              <ErrorBoundary>
+                <Routes>
                 {/* Pagini publice */}
                 <Route path={routes.home} element={<Home />} />
                 <Route path={routes.login} element={<Login />} />
                 <Route path={routes.signup} element={<Signup />} />
+                <Route path={routes.forgotPassword} element={<ForgotPassword />} />
+                <Route path={routes.resetPassword} element={<ResetPassword />} />
                 <Route path={routes.catalog} element={<Catalog />} />
                 <Route path={routes.product} element={<ProductDetails />} />
                 <Route path={routes.cart} element={<Cart />} />
@@ -162,7 +168,8 @@ const App = () => (
                 {/* Rută catch-all pentru 404 */}
                 {/* IMPORTANT: Toate rutele personalizate trebuie adăugate DEASUPRA acestei rute */}
                 <Route path="*" element={<NotFound />} />
-              </Routes>
+                </Routes>
+              </ErrorBoundary>
             </TokenRefreshHandler>
           </BrowserRouter>
         </TooltipProvider>

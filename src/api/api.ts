@@ -25,6 +25,7 @@ import {
   REFRESH_TOKEN,
   CHANGE_PASSWORD,
   REQUEST_PASSWORD_RESET,
+  RESET_PASSWORD,
   DELETE_ACCOUNT,
   CREATE_ADDRESS,
   UPDATE_ADDRESS,
@@ -46,6 +47,7 @@ import {
   AuthTokens,
   Category
 } from '@/types';
+import { getErrorMessage } from '@/lib/errorMessages';
 
 // ============================================================================
 // AUTH API
@@ -89,8 +91,7 @@ export const loginApi = async (
     };
   } catch (error) {
     console.error('Login API error:', error);
-    const message = error instanceof Error ? error.message : 'Eroare de rețea';
-    return { success: false, error: message };
+    return { success: false, error: getErrorMessage(error) };
   }
 };
 
@@ -123,8 +124,7 @@ export const signupApi = async (
     };
   } catch (error) {
     console.error('Signup API error:', error);
-    const message = error instanceof Error ? error.message : 'Eroare de rețea';
-    return { success: false, error: message };
+    return { success: false, error: getErrorMessage(error) };
   }
 };
 
@@ -199,8 +199,7 @@ export const changePasswordApi = async (
     };
   } catch (error) {
     console.error('Change password API error:', error);
-    const message = error instanceof Error ? error.message : 'Eroare de rețea';
-    return { success: false, error: message };
+    return { success: false, error: getErrorMessage(error) };
   }
 };
 
@@ -223,6 +222,25 @@ export const requestPasswordResetApi = async (
   }
 };
 
+export const resetPasswordApi = async (
+  token: string,
+  newPassword: string
+): Promise<ApiResponse<null>> => {
+  try {
+    const { data } = await apolloClient.mutate<{ resetPassword: boolean }>({
+      mutation: RESET_PASSWORD,
+      variables: { token, newPassword },
+    });
+    if (data?.resetPassword) {
+      return { success: true, message: 'Parola a fost resetată' };
+    }
+    return { success: false, error: 'Eroare la resetarea parolei' };
+  } catch (error) {
+    console.error('Reset password API error:', error);
+    return { success: false, error: getErrorMessage(error) };
+  }
+};
+
 export const deleteAccountApi = async (
   _userId: string, // Ignorat - backend-ul folosește JWT context
   data: { password: string; confirmText: string }
@@ -241,8 +259,7 @@ export const deleteAccountApi = async (
     return { success: false, error: 'Ștergere eșuată' };
   } catch (error) {
     console.error('Delete account API error:', error);
-    const message = error instanceof Error ? error.message : 'Eroare de rețea';
-    return { success: false, error: message };
+    return { success: false, error: getErrorMessage(error) };
   }
 };
 
@@ -389,8 +406,7 @@ export const placeOrderApi = async (
     };
   } catch (error) {
     console.error('Place order API error:', error);
-    const message = error instanceof Error ? error.message : 'Eroare de rețea';
-    return { success: false, error: message };
+    return { success: false, error: getErrorMessage(error) };
   }
 };
 
@@ -413,8 +429,7 @@ export const cancelOrderApi = async (orderId: string): Promise<ApiResponse<Order
     };
   } catch (error) {
     console.error('Cancel order API error:', error);
-    const message = error instanceof Error ? error.message : 'Eroare de rețea';
-    return { success: false, error: message };
+    return { success: false, error: getErrorMessage(error) };
   }
 };
 
@@ -469,8 +484,7 @@ export const saveAddressApi = async (
     };
   } catch (error) {
     console.error('Save address API error:', error);
-    const message = error instanceof Error ? error.message : 'Eroare de rețea';
-    return { success: false, error: message };
+    return { success: false, error: getErrorMessage(error) };
   }
 };
 
@@ -507,8 +521,7 @@ export const updateAddressApi = async (
     };
   } catch (error) {
     console.error('Update address API error:', error);
-    const message = error instanceof Error ? error.message : 'Eroare de rețea';
-    return { success: false, error: message };
+    return { success: false, error: getErrorMessage(error) };
   }
 };
 
@@ -526,8 +539,7 @@ export const deleteAddressApi = async (
     return { success: true, message: 'Adresă ștearsă' };
   } catch (error) {
     console.error('Delete address API error:', error);
-    const message = error instanceof Error ? error.message : 'Eroare de rețea';
-    return { success: false, error: message };
+    return { success: false, error: getErrorMessage(error) };
   }
 };
 
@@ -552,8 +564,7 @@ export const setDefaultAddressApi = async (
     };
   } catch (error) {
     console.error('Set default address API error:', error);
-    const message = error instanceof Error ? error.message : 'Eroare de rețea';
-    return { success: false, error: message };
+    return { success: false, error: getErrorMessage(error) };
   }
 };
 

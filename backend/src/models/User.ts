@@ -2,9 +2,17 @@
  * Model User - operații CRUD pentru utilizatori
  */
 
+import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { query, queryOne } from '../config/database.js';
 import { hashPassword, verifyPassword } from '../utils/password.js';
+
+/** Expirare token resetare parolă: 1 oră */
+const PASSWORD_RESET_TOKEN_EXPIRY_HOURS = 1;
+
+function hashResetToken(token: string): string {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
 
 // Tipuri
 export interface User {
@@ -237,4 +245,58 @@ export async function findAll(
     users: rows.map(mapRowToUser),
     total,
   };
+}
+
+// =============================================================================
+// Resetare parolă
+// =============================================================================
+
+/**
+ * Creează un token de resetare parolă pentru utilizator.
+ * Returnează token-ul în clar (de trimis pe email) sau null dacă user nu există.
+ */
+export async function createPasswordResetToken(userId: string): Promise<string | null> {
+  const token = crypto.randomBytes(32).toString('hex');
+  const tokenHash = hashResetToken(token);
+  const expiresAt = new Date(Date.now() + PASSWORD_RESET_TOKEN_EXPIRY_HOURS * 60 * 60 * 1000);
+  const id = uuidv4();
+
+  await query(
+    `INSERT INTO password_reset_tokens (id, user_id, token_hash, expires_at)
+     VALUES (?, ?, ?, ?)`,
+    [id, userId, tokenHash, expiresAt]
+  );
+  return token;
+}
+
+/**
+ * Găsește user_id asociat unui token de resetare valid (neexpirat).
+ * Returnează null dacă token-ul e invalid sau expirat.
+ */
+export async function findUserIdByPasswordResetToken(token: string): Promise<string | null> {
+  const tokenHash = hashResetToken(token);
+  const row = await queryOne<{ user_id: string }>(
+    `SELECT user_id FROM password_reset_tokens
+     WHERE token_hash = ? AND expires_at > NOW()`,
+    [tokenHash]
+  );
+  return row ? row.user_id : null;
+}
+
+/**
+ * Șterge token-ul de resetare după utilizare (one-time use).
+ */
+export async function deletePasswordResetToken(token: string): Promise<void> {
+  const tokenHash = hashResetToken(token);
+  await query(
+    'DELETE FROM password_reset_tokens WHERE token_hash = ?',
+    [tokenHash]
+  );
+}
+
+/**
+ * Șterge toate token-urile de resetare expirate (curățare).
+ */
+export async function deleteExpiredPasswordResetTokens(): Promise<void> {
+  await query('DELETE FROM password_reset_tokens WHERE expires_at <= NOW()');
 }

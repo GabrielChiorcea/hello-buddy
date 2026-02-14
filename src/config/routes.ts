@@ -12,6 +12,8 @@ export const routes = {
   profile: '/profile',
   login: '/login',
   signup: '/signup',
+  forgotPassword: '/forgot-password',
+  resetPassword: '/reset-password/:token',
   orderSuccess: '/order-success',
   notFound: '*',
   // Admin routes
@@ -49,6 +51,8 @@ export const protectedRoutes: RoutePath[] = [
 export const authRoutes: RoutePath[] = [
   routes.login,
   routes.signup,
+  routes.forgotPassword,
+  routes.resetPassword,
 ];
 
 /**
@@ -62,5 +66,8 @@ export const isProtectedRoute = (path: string): boolean => {
  * Helper to check if a route is an auth route
  */
 export const isAuthRoute = (path: string): boolean => {
-  return authRoutes.includes(path as RoutePath);
+  if (authRoutes.includes(path as RoutePath)) return true;
+  // /reset-password/:token
+  if (path.startsWith('/reset-password/')) return true;
+  return false;
 };
