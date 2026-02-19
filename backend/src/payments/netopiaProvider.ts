@@ -26,4 +26,8 @@ export const netopiaProvider: IPaymentProvider = {
   async handleWebhook(_req: Request): Promise<HandleWebhookResult> {
     throw new Error('Netopia webhook not implemented');
   },
+
+  async retrieveSessionForConfirmation(_sessionId: string): Promise<null> {
+    return null;
+  },
 };

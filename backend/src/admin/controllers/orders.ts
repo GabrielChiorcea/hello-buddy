@@ -152,14 +152,12 @@ export async function updateOrderStatus(req: Request, res: Response): Promise<vo
       return;
     }
 
-    if (status === 'delivered' && order.pointsEarned === 0) {
+    if (status === 'delivered') {
       await pointsPlugin.hooks.onOrderDelivered(id, {
         userId: order.userId,
         total: order.total,
         pointsEarned: order.pointsEarned,
       });
-    }
-    if (status === 'delivered') {
       await streakPlugin.hooks.onOrderDelivered(id, {
         userId: order.userId,
         total: order.total,

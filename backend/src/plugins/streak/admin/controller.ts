@@ -110,6 +110,10 @@ export async function deleteCampaign(req: Request, res: Response): Promise<void>
       res.status(404).json({ error: 'Campania nu a fost găsită' });
       return;
     }
+    if (CampaignsRepo.isCampaignActive(campaign)) {
+      res.status(400).json({ error: 'Nu poți șterge o campanie activă' });
+      return;
+    }
     await CampaignsRepo.deleteCampaign(id);
     res.json({ success: true });
   } catch (error) {

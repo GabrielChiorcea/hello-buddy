@@ -82,9 +82,6 @@ export async function recordOrderDelivered(
   orderId: string,
   orderDate: Date
 ): Promise<void> {
-  const enabled = await isPluginEnabled('streak');
-  if (!enabled) return;
-
   const orderDateStr = orderDate.toISOString().slice(0, 10);
 
   const enrollments = await EnrollmentsRepo.getActiveEnrollmentsForUser(userId);

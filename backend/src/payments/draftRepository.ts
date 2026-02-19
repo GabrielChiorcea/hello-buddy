@@ -108,10 +108,10 @@ export async function markCompleted(id: string): Promise<void> {
  * Folosit pentru a evita race între webhook și confirmPaymentSession.
  */
 export async function markCompletedOnlyIfPending(id: string): Promise<boolean> {
-  const [result] = await pool.execute<{ affectedRows: number }>(
+  const [result] = await pool.execute(
     "UPDATE payment_drafts SET status = 'completed', updated_at = CURRENT_TIMESTAMP WHERE id = ? AND status = 'pending'",
     [id]
   );
-  const ok = result as { affectedRows?: number };
-  return (ok?.affectedRows ?? 0) === 1;
+  const header = result as { affectedRows?: number };
+  return (header?.affectedRows ?? 0) === 1;
 }

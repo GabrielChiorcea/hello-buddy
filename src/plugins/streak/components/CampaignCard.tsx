@@ -13,21 +13,28 @@ import type { StreakCampaign, StreakEnrollment } from '../types';
 import { Flame } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export const CampaignCard: React.FC = () => {
+export interface CampaignCardProps {
+  /** When provided, skip ACTIVE_STREAK_CAMPAIGN and use this campaign (avoids duplicate query when used inside StreakCampaignBlock). */
+  campaign?: StreakCampaign | null;
+}
+
+export const CampaignCard: React.FC<CampaignCardProps> = ({ campaign: campaignProp }) => {
   const { data: campaignData, loading: campaignLoading } = useQuery<{ activeStreakCampaign: StreakCampaign | null }>(
     ACTIVE_STREAK_CAMPAIGN,
-    { fetchPolicy: 'cache-and-network' }
+    { fetchPolicy: 'cache-and-network', skip: campaignProp !== undefined }
   );
-  const campaignId = campaignData?.activeStreakCampaign?.id;
+  const campaign = campaignProp ?? campaignData?.activeStreakCampaign ?? null;
+  const campaignId = campaign?.id;
   const { data: enrollmentData, loading: enrollmentLoading } = useQuery<{ myStreakEnrollment: StreakEnrollment | null }>(
     MY_STREAK_ENROLLMENT,
     { variables: { campaignId: campaignId ?? undefined }, fetchPolicy: 'cache-and-network', skip: !campaignId }
   );
-
-  const campaign = campaignData?.activeStreakCampaign ?? null;
   const enrollment = campaign ? enrollmentData?.myStreakEnrollment ?? null : null;
 
-  if (campaignLoading || !campaign) {
+  if (campaignProp === undefined && (campaignLoading || !campaign)) {
+    return null;
+  }
+  if (!campaign) {
     return null;
   }
 
@@ -50,6 +57,7 @@ export const CampaignCard: React.FC = () => {
             current={enrollment.currentStreakCount}
             required={enrollment.campaign?.ordersRequired ?? campaign.ordersRequired}
             completed={enrollment.completedAt != null}
+            streakType={campaign.streakType}
           />
         ) : null}
         <CampaignJoinButton

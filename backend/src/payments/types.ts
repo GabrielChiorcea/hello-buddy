@@ -26,8 +26,16 @@ export interface HandleWebhookResult {
   draftId?: string;
 }
 
+/** Result for redirect confirmation (e.g. after Stripe Checkout redirect). Null if provider does not support it. */
+export interface RetrieveSessionResult {
+  draftId: string;
+  paymentId: string;
+}
+
 export interface IPaymentProvider {
   getProviderName(): PaymentProviderName;
   createPaymentIntent(params: CreatePaymentIntentParams): Promise<CreatePaymentIntentResult>;
   handleWebhook(req: Request): Promise<HandleWebhookResult>;
+  /** Resolve session id from redirect to draftId + paymentId. Returns null if provider does not support redirect confirmation. */
+  retrieveSessionForConfirmation(sessionId: string): Promise<RetrieveSessionResult | null>;
 }

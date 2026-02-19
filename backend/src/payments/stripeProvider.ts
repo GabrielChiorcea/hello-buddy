@@ -11,6 +11,7 @@ import type {
   CreatePaymentIntentParams,
   CreatePaymentIntentResult,
   HandleWebhookResult,
+  RetrieveSessionResult,
 } from './types.js';
 
 const secretKey = process.env.STRIPE_SECRET_KEY;
@@ -105,14 +106,18 @@ export const stripeProvider: IPaymentProvider = {
 
     return { success: false, paymentId: '' };
   },
+
+  async retrieveSessionForConfirmation(sessionId: string): Promise<RetrieveSessionResult | null> {
+    const stripe = getStripe();
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    if (session.payment_status !== 'paid') return null;
+    const draftId = session.metadata?.draftId;
+    if (!draftId || typeof draftId !== 'string') return null;
+    return { draftId, paymentId: session.id ?? sessionId };
+  },
 };
 
-/** Preluare sesiune Stripe Checkout (pentru fallback la redirect, fără webhook). */
+/** Preluare sesiune Stripe Checkout (pentru fallback la redirect, fără webhook). Deprecated: use stripeProvider.retrieveSessionForConfirmation. */
 export async function retrieveCheckoutSession(sessionId: string): Promise<{ draftId: string; paymentId: string } | null> {
-  const stripe = getStripe();
-  const session = await stripe.checkout.sessions.retrieve(sessionId);
-  if (session.payment_status !== 'paid') return null;
-  const draftId = session.metadata?.draftId;
-  if (!draftId || typeof draftId !== 'string') return null;
-  return { draftId, paymentId: session.id ?? sessionId };
+  return stripeProvider.retrieveSessionForConfirmation(sessionId);
 }

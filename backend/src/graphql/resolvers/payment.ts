@@ -4,11 +4,10 @@
 
 import { GraphQLContext, requireAuth } from '../context.js';
 import * as OrderModel from '../../models/Order.js';
-import { beginTransaction } from '../../config/database.js';
+import { pool } from '../../config/database.js';
 import { paymentProvider } from '../../payments/index.js';
 import * as DraftRepo from '../../payments/draftRepository.js';
 import { fulfillOrderFromDraft } from '../../payments/fulfillFromDraft.js';
-import { retrieveCheckoutSession } from '../../payments/stripeProvider.js';
 import { checkOrderRateLimit } from './order.js';
 
 interface OrderItemInput {
@@ -74,69 +73,65 @@ export const paymentResolvers = {
         throw new Error('Suma este invalidă');
       }
 
-      const connection = await beginTransaction();
+      const orderInput = {
+        userId: user.id,
+        items: input.items,
+        fulfillmentType: input.fulfillmentType,
+        tableNumber: input.tableNumber,
+        deliveryAddress: isInLocation ? 'În locație' : input.deliveryAddress,
+        deliveryCity: isInLocation ? 'În locație' : input.deliveryCity,
+        phone: input.phone,
+        notes: input.notes,
+        paymentMethod: 'card' as const,
+        pointsToUse: input.pointsToUse,
+      };
+
+      let serverTotal: number;
+      const connection = await pool.getConnection();
       try {
-        const orderInput = {
-          userId: user.id,
-          items: input.items,
-          fulfillmentType: input.fulfillmentType,
-          tableNumber: input.tableNumber,
-          deliveryAddress: isInLocation ? 'În locație' : input.deliveryAddress,
-          deliveryCity: isInLocation ? 'În locație' : input.deliveryCity,
-          phone: input.phone,
-          notes: input.notes,
-          paymentMethod: 'card' as const,
-          pointsToUse: input.pointsToUse,
-        };
         const totals = await OrderModel.computeOrderTotal(connection, orderInput);
-        const serverTotal = totals.total;
+        serverTotal = totals.total;
         if (Math.abs(serverTotal - amountRon) > 0.02) {
           throw new Error(
             `Suma nu corespunde (așteptat ${serverTotal.toFixed(2)} RON, primit ${amountRon.toFixed(2)} RON)`
           );
         }
-
-        const gateway = paymentProvider.getProviderName();
-        const payload: DraftRepo.PaymentDraftPayload = {
-          ...orderInput,
-          amountRon: serverTotal,
-        };
-        const draft = await DraftRepo.createDraft(user.id, payload, serverTotal, gateway);
-
-        const result = await paymentProvider.createPaymentIntent({
-          amountRon: serverTotal,
-          draftId: draft.id,
-        });
-
-        await DraftRepo.updateGatewayPaymentId(draft.id, result.paymentId);
-
-        return {
-          clientSecret: result.clientSecret ?? null,
-          redirectUrl: result.redirectUrl ?? null,
-          paymentId: result.paymentId,
-          draftId: draft.id,
-        };
-      } catch (err) {
-        throw err;
       } finally {
-        await connection.rollback?.();
-        connection.release?.();
+        connection.release();
       }
+
+      const gateway = paymentProvider.getProviderName();
+      const payload: DraftRepo.PaymentDraftPayload = {
+        ...orderInput,
+        amountRon: serverTotal,
+      };
+      const draft = await DraftRepo.createDraft(user.id, payload, serverTotal, gateway);
+
+      const result = await paymentProvider.createPaymentIntent({
+        amountRon: serverTotal,
+        draftId: draft.id,
+      });
+
+      await DraftRepo.updateGatewayPaymentId(draft.id, result.paymentId);
+
+      return {
+        clientSecret: result.clientSecret ?? null,
+        redirectUrl: result.redirectUrl ?? null,
+        paymentId: result.paymentId,
+        draftId: draft.id,
+      };
     },
 
-    /** Fallback: creează comanda din sesiunea Stripe la redirect pe /checkout/success (când webhook nu a fost primit). */
+    /** Fallback: creează comanda din sesiune la redirect pe /checkout/success (când webhook nu a fost primit). */
     async confirmPaymentSession(
       _: unknown,
       { sessionId }: { sessionId: string },
       context: GraphQLContext
     ) {
       const user = requireAuth(context);
-      if (paymentProvider.getProviderName() !== 'stripe') {
-        throw new Error('Confirmarea sesiunii este disponibilă doar pentru Stripe');
-      }
-      const result = await retrieveCheckoutSession(sessionId);
+      const result = await paymentProvider.retrieveSessionForConfirmation(sessionId);
       if (!result) {
-        throw new Error('Sesiune invalidă sau plată nefinalizată');
+        throw new Error('Sesiune invalidă, plată nefinalizată sau confirmarea nu este disponibilă pentru acest provider.');
       }
       const draft = await DraftRepo.findById(result.draftId);
       if (!draft || draft.userId !== user.id) {
