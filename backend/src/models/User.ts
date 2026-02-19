@@ -22,6 +22,7 @@ export interface User {
   phone: string | null;
   isBlocked: boolean;
   pointsBalance: number;
+  welcomeBonusSeen: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,6 +35,7 @@ interface UserRow {
   phone: string | null;
   is_blocked: boolean;
   points_balance: number;
+  welcome_bonus_seen: number | boolean;
   created_at: Date;
   updated_at: Date;
 }
@@ -59,6 +61,7 @@ function mapRowToUser(row: UserRow): User {
     phone: row.phone,
     isBlocked: row.is_blocked,
     pointsBalance: row.points_balance ?? 0,
+    welcomeBonusSeen: Boolean(row.welcome_bonus_seen),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -191,6 +194,17 @@ export async function changePassword(id: string, newPassword: string): Promise<b
   await query(
     'UPDATE users SET password_hash = ? WHERE id = ?',
     [passwordHash, id]
+  );
+  return true;
+}
+
+/**
+ * Marchează că utilizatorul a văzut popup-ul „Ai câștigat X puncte” (cadou la înregistrare).
+ */
+export async function markWelcomeBonusSeen(userId: string): Promise<boolean> {
+  await query(
+    'UPDATE users SET welcome_bonus_seen = 1 WHERE id = ?',
+    [userId]
   );
   return true;
 }

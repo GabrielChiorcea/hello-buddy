@@ -7,6 +7,7 @@ import { logError } from '../../utils/safeErrorLogger.js';
 import * as OrderModel from '../../models/Order.js';
 import { query } from '../../config/database.js';
 import { pointsPlugin } from '../../plugins/points/index.js';
+import { streakPlugin } from '../../plugins/streak/index.js';
 
 /**
  * GET /admin/orders
@@ -153,6 +154,13 @@ export async function updateOrderStatus(req: Request, res: Response): Promise<vo
 
     if (status === 'delivered' && order.pointsEarned === 0) {
       await pointsPlugin.hooks.onOrderDelivered(id, {
+        userId: order.userId,
+        total: order.total,
+        pointsEarned: order.pointsEarned,
+      });
+    }
+    if (status === 'delivered') {
+      await streakPlugin.hooks.onOrderDelivered(id, {
         userId: order.userId,
         total: order.total,
         pointsEarned: order.pointsEarned,

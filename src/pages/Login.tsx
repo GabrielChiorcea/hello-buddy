@@ -12,7 +12,7 @@ import { Loader } from '@/components/common/Loader';
 import { Layout } from '@/components/layout/Layout';
 import { GuestRoute } from '@/components/layout/ProtectedRoute';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { login, clearError } from '@/store/slices/userSlice';
+import { login, clearError, fetchCurrentUser } from '@/store/slices/userSlice';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { toast } from '@/hooks/use-toast';
@@ -114,6 +114,7 @@ const Login: React.FC = () => {
       toast({
         title: texts.notifications.loginSuccess,
       });
+      await dispatch(fetchCurrentUser());
       navigate(from, { replace: true });
     } else if (login.rejected.match(result)) {
       toast({

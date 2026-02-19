@@ -3,6 +3,7 @@
  */
 
 import { schemaExtension as pointsSchemaExtension } from '../plugins/points/index.js';
+import { schemaExtension as streakSchemaExtension } from '../plugins/streak/index.js';
 
 const coreTypeDefs = `#graphql
   # ============================================
@@ -15,6 +16,8 @@ const coreTypeDefs = `#graphql
     name: String!
     phone: String
     pointsBalance: Int!
+    welcomeBonusSeen: Boolean!
+    welcomeBonusAmount: Int!
     createdAt: String!
   }
 
@@ -229,6 +232,7 @@ const coreTypeDefs = `#graphql
     cancelOrder(id: ID!): Order!
     createPaymentSession(input: CreateOrderInput!, amountRon: Float!): CreatePaymentSessionPayload!
     confirmPaymentSession(sessionId: ID!): Order!
+    markWelcomeBonusSeen: Boolean!
   }
 
   type CreatePaymentSessionPayload {
@@ -239,4 +243,4 @@ const coreTypeDefs = `#graphql
   }
 `;
 
-export const typeDefs = coreTypeDefs + '\n' + pointsSchemaExtension;
+export const typeDefs = coreTypeDefs + '\n' + pointsSchemaExtension + '\n' + streakSchemaExtension;

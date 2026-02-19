@@ -98,6 +98,15 @@ export const RESET_PASSWORD = gql`
 `;
 
 /**
+ * Marchează că utilizatorul a văzut popup-ul „Ai câștigat X puncte”.
+ */
+export const MARK_WELCOME_BONUS_SEEN = gql`
+  mutation MarkWelcomeBonusSeen {
+    markWelcomeBonusSeen
+  }
+`;
+
+/**
  * Ștergere cont
  */
 export const DELETE_ACCOUNT = gql`

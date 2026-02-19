@@ -4,9 +4,9 @@
  * Așteptăm restaurarea sesiunii (token din cookie) înainte de a apela API-ul.
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
@@ -26,6 +26,8 @@ const CheckoutSuccess: React.FC = () => {
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('session_id');
   const confirmedRef = useRef(false);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
+  const [confirmDone, setConfirmDone] = useState(false);
   const { isAuthenticated, isLoading } = useAppSelector((state) => state.user);
 
   useEffect(() => {
@@ -37,14 +39,18 @@ const CheckoutSuccess: React.FC = () => {
     if (isLoading || !isAuthenticated) return;
     if (confirmedRef.current) return;
     confirmedRef.current = true;
+    setConfirmError(null);
     confirmPaymentSessionApi(sessionId).then((result) => {
+      setConfirmDone(true);
       if (result.success) {
         dispatch(resetCart());
         dispatch(fetchCurrentUser());
       } else {
+        const msg = result.error ?? 'Eroare la confirmarea plății';
+        setConfirmError(msg);
         toast({
           title: texts.common.error,
-          description: result.error ?? 'Eroare la confirmarea plății',
+          description: msg,
           variant: 'destructive',
         });
       }
@@ -63,25 +69,51 @@ const CheckoutSuccess: React.FC = () => {
     return null;
   }
 
+  const showError = confirmDone && confirmError;
+
   return (
     <ProtectedRoute>
       <Layout>
         <div className="container mx-auto px-4 py-16">
           <div className="max-w-md mx-auto text-center">
-            <div className="mb-6 flex justify-center">
-              <div className="rounded-full bg-primary/10 p-6">
-                <CheckCircle className="h-12 w-12 text-primary" />
-              </div>
-            </div>
-            <h1 className="text-2xl font-bold mb-2 text-foreground">
-              {texts.checkout.orderSuccess}
-            </h1>
-            <p className="text-muted-foreground mb-8">
-              {texts.checkout.orderSuccessMessage}
-            </p>
-            <Button onClick={() => navigate(routes.home)}>
-              {texts.checkout.backToHome}
-            </Button>
+            {showError ? (
+              <>
+                <div className="mb-6 flex justify-center">
+                  <div className="rounded-full bg-destructive/10 p-6">
+                    <XCircle className="h-12 w-12 text-destructive" />
+                  </div>
+                </div>
+                <h1 className="text-2xl font-bold mb-2 text-foreground">
+                  Confirmare plată eșuată
+                </h1>
+                <p className="text-muted-foreground mb-8">
+                  {confirmError}
+                </p>
+                <Button onClick={() => navigate(routes.checkout)} variant="outline" className="mr-2">
+                  Înapoi la checkout
+                </Button>
+                <Button onClick={() => navigate(routes.home)}>
+                  {texts.checkout.backToHome}
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="mb-6 flex justify-center">
+                  <div className="rounded-full bg-primary/10 p-6">
+                    <CheckCircle className="h-12 w-12 text-primary" />
+                  </div>
+                </div>
+                <h1 className="text-2xl font-bold mb-2 text-foreground">
+                  {texts.checkout.orderSuccess}
+                </h1>
+                <p className="text-muted-foreground mb-8">
+                  {texts.checkout.orderSuccessMessage}
+                </p>
+                <Button onClick={() => navigate(routes.home)}>
+                  {texts.checkout.backToHome}
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </Layout>

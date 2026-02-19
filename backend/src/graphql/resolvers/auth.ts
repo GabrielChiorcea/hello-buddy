@@ -30,6 +30,8 @@ import {
 } from '../../utils/securityLogger.js';
 import { sendPasswordResetEmail } from '../../utils/passwordResetEmail.js';
 import { env } from '../../config/env.js';
+import { isPluginEnabled } from '../../utils/pluginFlags.js';
+import { queryOne } from '../../config/database.js';
 
 // Rate limiting în memorie pentru signup și requestPasswordReset (per IP)
 const signupRateLimits = new Map<string, { count: number; resetAt: number }>();
@@ -155,10 +157,25 @@ export const authResolvers = {
       // Creează utilizatorul
       const user = await UserModel.create({ email, password, name, phone: normalizedPhone });
       
+      // Cadou puncte la înregistrare (dacă plugin puncte e activ)
+      let userToReturn = user;
+      const pointsEnabled = await isPluginEnabled('points');
+      if (pointsEnabled) {
+        const bonusRow = await queryOne<{ value: string }>(
+          "SELECT value FROM app_settings WHERE id = 'points_welcome_bonus'"
+        );
+        const amount = bonusRow ? Math.max(0, parseInt(bonusRow.value, 10) || 0) : 5;
+        if (amount > 0) {
+          const { addPoints } = await import('../../plugins/points/repositories/transactionsRepository.js');
+          await addPoints(user.id, amount, null, 'earned');
+          userToReturn = (await UserModel.findById(user.id)) ?? user;
+        }
+      }
+      
       // Generează token-uri
-      const accessToken = generateAccessToken(user.id);
+      const accessToken = generateAccessToken(userToReturn.id);
       const { token: refreshToken } = await generateRefreshToken(
-        user.id,
+        userToReturn.id,
         context.req.headers['user-agent'],
         context.req.ip
       );
@@ -167,10 +184,10 @@ export const authResolvers = {
       setRefreshTokenCookie(context.res, refreshToken);
       
       // Log signup
-      logSignup(context.req, user.id, user.email);
+      logSignup(context.req, userToReturn.id, userToReturn.email);
       
       return {
-        user,
+        user: userToReturn,
         accessToken,
         expiresIn: jwtConfig.access.expiresIn,
       };

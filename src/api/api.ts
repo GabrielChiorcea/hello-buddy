@@ -34,7 +34,8 @@ import {
   CREATE_ORDER,
   CANCEL_ORDER,
   CREATE_PAYMENT_SESSION,
-  CONFIRM_PAYMENT_SESSION
+  CONFIRM_PAYMENT_SESSION,
+  MARK_WELCOME_BONUS_SEEN
 } from '@/graphql/mutations';
 import { 
   Product, 
@@ -261,6 +262,21 @@ export const deleteAccountApi = async (
     return { success: false, error: 'Ștergere eșuată' };
   } catch (error) {
     console.error('Delete account API error:', error);
+    return { success: false, error: getErrorMessage(error) };
+  }
+};
+
+export const markWelcomeBonusSeenApi = async (): Promise<ApiResponse<boolean>> => {
+  try {
+    const { data } = await apolloClient.mutate<{ markWelcomeBonusSeen: boolean }>({
+      mutation: MARK_WELCOME_BONUS_SEEN,
+    });
+    if (data?.markWelcomeBonusSeen !== undefined) {
+      return { success: true, data: data.markWelcomeBonusSeen };
+    }
+    return { success: false, error: 'Eroare la marcarea popup-ului' };
+  } catch (error) {
+    console.error('Mark welcome bonus seen API error:', error);
     return { success: false, error: getErrorMessage(error) };
   }
 };

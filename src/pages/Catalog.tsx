@@ -21,6 +21,7 @@ import {
 import { texts } from '@/config/texts';
 import { cn } from '@/lib/utils';
 import { getCategoryIcon } from '@/config/categoryIcons';
+import { StreakCampaignBlock } from '@/plugins/streak';
 
 const Catalog: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -73,6 +74,7 @@ const Catalog: React.FC = () => {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
+        <StreakCampaignBlock />
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">

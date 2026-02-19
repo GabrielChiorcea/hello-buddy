@@ -18,6 +18,7 @@ import {
   ChefHat,
 } from 'lucide-react';
 import { pointsPlugin } from '@/plugins/points';
+import { streakPlugin } from '@/plugins/streak';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import {
   Sidebar,
@@ -56,10 +57,13 @@ export function AdminSidebar() {
   const dispatch = useAppDispatch();
   const admin = useAppSelector((state) => state.admin.admin);
   const { enabled: pointsEnabled } = usePluginEnabled('points');
+  const { enabled: streakEnabled } = usePluginEnabled('streak');
 
-  const mainNavItems = pointsEnabled
-    ? [...baseNavItems, ...pointsPlugin.navItems]
-    : baseNavItems;
+  const mainNavItems = [
+    ...baseNavItems,
+    ...(pointsEnabled ? pointsPlugin.navItems : []),
+    ...(streakEnabled ? streakPlugin.navItems : []),
+  ];
 
   const isActive = (path: string) => {
     if (path === '/admin') {

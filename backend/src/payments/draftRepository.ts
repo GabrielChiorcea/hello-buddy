@@ -4,7 +4,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { query, queryOne } from '../config/database.js';
+import { query, queryOne, pool } from '../config/database.js';
 import type { CreateOrderInput } from '../models/Order.js';
 
 export type DraftStatus = 'pending' | 'completed' | 'expired';
@@ -100,4 +100,18 @@ export async function markCompleted(id: string): Promise<void> {
     "UPDATE payment_drafts SET status = 'completed', updated_at = CURRENT_TIMESTAMP WHERE id = ?",
     [id]
   );
+}
+
+/**
+ * Marchează draft-ul completed doar dacă este încă 'pending' (atomic).
+ * Returnează true dacă am actualizat (suntem singurii care creează comanda), false dacă era deja completed.
+ * Folosit pentru a evita race între webhook și confirmPaymentSession.
+ */
+export async function markCompletedOnlyIfPending(id: string): Promise<boolean> {
+  const [result] = await pool.execute<{ affectedRows: number }>(
+    "UPDATE payment_drafts SET status = 'completed', updated_at = CURRENT_TIMESTAMP WHERE id = ? AND status = 'pending'",
+    [id]
+  );
+  const ok = result as { affectedRows?: number };
+  return (ok?.affectedRows ?? 0) === 1;
 }

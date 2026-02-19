@@ -17,6 +17,8 @@ export const USER_FRAGMENT = gql`
     name
     phone
     pointsBalance
+    welcomeBonusSeen
+    welcomeBonusAmount
     createdAt
   }
 `;

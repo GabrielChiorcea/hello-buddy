@@ -204,6 +204,13 @@ export const texts = {
     currency: 'RON',
     back: 'Înapoi',
   },
+
+  // Cadou puncte la prima autentificare
+  welcomeBonus: {
+    title: 'Ai câștigat {count} puncte!',
+    description: 'Le poți folosi la următoarea comandă pentru reducere.',
+    goToProducts: 'Mergi la produse',
+  },
 } as const;
 
 export type TextsType = typeof texts;

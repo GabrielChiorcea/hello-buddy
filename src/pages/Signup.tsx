@@ -12,7 +12,7 @@ import { Loader } from '@/components/common/Loader';
 import { Layout } from '@/components/layout/Layout';
 import { GuestRoute } from '@/components/layout/ProtectedRoute';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { signup, clearError } from '@/store/slices/userSlice';
+import { signup, clearError, fetchCurrentUser } from '@/store/slices/userSlice';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { toast } from '@/hooks/use-toast';
@@ -129,6 +129,7 @@ const Signup: React.FC = () => {
       toast({
         title: texts.notifications.signupSuccess,
       });
+      await dispatch(fetchCurrentUser());
       navigate(routes.home, { replace: true });
     } else if (signup.rejected.match(result)) {
       toast({

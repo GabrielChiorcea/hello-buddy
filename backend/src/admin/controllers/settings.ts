@@ -66,7 +66,9 @@ export async function updateSettings(req: Request, res: Response): Promise<void>
       'contact_email',
       'points_per_order',
       'points_per_ron',
+      'points_welcome_bonus',
       'plugin_points_enabled',
+      'plugin_streak_enabled',
       'has_tables',
     ];
     
@@ -80,6 +82,13 @@ export async function updateSettings(req: Request, res: Response): Promise<void>
         const numValue = parseFloat(value as string);
         if (isNaN(numValue) || numValue < 0) {
           res.status(400).json({ error: `Valoare invalidă pentru ${key}` });
+          return;
+        }
+      }
+      if (['points_per_order', 'points_per_ron', 'points_welcome_bonus'].includes(key)) {
+        const numValue = parseInt(value as string, 10);
+        if (isNaN(numValue) || numValue < 0) {
+          res.status(400).json({ error: `Valoare invalidă pentru ${key} (întreg >= 0)` });
           return;
         }
       }

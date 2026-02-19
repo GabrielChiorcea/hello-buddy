@@ -89,9 +89,6 @@ export const paymentResolvers = {
           pointsToUse: input.pointsToUse,
         };
         const totals = await OrderModel.computeOrderTotal(connection, orderInput);
-        connection.rollback();
-        connection.release();
-
         const serverTotal = totals.total;
         if (Math.abs(serverTotal - amountRon) > 0.02) {
           throw new Error(
@@ -102,12 +99,12 @@ export const paymentResolvers = {
         const gateway = paymentProvider.getProviderName();
         const payload: DraftRepo.PaymentDraftPayload = {
           ...orderInput,
-          amountRon,
+          amountRon: serverTotal,
         };
-        const draft = await DraftRepo.createDraft(user.id, payload, amountRon, gateway);
+        const draft = await DraftRepo.createDraft(user.id, payload, serverTotal, gateway);
 
         const result = await paymentProvider.createPaymentIntent({
-          amountRon,
+          amountRon: serverTotal,
           draftId: draft.id,
         });
 
@@ -120,9 +117,10 @@ export const paymentResolvers = {
           draftId: draft.id,
         };
       } catch (err) {
-        connection.rollback?.();
-        connection.release?.();
         throw err;
+      } finally {
+        await connection.rollback?.();
+        connection.release?.();
       }
     },
 
@@ -132,13 +130,17 @@ export const paymentResolvers = {
       { sessionId }: { sessionId: string },
       context: GraphQLContext
     ) {
-      requireAuth(context);
+      const user = requireAuth(context);
       if (paymentProvider.getProviderName() !== 'stripe') {
         throw new Error('Confirmarea sesiunii este disponibilă doar pentru Stripe');
       }
       const result = await retrieveCheckoutSession(sessionId);
       if (!result) {
         throw new Error('Sesiune invalidă sau plată nefinalizată');
+      }
+      const draft = await DraftRepo.findById(result.draftId);
+      if (!draft || draft.userId !== user.id) {
+        throw new Error('Nu aveți permisiunea de a confirma această plată');
       }
       let order = await fulfillOrderFromDraft(result.draftId, result.paymentId);
       if (!order) {

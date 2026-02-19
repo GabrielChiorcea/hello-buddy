@@ -9,6 +9,7 @@ import { addressResolvers } from './address.js';
 import { orderResolvers } from './order.js';
 import { paymentResolvers } from './payment.js';
 import { resolvers as pointsResolvers } from '../../plugins/points/index.js';
+import { streakResolvers } from '../../plugins/streak/index.js';
 import { queryOne } from '../../config/database.js';
 
 // Combină toate rezolverele
@@ -20,6 +21,7 @@ export const resolvers: any = {
     ...addressResolvers.Query,
     ...orderResolvers.Query,
     ...pointsResolvers.Query,
+    ...streakResolvers.Query,
 
     /**
      * Returnează valoarea unei setări din app_settings
@@ -39,8 +41,10 @@ export const resolvers: any = {
     ...addressResolvers.Mutation,
     ...orderResolvers.Mutation,
     ...paymentResolvers.Mutation,
+    ...streakResolvers.Mutation,
   },
   // Field resolvers
   Product: productResolvers.Product,
   Order: orderResolvers.Order,
+  User: userResolvers.User,
 };

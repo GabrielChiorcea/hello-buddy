@@ -25,6 +25,8 @@ export interface User {
   name: string;
   phone: string;
   pointsBalance?: number;
+  welcomeBonusSeen?: boolean;
+  welcomeBonusAmount?: number;
   createdAt: string;
 }
 

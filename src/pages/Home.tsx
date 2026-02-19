@@ -15,6 +15,7 @@ import { fetchProducts, fetchCategories, setSearchQuery, setSelectedCategory } f
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { getCategoryIcon } from '@/config/categoryIcons';
+import { StreakCampaignBlock } from '@/plugins/streak';
 
 const Home: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -74,6 +75,8 @@ const Home: React.FC = () => {
           </div>
         </div>
       </section>
+
+      <StreakCampaignBlock />
 
       {/* Categories Section */}
       <section className="py-12 md:py-16">

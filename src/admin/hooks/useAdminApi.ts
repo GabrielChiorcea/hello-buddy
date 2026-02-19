@@ -306,6 +306,49 @@ export const useAdminApi = () => {
     [fetchWithAuth]
   );
 
+  // Campanii streak
+  const getStreakCampaigns = useCallback(
+    () => fetchWithAuth<any[]>('/admin/streak/campaigns'),
+    [fetchWithAuth]
+  );
+
+  const getStreakCampaign = useCallback(
+    (id: string) => fetchWithAuth<any>(`/admin/streak/campaigns/${id}`),
+    [fetchWithAuth]
+  );
+
+  const createStreakCampaign = useCallback(
+    (data: unknown) =>
+      fetchWithAuth<any>('/admin/streak/campaigns', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    [fetchWithAuth]
+  );
+
+  const updateStreakCampaign = useCallback(
+    (id: string, data: unknown) =>
+      fetchWithAuth<any>(`/admin/streak/campaigns/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    [fetchWithAuth]
+  );
+
+  const deleteStreakCampaign = useCallback(
+    (id: string) =>
+      fetchWithAuth<{ success: boolean }>(`/admin/streak/campaigns/${id}`, {
+        method: 'DELETE',
+      }),
+    [fetchWithAuth]
+  );
+
+  const getStreakCampaignEnrollments = useCallback(
+    (campaignId: string) =>
+      fetchWithAuth<any[]>(`/admin/streak/campaigns/${campaignId}/enrollments`),
+    [fetchWithAuth]
+  );
+
   // Upload imagine
   const uploadImage = useCallback(
     async (file: File): Promise<string> => {
@@ -365,6 +408,13 @@ export const useAdminApi = () => {
     createPointsReward,
     updatePointsReward,
     deletePointsReward,
+    // Streak
+    getStreakCampaigns,
+    getStreakCampaign,
+    createStreakCampaign,
+    updateStreakCampaign,
+    deleteStreakCampaign,
+    getStreakCampaignEnrollments,
     // Upload
     uploadImage,
   };

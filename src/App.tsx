@@ -30,6 +30,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { WelcomeBonusGate } from "@/components/WelcomeBonusGate";
 import { Provider } from "react-redux";
 import { store } from "@/store";
 import { routes } from "@/config/routes";
@@ -70,6 +71,7 @@ import AdminCategories from "./admin/pages/AdminCategories";
 import AdminOrders from "./admin/pages/AdminOrders";
 import AdminUsers from "./admin/pages/AdminUsers";
 import { AdminPoints } from "./plugins/points";
+import { AdminStreakCampaigns } from "./plugins/streak";
 import AdminSettings from "./admin/pages/AdminSettings";
 
 // ============================================================================
@@ -130,6 +132,8 @@ const App = () => (
             
             {/* Gestionare refresh token-uri JWT */}
             <TokenRefreshHandler>
+              {/* Modal cadou puncte la prima autentificare */}
+              <WelcomeBonusGate />
               {/* Error Boundary - prinde erori React și afișează fallback */}
               <ErrorBoundary>
                 <Routes>
@@ -162,6 +166,7 @@ const App = () => (
                   <Route path="products" element={<AdminProducts />} />
                   <Route path="categories" element={<AdminCategories />} />
                   <Route path="points" element={<AdminPoints />} />
+                  <Route path="streak" element={<AdminStreakCampaigns />} />
                   <Route path="orders" element={<AdminOrders />} />
                   <Route path="users" element={<AdminUsers />} />
                   <Route path="settings" element={<AdminSettings />} />

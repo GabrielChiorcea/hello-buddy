@@ -32,6 +32,8 @@ import {
 } from './utils/cookies.js';
 import * as UserModel from './models/User.js';
 import { jwtConfig } from './config/jwt.js';
+import { queryOne } from './config/database.js';
+import { isPluginEnabled } from './utils/pluginFlags.js';
 import { logTokenInvalid, logSecurityEvent, SecurityEventType } from './utils/securityLogger.js';
 import { logError } from './utils/safeErrorLogger.js';
 
@@ -147,6 +149,17 @@ async function startServer() {
       // Setează NOUL refresh token în cookie
       setRefreshTokenCookie(res, rotationResult.refreshToken);
       
+      let welcomeBonusAmount = 0;
+      if (!user.welcomeBonusSeen) {
+        const pointsEnabled = await isPluginEnabled('points');
+        if (pointsEnabled) {
+          const row = await queryOne<{ value: string }>(
+            "SELECT value FROM app_settings WHERE id = 'points_welcome_bonus'"
+          );
+          welcomeBonusAmount = row ? Math.max(0, parseInt(row.value, 10) || 0) : 5;
+        }
+      }
+      
       res.json({
         user: {
           id: user.id,
@@ -154,6 +167,8 @@ async function startServer() {
           name: user.name,
           phone: user.phone,
           pointsBalance: user.pointsBalance,
+          welcomeBonusSeen: user.welcomeBonusSeen,
+          welcomeBonusAmount: welcomeBonusAmount,
         },
         accessToken: rotationResult.accessToken,
         expiresIn: rotationResult.expiresIn,

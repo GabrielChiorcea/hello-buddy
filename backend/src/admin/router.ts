@@ -15,6 +15,7 @@ import * as usersController from './controllers/users.js';
 import * as settingsController from './controllers/settings.js';
 import * as authController from './controllers/auth.js';
 import { pointsPlugin } from '../plugins/points/index.js';
+import { streakPlugin } from '../plugins/streak/index.js';
 
 export type AdminRateLimiters = {
   adminAuthLimiter: RequestHandler;
@@ -75,6 +76,8 @@ router.put('/settings', settingsController.updateSettings);
 
 // Puncte loialitate (plugin)
 pointsPlugin.registerAdminRoutes(router);
+// Campanii streak (plugin)
+streakPlugin.registerAdminRoutes(router);
 
   return router;
 }

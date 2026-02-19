@@ -16,11 +16,16 @@ import type {
 const secretKey = process.env.STRIPE_SECRET_KEY;
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
+let stripeInstance: Stripe | null = null;
+
 function getStripe(): Stripe {
   if (!secretKey) {
     throw new Error('STRIPE_SECRET_KEY is not set');
   }
-  return new Stripe(secretKey);
+  if (!stripeInstance) {
+    stripeInstance = new Stripe(secretKey);
+  }
+  return stripeInstance;
 }
 
 export function getStripePublishableKey(): string | null {
