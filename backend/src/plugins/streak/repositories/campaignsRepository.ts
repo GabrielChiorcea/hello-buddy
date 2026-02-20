@@ -173,9 +173,20 @@ export async function updateCampaign(
   return getCampaignById(id);
 }
 
+/** Normalizează o dată (Date sau string) la YYYY-MM-DD pentru comparații sigure. */
+function toDateOnly(v: Date | string): string {
+  if (v instanceof Date) return v.toISOString().slice(0, 10);
+  const s = String(v);
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? s : d.toISOString().slice(0, 10);
+}
+
 export function isCampaignActive(campaign: StreakCampaign): boolean {
   const today = new Date().toISOString().slice(0, 10);
-  return campaign.startDate <= today && campaign.endDate >= today;
+  const start = toDateOnly(campaign.startDate as Date | string);
+  const end = toDateOnly(campaign.endDate as Date | string);
+  return start <= today && end >= today;
 }
 
 export async function deleteCampaign(id: string): Promise<void> {

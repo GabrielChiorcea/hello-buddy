@@ -106,7 +106,8 @@ export async function awardOnDelivery(orderId: string, order: { userId: string; 
     }
 
     if (pointsEarned > 0) {
-      await OrderModel.setPointsEarned(orderId, pointsEarned);
+      const updated = await OrderModel.setPointsEarned(orderId, pointsEarned);
+      if (!updated) return; // deja acordate (guard la DB: WHERE points_earned = 0)
       await PointsModel.addPoints(order.userId, pointsEarned, orderId, 'earned');
       const user = await UserModel.findById(order.userId);
       const totalPoints = user ? user.pointsBalance + pointsEarned : pointsEarned;

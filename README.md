@@ -50,6 +50,22 @@ npm run dev
 - Click on "New codespace" to launch a new Codespace environment.
 - Edit files directly within the Codespace and commit and push your changes once you're done.
 
+## Acces de pe telefon (rețea locală)
+
+Ca să deschizi aplicația pe telefon la **http://192.168.1.146:8080** (sau alt IP al PC-ului):
+
+1. **Backend** – în `backend/.env` există deja `FRONTEND_URL_NETWORK=http://192.168.1.146:8080` (CORS). Serverul ascultă pe `0.0.0.0`, deci e accesibil din rețea.
+2. **Frontend** – creează în rădăcina proiectului fișierul **`.env.local`** cu:
+   ```env
+   VITE_GRAPHQL_ENDPOINT=http://192.168.1.146:4000/graphql
+   VITE_API_BASE_URL=http://192.168.1.146:4000
+   ```
+   (Înlocuiește `192.168.1.146` cu IP-ul real al PC-ului dacă e diferit.)
+3. Pornește backend-ul (`cd backend && npm run dev`) și frontend-ul (`npm run dev`) pe PC.
+4. Pe telefon (Wi‑Fi în aceeași rețea), deschide în browser: **http://192.168.1.146:8080**.
+
+Vite este deja setat cu `host: "::"` și `port: 8080`.
+
 ## What technologies are used for this project?
 
 This project is built with:

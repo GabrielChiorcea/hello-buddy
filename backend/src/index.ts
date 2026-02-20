@@ -59,8 +59,10 @@ async function startServer() {
     contentSecurityPolicy: isDevelopment ? false : undefined,
     crossOriginResourcePolicy: { policy: 'same-site' }, // Doar same-site (localhost:5173+4000, sau app+api pe același domeniu)
   }));
+  const corsOrigins = [env.FRONTEND_URL, env.ADMIN_URL];
+  if (env.FRONTEND_URL_NETWORK) corsOrigins.push(env.FRONTEND_URL_NETWORK);
   app.use(cors({
-    origin: [env.FRONTEND_URL, env.ADMIN_URL],
+    origin: corsOrigins,
     credentials: true, // IMPORTANT: permite cookies
     maxAge: 86400, // Cache preflight 24h (secunde) - reduce round-trip-urile OPTIONS
   }));
@@ -183,8 +185,8 @@ async function startServer() {
   // Health check
   app.get('/health', (_, res) => res.json({ status: 'ok' }));
 
-  // Pornire server
-  app.listen(env.PORT, () => {
+  // Pornire server (0.0.0.0 = accesibil și din rețea, ex. de pe telefon)
+  app.listen(env.PORT, '0.0.0.0', () => {
     console.log(`🚀 Server pornit pe http://localhost:${env.PORT}`);
     console.log(`📊 GraphQL: http://localhost:${env.PORT}/graphql`);
     console.log(`🔐 Admin API: http://localhost:${env.PORT}/admin`);

@@ -431,13 +431,16 @@ export async function cancel(id: string, reason?: string): Promise<Order | null>
 }
 
 /**
- * Actualizează punctele câștigate pentru o comandă livrată
+ * Actualizează punctele câștigate pentru o comandă livrată.
+ * Face update doar dacă points_earned e încă 0 (protecție idempotență la dublu-click / race).
+ * Returnează true dacă s-a făcut update, false dacă punctele erau deja acordate.
  */
-export async function setPointsEarned(id: string, pointsEarned: number): Promise<void> {
-  await query(
-    'UPDATE orders SET points_earned = ? WHERE id = ?',
+export async function setPointsEarned(id: string, pointsEarned: number): Promise<boolean> {
+  const res = await query<{ affectedRows: number }>(
+    'UPDATE orders SET points_earned = ? WHERE id = ? AND COALESCE(points_earned, 0) = 0',
     [pointsEarned, id]
   );
+  return (res?.affectedRows ?? 0) > 0;
 }
 
 /**

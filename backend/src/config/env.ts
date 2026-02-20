@@ -28,6 +28,8 @@ const envSchema = z.object({
   PORT: z.string().default('4000').transform(Number),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   FRONTEND_URL: z.string().url().default('http://localhost:5173'),
+  /** Optional: URL frontend pe rețea (ex: http://192.168.1.146:8080) pentru acces de pe telefon – folosit la CORS */
+  FRONTEND_URL_NETWORK: z.string().url().optional(),
   ADMIN_URL: z.string().url().default('http://localhost:5174'),
   
   // Upload
