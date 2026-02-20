@@ -66,7 +66,7 @@ const Checkout: React.FC = () => {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [isSuccess] = useState(false);
 
   const { enabled: pointsEnabled } = usePluginEnabled('points');
   const { pointsRewards } = usePointsRewards();
@@ -235,12 +235,10 @@ const Checkout: React.FC = () => {
       );
 
       if (result.success) {
-        setIsSuccess(true);
         dispatch(resetCart());
         dispatch(fetchCurrentUser());
-        toast({
-          title: texts.notifications.orderPlaced,
-        });
+        toast({ title: texts.notifications.orderPlaced });
+        navigate(routes.checkoutSuccess, { state: { order: result.data } });
       } else {
         toast({
           title: texts.common.error,
