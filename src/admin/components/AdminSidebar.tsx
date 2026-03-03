@@ -16,6 +16,7 @@ import {
   Settings,
   LogOut,
   ChefHat,
+  Puzzle,
 } from 'lucide-react';
 import { pointsPlugin } from '@/plugins/points';
 import { streakPlugin } from '@/plugins/streak';
@@ -58,11 +59,13 @@ export function AdminSidebar() {
   const admin = useAppSelector((state) => state.admin.admin);
   const { enabled: pointsEnabled } = usePluginEnabled('points');
   const { enabled: streakEnabled } = usePluginEnabled('streak');
+  const { enabled: addonsEnabled } = usePluginEnabled('addons');
 
   const mainNavItems = [
     ...baseNavItems,
     ...(pointsEnabled ? pointsPlugin.navItems : []),
     ...(streakEnabled ? streakPlugin.navItems : []),
+    ...(addonsEnabled ? [{ title: 'Reguli Add-on', url: '/admin/addon-rules', icon: Puzzle }] : []),
   ];
 
   const isActive = (path: string) => {
