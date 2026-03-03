@@ -5,7 +5,7 @@
  * Permite configurarea add-on-urilor sugerate per categorie de produs.
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useAdminApi } from '@/admin/hooks/useAdminApi';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,7 +30,7 @@ interface AdminProduct {
 }
 
 export default function AdminAddonRules() {
-  const { fetchWithAuth } = useAdminApi();
+  const { getCategories, getProducts, getAddonRules, updateAddonRules } = useAdminApi();
   const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [addonProducts, setAddonProducts] = useState<AdminProduct[]>([]);
   const [rules, setRules] = useState<Record<string, string[]>>({});
@@ -39,33 +39,35 @@ export default function AdminAddonRules() {
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [catRes, prodRes, rulesRes] = await Promise.all([
-        fetchWithAuth<{ data: AdminCategory[] }>('/admin/categories'),
-        fetchWithAuth<{ data: { products: AdminProduct[] } }>('/admin/products?limit=500'),
-        fetchWithAuth<{ data: Record<string, string[]> }>('/admin/addon-rules'),
-      ]);
-
-      setCategories(catRes.data || []);
-      // Filter only addon products
-      const allProducts = prodRes.data?.products || [];
-      setAddonProducts(allProducts.filter((p) => p.isAddon));
-      setRules(rulesRes.data || {});
-
-      if (catRes.data?.length > 0 && !selectedCategory) {
-        setSelectedCategory(catRes.data[0].id);
-      }
-    } catch (error) {
-      console.error('Error loading addon rules data:', error);
-      toast({ title: 'Eroare la încărcarea datelor', variant: 'destructive' });
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchWithAuth, selectedCategory]);
-
   useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const [catRes, prodRes, rulesRes] = await Promise.all([
+          getCategories(),
+          getProducts('limit=500'),
+          getAddonRules(),
+        ]);
+
+        const cats: AdminCategory[] = (catRes as any)?.data || catRes || [];
+        setCategories(Array.isArray(cats) ? cats : []);
+
+        const allProducts: AdminProduct[] = prodRes?.products || [];
+        setAddonProducts(allProducts.filter((p) => p.isAddon));
+
+        setRules((rulesRes as any)?.data || {});
+
+        const catArray = Array.isArray(cats) ? cats : [];
+        if (catArray.length > 0) {
+          setSelectedCategory(catArray[0].id);
+        }
+      } catch (error) {
+        console.error('Error loading addon rules data:', error);
+        toast({ title: 'Eroare la încărcarea datelor', variant: 'destructive' });
+      } finally {
+        setLoading(false);
+      }
+    };
     loadData();
   }, []);
 
@@ -85,13 +87,8 @@ export default function AdminAddonRules() {
     if (!selectedCategory) return;
     setSaving(true);
     try {
-      // Only send rules for the selected category
-      const payload = { rules: { [selectedCategory]: rules[selectedCategory] || [] } };
-      const result = await fetchWithAuth<{ data: Record<string, string[]> }>(
-        '/admin/addon-rules',
-        { method: 'PUT', body: JSON.stringify(payload) }
-      );
-      setRules((prev) => ({ ...prev, ...result.data }));
+      const result = await updateAddonRules({ [selectedCategory]: rules[selectedCategory] || [] });
+      setRules((prev) => ({ ...prev, ...((result as any)?.data || {}) }));
       setHasChanges(false);
       toast({ title: 'Regulile au fost salvate cu succes' });
     } catch (error) {
@@ -105,11 +102,8 @@ export default function AdminAddonRules() {
   const handleSaveAll = async () => {
     setSaving(true);
     try {
-      const result = await fetchWithAuth<{ data: Record<string, string[]> }>(
-        '/admin/addon-rules',
-        { method: 'PUT', body: JSON.stringify({ rules }) }
-      );
-      setRules(result.data || {});
+      const result = await updateAddonRules(rules);
+      setRules((result as any)?.data || {});
       setHasChanges(false);
       toast({ title: 'Toate regulile au fost salvate' });
     } catch (error) {
