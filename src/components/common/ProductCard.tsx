@@ -104,7 +104,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLi
             disabled={!product.isAvailable || isAdded}
             className={cn(
               'transition-all',
-              isAdded && 'bg-green-600 hover:bg-green-600'
+              isAdded && 'bg-success hover:bg-success'
             )}
           >
             {isAdded ? (
