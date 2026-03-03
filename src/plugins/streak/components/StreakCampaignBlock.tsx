@@ -1,6 +1,6 @@
 /**
- * Wrapper that shows campaign cards with title "Campanii" and horizontal scroll.
- * User can be enrolled in only one campaign at a time and chooses which to join.
+ * Casino-style streak campaigns section with dramatic presentation.
+ * Horizontal scroll of campaign cards with ambient background.
  * Plugin: plugins/streak
  */
 
@@ -10,6 +10,8 @@ import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { CampaignCard } from './CampaignCard';
 import { ACTIVE_STREAK_CAMPAIGNS, MY_STREAK_ENROLLMENT } from '../queries';
 import type { StreakCampaign, StreakEnrollment } from '../types';
+import { Flame, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export const StreakCampaignBlock: React.FC = () => {
   const { enabled, loading } = usePluginEnabled('streak');
@@ -27,24 +29,61 @@ export const StreakCampaignBlock: React.FC = () => {
   if (loading || !enabled || campaigns.length === 0) return null;
 
   return (
-    <section className="py-6">
-      <div className="container mx-auto px-4">
-        <h2 className="text-xl font-semibold mb-4">Campanii</h2>
+    <section className="relative py-10 overflow-hidden">
+      {/* Dark ambient background that bleeds across full width */}
+      <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-900 to-gray-950" />
+      {/* Decorative ambient orbs */}
+      <div className="absolute top-0 left-1/4 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-48 h-48 bg-orange-500/5 rounded-full blur-3xl pointer-events-none" />
+      {/* Top edge glow line */}
+      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-500/40 to-transparent" />
+      {/* Bottom edge glow line */}
+      <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-500/20 to-transparent" />
+
+      <div className="relative container mx-auto px-4">
+        {/* Section header */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="flex items-center gap-3 mb-6"
+        >
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
+            <Flame className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              Campanii Active
+              <Sparkles className="h-4 w-4 text-amber-400/60 streak-sparkle" />
+            </h2>
+            <p className="text-xs text-amber-400/40">Completează streak-ul și câștigă puncte bonus</p>
+          </div>
+        </motion.div>
+
+        {/* Cards scroll */}
         <div className="overflow-x-auto overflow-y-hidden -mx-4 px-4 sm:-mx-6 sm:px-6 md:mx-0 md:px-0">
-          <div className="flex gap-4 pb-2 min-w-0 scroll-smooth" style={{ scrollbarGutter: 'stable' }}>
-            {campaigns.map((campaign) => {
+          <div className="flex gap-5 pb-2 min-w-0 scroll-smooth" style={{ scrollbarGutter: 'stable' }}>
+            {campaigns.map((campaign, index) => {
               const enrollment =
                 myActiveEnrollment?.campaignId === campaign.id ? myActiveEnrollment : null;
               const enrolledInOtherCampaign =
                 myActiveEnrollment != null && myActiveEnrollment.campaignId !== campaign.id;
               return (
-                <div key={campaign.id} className="flex-shrink-0 w-[min(100%,280px)] md:w-72">
+                <motion.div
+                  key={campaign.id}
+                  initial={{ opacity: 0, x: 30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1, duration: 0.5 }}
+                  className="flex-shrink-0 w-[min(100%,320px)] md:w-80"
+                >
                   <CampaignCard
                     campaign={campaign}
                     enrollment={enrollment ?? undefined}
                     enrolledInOtherCampaign={enrolledInOtherCampaign}
                   />
-                </div>
+                </motion.div>
               );
             })}
           </div>
