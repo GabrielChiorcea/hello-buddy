@@ -16,6 +16,7 @@ import * as settingsController from './controllers/settings.js';
 import * as authController from './controllers/auth.js';
 import { pointsPlugin } from '../plugins/points/index.js';
 import { streakPlugin } from '../plugins/streak/index.js';
+import * as addonsController from './controllers/addons.js';
 
 export type AdminRateLimiters = {
   adminAuthLimiter: RequestHandler;
@@ -78,6 +79,10 @@ router.put('/settings', settingsController.updateSettings);
 pointsPlugin.registerAdminRoutes(router);
 // Campanii streak (plugin)
 streakPlugin.registerAdminRoutes(router);
+
+// Reguli add-on per categorie
+router.get('/addon-rules', addonsController.getAddonRules);
+router.put('/addon-rules', addonsController.updateAddonRules);
 
   return router;
 }
