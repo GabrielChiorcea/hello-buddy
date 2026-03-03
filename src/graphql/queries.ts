@@ -183,6 +183,15 @@ export const GET_ADDON_PRODUCTS = gql`
   ${PRODUCT_FRAGMENT}
 `;
 
+export const GET_SUGGESTED_ADDONS_FOR_CART = gql`
+  query GetSuggestedAddonsForCart($cartProductIds: [ID!]!) {
+    suggestedAddonsForCart(cartProductIds: $cartProductIds) {
+      ...ProductFields
+    }
+  }
+  ${PRODUCT_FRAGMENT}
+`;
+
 export const SEARCH_PRODUCTS = gql`
   query SearchProducts($query: String!) {
     searchProducts(query: $query) {
