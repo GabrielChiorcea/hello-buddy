@@ -1,9 +1,9 @@
 /**
- * Catalog page component
+ * Catalog page component with client-side pagination
  */
 
-import React, { useEffect } from 'react';
-import { Search, Filter, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Search, Filter, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +23,8 @@ import { cn } from '@/lib/utils';
 import { getCategoryIcon } from '@/config/categoryIcons';
 import { StreakCampaignBlock } from '@/plugins/streak';
 
+const ITEMS_PER_PAGE = 12;
+
 const Catalog: React.FC = () => {
   const dispatch = useAppDispatch();
   const {
@@ -33,6 +35,8 @@ const Catalog: React.FC = () => {
     searchQuery,
     isLoading,
   } = useAppSelector((state) => state.products);
+  
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     if (items.length === 0) {
@@ -42,6 +46,11 @@ const Catalog: React.FC = () => {
       dispatch(fetchCategories());
     }
   }, [dispatch, items.length, categories.length]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, searchQuery]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSearchQuery(e.target.value));
@@ -56,6 +65,12 @@ const Catalog: React.FC = () => {
   };
 
   const hasActiveFilters = selectedCategory || searchQuery;
+
+  // Pagination logic
+  const totalItems = filteredItems.length;
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedItems = filteredItems.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   // Get category display name
   const getCategoryDisplayName = (categoryName: string): string => {
@@ -146,7 +161,7 @@ const Catalog: React.FC = () => {
         {/* Results Count */}
         <div className="mb-6">
           <p className="text-muted-foreground">
-            {filteredItems.length} {filteredItems.length === 1 ? 'produs găsit' : 'produse găsite'}
+            {totalItems} {totalItems === 1 ? 'produs găsit' : 'produse găsite'}
             {selectedCategory && ` în categoria "${getCategoryDisplayName(selectedCategory)}"`}
             {searchQuery && ` pentru "${searchQuery}"`}
           </p>
@@ -164,12 +179,75 @@ const Catalog: React.FC = () => {
               </div>
             ))}
           </div>
-        ) : filteredItems.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredItems.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+        ) : paginatedItems.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {paginatedItems.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-10">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  disabled={currentPage === 1}
+                  onClick={() => {
+                    setCurrentPage((p) => p - 1);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter((page) => {
+                    // Show first, last, current, and neighbors
+                    if (page === 1 || page === totalPages) return true;
+                    if (Math.abs(page - currentPage) <= 1) return true;
+                    return false;
+                  })
+                  .reduce<(number | 'ellipsis')[]>((acc, page, idx, arr) => {
+                    if (idx > 0 && page - (arr[idx - 1] as number) > 1) {
+                      acc.push('ellipsis');
+                    }
+                    acc.push(page);
+                    return acc;
+                  }, [])
+                  .map((item, idx) =>
+                    item === 'ellipsis' ? (
+                      <span key={`e-${idx}`} className="px-2 text-muted-foreground">…</span>
+                    ) : (
+                      <Button
+                        key={item}
+                        variant={currentPage === item ? 'default' : 'outline'}
+                        size="icon"
+                        onClick={() => {
+                          setCurrentPage(item as number);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                      >
+                        {item}
+                      </Button>
+                    )
+                  )}
+                
+                <Button
+                  variant="outline"
+                  size="icon"
+                  disabled={currentPage === totalPages}
+                  onClick={() => {
+                    setCurrentPage((p) => p + 1);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </>
         ) : (
           <div className="text-center py-16">
             <p className="text-xl text-muted-foreground mb-4">
