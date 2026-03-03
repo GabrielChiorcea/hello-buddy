@@ -15,6 +15,7 @@ export const routes = {
   signup: '/signup',
   forgotPassword: '/forgot-password',
   resetPassword: '/reset-password/:token',
+  terms: '/termeni-si-conditii',
   orderSuccess: '/order-success',
   notFound: '*',
   // Admin routes
