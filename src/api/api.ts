@@ -13,6 +13,7 @@ import {
   GET_PRODUCT_BY_ID,
   GET_PRODUCTS_BY_CATEGORY,
   GET_ADDON_PRODUCTS,
+  GET_SUGGESTED_ADDONS_FOR_CART,
   SEARCH_PRODUCTS,
   GET_CATEGORIES,
   GET_CURRENT_USER,
@@ -343,6 +344,22 @@ export const fetchAddonProductsApi = async (): Promise<ApiResponse<Product[]>> =
   } catch (error) {
     console.error('Fetch addon products API error:', error);
     return { success: false, error: 'Eroare la încărcarea produselor add-on' };
+  }
+};
+
+export const fetchSuggestedAddonsForCartApi = async (
+  cartProductIds: string[]
+): Promise<ApiResponse<Product[]>> => {
+  try {
+    const { data } = await apolloClient.query<{ suggestedAddonsForCart: Product[] }>({
+      query: GET_SUGGESTED_ADDONS_FOR_CART,
+      variables: { cartProductIds },
+      fetchPolicy: 'network-only',
+    });
+    return { success: true, data: data?.suggestedAddonsForCart || [] };
+  } catch (error) {
+    console.error('Fetch suggested addons API error:', error);
+    return { success: false, error: 'Eroare la încărcarea sugestiilor add-on' };
   }
 };
 

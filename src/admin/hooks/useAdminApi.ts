@@ -373,6 +373,21 @@ export const useAdminApi = () => {
     [token]
   );
 
+  // Reguli add-on
+  const getAddonRules = useCallback(
+    () => fetchWithAuth<{ data: Record<string, string[]> }>('/admin/addon-rules'),
+    [fetchWithAuth]
+  );
+
+  const updateAddonRules = useCallback(
+    (rules: Record<string, string[]>) =>
+      fetchWithAuth<{ data: Record<string, string[]> }>('/admin/addon-rules', {
+        method: 'PUT',
+        body: JSON.stringify({ rules }),
+      }),
+    [fetchWithAuth]
+  );
+
   return {
     // Dashboard
     getDashboard,
@@ -415,6 +430,9 @@ export const useAdminApi = () => {
     updateStreakCampaign,
     deleteStreakCampaign,
     getStreakCampaignEnrollments,
+    // Add-on rules
+    getAddonRules,
+    updateAddonRules,
     // Upload
     uploadImage,
   };

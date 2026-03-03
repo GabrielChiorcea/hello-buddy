@@ -74,6 +74,7 @@ import AdminUsers from "./admin/pages/AdminUsers";
 import { AdminPoints } from "./plugins/points";
 import { AdminStreakCampaigns } from "./plugins/streak";
 import AdminSettings from "./admin/pages/AdminSettings";
+import AdminAddonRules from "./admin/pages/AdminAddonRules";
 
 // ============================================================================
 // CONFIGURARE QUERY CLIENT
@@ -172,6 +173,7 @@ const App = () => (
                   <Route path="orders" element={<AdminOrders />} />
                   <Route path="users" element={<AdminUsers />} />
                   <Route path="settings" element={<AdminSettings />} />
+                  <Route path="addon-rules" element={<AdminAddonRules />} />
                 </Route>
                 
                 {/* Rută catch-all pentru 404 */}

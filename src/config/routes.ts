@@ -27,6 +27,7 @@ export const routes = {
   adminUsers: '/admin/users',
   adminPoints: '/admin/points',
   adminSettings: '/admin/settings',
+  adminAddonRules: '/admin/addon-rules',
 } as const;
 
 /**
