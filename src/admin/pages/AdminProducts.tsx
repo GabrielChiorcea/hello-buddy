@@ -6,6 +6,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useAdminApi } from '@/admin/hooks/useAdminApi';
+import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { DataTable, Column } from '@/admin/components/DataTable';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
