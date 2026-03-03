@@ -1,6 +1,6 @@
 /**
  * =============================================================================
- * PAGINA COMENZI ADMIN - INTEGRAT CU BACKEND + POLLING
+ * PAGINA COMENZI ADMIN - CU BULK ACTIONS + CSV EXPORT
  * =============================================================================
  */
 
@@ -10,6 +10,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { DataTable, Column } from '@/admin/components/DataTable';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -26,7 +27,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Eye, Download, Bell, Loader2, Store } from 'lucide-react';
+import { Eye, Download, Bell, Loader2, Store, CheckSquare } from 'lucide-react';
 import { PointsOrderDetails } from '@/plugins/points';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { OrderStatus } from '@/types';
@@ -77,6 +78,38 @@ const statusConfig: Record<OrderStatus, { label: string; variant: 'default' | 's
   cancelled: { label: 'Anulată', variant: 'destructive' },
 };
 
+/** Export orders to CSV */
+function exportOrdersCSV(orders: AdminOrder[]) {
+  const headers = ['ID', 'Data', 'Client', 'Email', 'Telefon', 'Adresă', 'Oraș', 'Tip', 'Subtotal', 'Livrare', 'Total', 'Plată', 'Status'];
+  const rows = orders.map((o) => [
+    o.id,
+    format(new Date(o.createdAt), 'dd.MM.yyyy HH:mm'),
+    o.userName || '',
+    o.userEmail || '',
+    o.phone,
+    o.deliveryAddress,
+    o.deliveryCity,
+    o.fulfillmentType === 'in_location' ? 'În locație' : 'Livrare',
+    o.subtotal,
+    o.deliveryFee,
+    o.total,
+    o.paymentMethod === 'card' ? 'Card' : 'Numerar',
+    statusConfig[o.status]?.label || o.status,
+  ]);
+  
+  const csvContent = [headers, ...rows]
+    .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    .join('\n');
+  
+  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `comenzi_${format(new Date(), 'yyyy-MM-dd')}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function AdminOrders() {
   const dispatch = useAppDispatch();
   const { getOrders, updateOrderStatus, updateOrder, getSettings } = useAdminApi();
@@ -99,10 +132,12 @@ export default function AdminOrders() {
   const [editingTableNumber, setEditingTableNumber] = useState<string>('');
   const [hasTables, setHasTables] = useState(true);
 
-  // Ref pentru a urmări schimbările în numărul de comenzi noi (pentru notificări)
+  // Bulk selection
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+
   const lastOrderCount = useRef<number>(0);
 
-  // Fetch comenzi
   const fetchOrders = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -121,6 +156,7 @@ export default function AdminOrders() {
         total: result.pagination?.total || 0,
         pages: result.pagination?.pages || 0,
       }));
+      setSelectedIds(new Set());
     } catch (error) {
       console.error('Eroare la încărcarea comenzilor:', error);
       toast({
@@ -153,29 +189,25 @@ export default function AdminOrders() {
     }
   }, [selectedOrder?.id]);
 
-  // Notificări și refresh când se schimbă numărul de comenzi noi (din Redux)
+  // New orders notification with persistent banner
   useEffect(() => {
-    // Ignoră prima încărcare (când lastOrderCount este 0)
     if (lastOrderCount.current === 0) {
       lastOrderCount.current = newOrdersCount;
       return;
     }
 
-    // Notificare dacă sunt comenzi noi
     if (newOrdersCount > lastOrderCount.current) {
       toast({
         title: '🔔 Comandă nouă!',
         description: `Ai ${newOrdersCount} ${newOrdersCount === 1 ? 'comandă nouă' : 'comenzi noi'} în așteptare`,
       });
       
-      // Play notification sound (opțional)
       try {
         const audio = new Audio('/notification.mp3');
         audio.volume = 0.5;
         audio.play().catch(() => {});
       } catch (e) {}
       
-      // Refresh lista dacă suntem pe pagina cu pending
       if (statusFilter === 'pending' || statusFilter === 'all') {
         fetchOrders();
       }
@@ -188,18 +220,13 @@ export default function AdminOrders() {
     setUpdatingOrderId(orderId);
     try {
       await updateOrderStatus(orderId, newStatus);
-      
-      // Update local state
       setOrders((prev) =>
         prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
       );
-      
       toast({
         title: 'Succes',
         description: `Status actualizat la "${statusConfig[newStatus].label}"`,
       });
-
-      // Refresh lista dacă este necesar (polling-ul global va actualiza newOrdersCount)
       if (statusFilter === 'pending' || statusFilter === 'all') {
         fetchOrders();
       }
@@ -215,7 +242,67 @@ export default function AdminOrders() {
     }
   };
 
+  // Bulk status change
+  const handleBulkStatusChange = async (newStatus: OrderStatus) => {
+    if (selectedIds.size === 0) return;
+    setIsBulkUpdating(true);
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const id of selectedIds) {
+      try {
+        await updateOrderStatus(id, newStatus);
+        successCount++;
+      } catch {
+        errorCount++;
+      }
+    }
+
+    toast({
+      title: 'Bulk update',
+      description: `${successCount} actualizate, ${errorCount} erori`,
+    });
+    
+    setSelectedIds(new Set());
+    setIsBulkUpdating(false);
+    fetchOrders();
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === orders.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(orders.map((o) => o.id)));
+    }
+  };
+
   const columns: Column<AdminOrder>[] = [
+    {
+      key: 'select',
+      header: () => (
+        <Checkbox
+          checked={orders.length > 0 && selectedIds.size === orders.length}
+          onCheckedChange={toggleSelectAll}
+        />
+      ),
+      className: 'w-10',
+      cell: (order) => (
+        <Checkbox
+          checked={selectedIds.has(order.id)}
+          onCheckedChange={() => toggleSelect(order.id)}
+          onClick={(e) => e.stopPropagation()}
+        />
+      ),
+    },
     {
       key: 'id',
       header: 'ID Comandă',
@@ -332,6 +419,27 @@ export default function AdminOrders() {
 
   return (
     <div className="space-y-6">
+      {/* Persistent new orders alert */}
+      {newOrdersCount > 0 && (
+        <div className="flex items-center gap-3 rounded-lg border-2 border-primary bg-primary/5 p-4 animate-pulse">
+          <Bell className="h-5 w-5 text-primary" />
+          <p className="font-medium text-primary">
+            {newOrdersCount} {newOrdersCount === 1 ? 'comandă nouă' : 'comenzi noi'} în așteptare!
+          </p>
+          <Button
+            size="sm"
+            variant="outline"
+            className="ml-auto"
+            onClick={() => {
+              setStatusFilter('pending');
+              setPagination((prev) => ({ ...prev, page: 1 }));
+            }}
+          >
+            Vezi comenzile
+          </Button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -340,19 +448,35 @@ export default function AdminOrders() {
             Vizualizează și gestionează comenzile
           </p>
         </div>
-        <div className="flex items-center gap-4">
-          {newOrdersCount > 0 && (
-            <div className="flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-primary-foreground">
-              <Bell className="h-4 w-4" />
-              <span className="font-medium">{newOrdersCount} în așteptare</span>
-            </div>
-          )}
-          <Button variant="outline">
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => exportOrdersCSV(orders)}>
             <Download className="mr-2 h-4 w-4" />
             Export CSV
           </Button>
         </div>
       </div>
+
+      {/* Bulk actions bar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 rounded-lg border bg-muted/50 p-3">
+          <CheckSquare className="h-4 w-4 text-primary" />
+          <span className="text-sm font-medium">{selectedIds.size} selectate</span>
+          <div className="flex items-center gap-2 ml-auto">
+            <span className="text-sm text-muted-foreground">Schimbă status:</span>
+            {(['confirmed', 'preparing', 'delivering', 'delivered', 'cancelled'] as OrderStatus[]).map((status) => (
+              <Button
+                key={status}
+                size="sm"
+                variant="outline"
+                disabled={isBulkUpdating}
+                onClick={() => handleBulkStatusChange(status)}
+              >
+                {isBulkUpdating ? <Loader2 className="h-3 w-3 animate-spin" /> : statusConfig[status].label}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Filtre */}
       <div className="flex items-center gap-4">

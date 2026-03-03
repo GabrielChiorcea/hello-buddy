@@ -1,5 +1,5 @@
 /**
- * Footer component
+ * Footer component with Terms link
  */
 
 import React from 'react';
@@ -53,6 +53,14 @@ const Footer: React.FC = () => {
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   {texts.nav.profile}
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to={routes.terms} 
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Termeni și Condiții
                 </Link>
               </li>
             </ul>

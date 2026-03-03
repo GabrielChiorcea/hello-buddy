@@ -7,6 +7,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { FormInput } from '@/components/common/FormInput';
 import { Loader } from '@/components/common/Loader';
 import { Layout } from '@/components/layout/Layout';
@@ -42,6 +43,9 @@ const signupSchema = z.object({
     .min(6, texts.validation.passwordMin)
     .max(100),
   confirmPassword: z.string(),
+  acceptTerms: z.literal(true, {
+    errorMap: () => ({ message: 'Trebuie să accepți Termenii și Condițiile' }),
+  }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: texts.validation.passwordMatch,
   path: ['confirmPassword'],
@@ -53,6 +57,7 @@ interface FormData {
   phone: string;
   password: string;
   confirmPassword: string;
+  acceptTerms: boolean;
 }
 
 type FormErrors = Partial<Record<keyof FormData, string>>;
@@ -68,6 +73,7 @@ const Signup: React.FC = () => {
     phone: '',
     password: '',
     confirmPassword: '',
+    acceptTerms: false,
   });
   const [errors, setErrors] = useState<FormErrors>({});
 
@@ -122,7 +128,7 @@ const Signup: React.FC = () => {
     
     if (!validateForm()) return;
 
-    const { confirmPassword, ...signupData } = formData;
+    const { confirmPassword, acceptTerms, ...signupData } = formData;
     const result = await dispatch(signup(signupData));
     
     if (signup.fulfilled.match(result)) {
@@ -218,6 +224,38 @@ const Signup: React.FC = () => {
                   autoComplete="new-password"
                   disabled={isLoading}
                 />
+
+                {/* GDPR Consent Checkbox */}
+                <div className="space-y-1">
+                  <div className="flex items-start gap-2">
+                    <Checkbox
+                      id="acceptTerms"
+                      checked={formData.acceptTerms}
+                      onCheckedChange={(checked) => {
+                        setFormData((prev) => ({ ...prev, acceptTerms: !!checked }));
+                        if (errors.acceptTerms) {
+                          setErrors((prev) => ({ ...prev, acceptTerms: undefined }));
+                        }
+                      }}
+                      disabled={isLoading}
+                      className="mt-1"
+                    />
+                    <label htmlFor="acceptTerms" className="text-sm text-muted-foreground leading-snug cursor-pointer">
+                      Sunt de acord cu{' '}
+                      <Link 
+                        to={routes.terms} 
+                        target="_blank" 
+                        className="text-primary hover:underline font-medium"
+                      >
+                        Termenii și Condițiile
+                      </Link>
+                      {' '}și cu prelucrarea datelor personale conform GDPR.
+                    </label>
+                  </div>
+                  {errors.acceptTerms && (
+                    <p className="text-sm text-destructive">{errors.acceptTerms}</p>
+                  )}
+                </div>
 
                 {error && (
                   <p className="text-sm text-destructive text-center">{error}</p>

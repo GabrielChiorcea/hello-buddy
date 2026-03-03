@@ -1,19 +1,44 @@
 <!doctype html>
-<html lang="en">
+<html lang="ro">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- TODO: Set the document title to the name of your application -->
-    <title>Gamify</title>
+    <title>FoodOrder — Comandă mâncare delicioasă, livrată rapid</title>
+    <meta name="description" content="Comandă mâncare delicioasă din cele mai bune restaurante din zona ta. Livrare rapidă la ușa ta sau ridicare din locație." />
+    <link rel="canonical" href="/" />
 
-    <!-- TODO: Update og:title to match your application name -->
-    <meta property="og:title" content="Gamify" />
-    <meta property="og:description" content="Lovable Generated Project" />
+    <meta property="og:title" content="FoodOrder — Mâncare delicioasă la ușa ta" />
+    <meta property="og:description" content="Comandă mâncare delicioasă din cele mai bune restaurante din zona ta. Livrare rapidă." />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="" />
+    <meta property="og:locale" content="ro_RO" />
 
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="FoodOrder — Mâncare delicioasă la ușa ta" />
+    <meta name="twitter:description" content="Comandă mâncare delicioasă din cele mai bune restaurante din zona ta." />
     <meta name="twitter:image" content="" />
+
+    <!-- JSON-LD structured data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FoodEstablishment",
+      "name": "FoodOrder",
+      "description": "Comandă mâncare delicioasă din cele mai bune restaurante din zona ta.",
+      "url": "/",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "București",
+        "addressCountry": "RO"
+      },
+      "servesCuisine": ["Pizza", "Burgeri", "Paste", "Salate", "Deserturi"],
+      "acceptsReservations": false,
+      "hasMenu": {
+        "@type": "Menu",
+        "url": "/catalog"
+      }
+    }
+    </script>
   </head>
 
   <body>

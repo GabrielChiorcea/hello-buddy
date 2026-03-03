@@ -133,9 +133,8 @@ export async function refundPointsOnCancellation(orderId: string, order: { userI
   if (!enabled) return;
 
   try {
-    // Returnează punctele utilizatorului
-    // Folosim type 'earned' pentru că este o returnare de puncte (nu un câștig nou)
-    await PointsModel.addPoints(order.userId, order.pointsUsed, orderId, 'earned');
+    // Returnează punctele utilizatorului cu type 'refunded'
+    await PointsModel.addPoints(order.userId, order.pointsUsed, orderId, 'refunded');
     
     // Log pentru debugging (opțional - poate fi eliminat în producție)
     console.log(`[Points] Returnate ${order.pointsUsed} puncte utilizatorului ${order.userId} pentru comanda anulată ${orderId}`);

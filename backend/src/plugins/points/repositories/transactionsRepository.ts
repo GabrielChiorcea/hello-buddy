@@ -6,7 +6,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { query, queryOne, beginTransaction } from '../../../config/database.js';
 
-export type PointsTransactionType = 'earned' | 'spent';
+export type PointsTransactionType = 'earned' | 'spent' | 'refunded';
 
 /**
  * Obține balanța punctelor unui utilizator (FOR UPDATE pentru context tranzacțional)

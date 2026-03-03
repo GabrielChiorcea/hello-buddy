@@ -1,6 +1,6 @@
 /**
  * =============================================================================
- * PAGINA UTILIZATORI ADMIN - INTEGRAT CU BACKEND
+ * PAGINA UTILIZATORI ADMIN - CU CSV EXPORT
  * =============================================================================
  */
 
@@ -24,7 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { MoreHorizontal, Shield, ShieldOff, Eye, Loader2 } from 'lucide-react';
+import { MoreHorizontal, Shield, ShieldOff, Eye, Loader2, Download } from 'lucide-react';
 import { PointsBalance } from '@/plugins/points';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { AdminRole, Pagination } from '@/types/admin';
@@ -47,6 +47,29 @@ const roleLabels: Record<AdminRole, { label: string; variant: 'default' | 'secon
   moderator: { label: 'Moderator', variant: 'secondary' },
   user: { label: 'Utilizator', variant: 'outline' },
 };
+
+function exportUsersCSV(users: AdminUser[]) {
+  const headers = ['ID', 'Nume', 'Rol', 'Status', 'Comenzi', 'Puncte', 'Înregistrat'];
+  const rows = users.map((u) => [
+    u.id,
+    u.name,
+    (u.roles?.[0] && roleLabels[u.roles[0]]?.label) || 'Utilizator',
+    u.isBlocked ? 'Blocat' : 'Activ',
+    u.ordersCount ?? 0,
+    u.pointsBalance ?? 0,
+    format(new Date(u.createdAt), 'dd.MM.yyyy'),
+  ]);
+  const csvContent = [headers, ...rows]
+    .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    .join('\n');
+  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `utilizatori_${format(new Date(), 'yyyy-MM-dd')}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function AdminUsers() {
   const { getUsers, updateUserRole, toggleBlockUser } = useAdminApi();
@@ -168,7 +191,6 @@ export default function AdminUsers() {
       key: 'role',
       header: 'Rol',
       cell: (user) => {
-        // Afișează primul rol sau 'user' ca fallback
         const primaryRole = user.roles?.[0] || 'user';
         return (
           <Badge variant={roleLabels[primaryRole]?.variant || 'outline'}>
@@ -261,11 +283,17 @@ export default function AdminUsers() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Utilizatori</h1>
-        <p className="text-muted-foreground">
-          Gestionează utilizatorii și permisiunile
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Utilizatori</h1>
+          <p className="text-muted-foreground">
+            Gestionează utilizatorii și permisiunile
+          </p>
+        </div>
+        <Button variant="outline" onClick={() => exportUsersCSV(users)}>
+          <Download className="mr-2 h-4 w-4" />
+          Export CSV
+        </Button>
       </div>
 
       {/* Tabel */}
