@@ -1,18 +1,19 @@
 /**
  * Plugin Add-ons – secțiunea "Adaugă la comandă" în coș
- * Afișează produsele marcate în Admin ca add-on la coș, grupate pe categorie.
+ * Mod avansat: sugestii bazate pe conținutul coșului (reguli per categorie).
+ * Fallback: dacă nu există reguli, afișează add-on-urile globale.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { useAppDispatch } from '@/store';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { addItem } from '@/store/slices/cartSlice';
 import { getImageUrl } from '@/lib/imageUrl';
 import { texts } from '@/config/texts';
 import { toast } from '@/hooks/use-toast';
-import { fetchAddonProductsApi } from '@/api/api';
+import { fetchSuggestedAddonsForCartApi, fetchAddonProductsApi } from '@/api/api';
 import { Product } from '@/types';
 
 function groupByCategory(products: Product[]): { displayName: string; products: Product[] }[] {
@@ -27,21 +28,55 @@ function groupByCategory(products: Product[]): { displayName: string; products: 
 
 export function CartAddonSection() {
   const dispatch = useAppDispatch();
+  const cartItems = useAppSelector((state) => state.cart.items);
   const [addonProducts, setAddonProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Extract cart product IDs for the query
+  const cartProductIds = useMemo(
+    () => cartItems.map((item) => item.product.id),
+    [cartItems]
+  );
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetchAddonProductsApi().then((res) => {
+
+    const fetchAddons = async () => {
+      let res;
+      if (cartProductIds.length > 0) {
+        // Mod avansat: sugestii bazate pe conținutul coșului
+        res = await fetchSuggestedAddonsForCartApi(cartProductIds);
+      } else {
+        // Coș gol: fallback la global
+        res = await fetchAddonProductsApi();
+      }
+
       if (cancelled) return;
-      setAddonProducts(res.success && res.data ? res.data : []);
+
+      let products = res.success && res.data ? res.data : [];
+
+      // Deduplicare de siguranță
+      const seen = new Set<string>();
+      products = products.filter((p) => {
+        if (seen.has(p.id)) return false;
+        seen.add(p.id);
+        return true;
+      });
+
+      // Exclude produsele deja în coș (fallback frontend)
+      const cartIdSet = new Set(cartProductIds);
+      products = products.filter((p) => !cartIdSet.has(p.id));
+
+      setAddonProducts(products);
       setLoading(false);
-    });
+    };
+
+    fetchAddons();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [cartProductIds]);
 
   const handleAddAddon = (product: Product) => {
     dispatch(addItem(product));
@@ -62,7 +97,7 @@ export function CartAddonSection() {
         <p className="text-sm text-muted-foreground">Se încarcă...</p>
       ) : groups.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          Niciun produs add-on configurat. Marchează produse din Admin → Produse ca «Add-on la coș».
+          Niciun produs add-on disponibil.
         </p>
       ) : (
         <div className="space-y-6">
