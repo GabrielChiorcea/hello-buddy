@@ -659,16 +659,19 @@ export default function AdminProducts() {
                 }
               />
             </div>
-            <div className="flex items-center justify-between">
+            <div className={`flex items-center justify-between${!addonsPluginEnabled ? ' opacity-50' : ''}`}>
               <div>
                 <Label htmlFor="isAddon">Add-on la coș</Label>
                 <p className="text-xs text-muted-foreground">
-                  Apare în secțiunea „Adaugă la comandă” pe pagina Coș
+                  {addonsPluginEnabled
+                    ? 'Apare în secțiunea „Adaugă la comandă" pe pagina Coș'
+                    : 'Plugin-ul Add-ons este dezactivat din Setări → Plugin-uri'}
                 </p>
               </div>
               <Switch
                 id="isAddon"
-                checked={formData.isAddon}
+                checked={addonsPluginEnabled ? formData.isAddon : false}
+                disabled={!addonsPluginEnabled}
                 onCheckedChange={(checked) =>
                   setFormData((prev) => ({ ...prev, isAddon: checked }))
                 }
