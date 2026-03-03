@@ -18,12 +18,16 @@ import { texts } from '@/config/texts';
 import { getCategoryIcon } from '@/config/categoryIcons';
 import { StreakCampaignBlock } from '@/plugins/streak';
 
+import type { Easing } from 'framer-motion';
+
+const easeOut: Easing = [0.16, 1, 0.3, 1];
+
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.1, duration: 0.5, ease: 'easeOut' },
+    transition: { delay: i * 0.1, duration: 0.5, ease: easeOut },
   }),
 };
 
@@ -34,7 +38,7 @@ const staggerContainer = {
 
 const cardVariant = {
   hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: easeOut } },
 };
 
 const Home: React.FC = () => {
