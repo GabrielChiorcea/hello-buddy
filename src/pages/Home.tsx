@@ -81,7 +81,7 @@ const Home: React.FC = () => {
               className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-foreground"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: 'easeOut' }}
+              transition={{ duration: 0.6, ease: easeOut }}
             >
               {texts.home.heroTitle}
             </motion.h1>
@@ -89,7 +89,7 @@ const Home: React.FC = () => {
               className="text-lg md:text-xl text-muted-foreground mb-8"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.15, ease: 'easeOut' }}
+              transition={{ duration: 0.6, delay: 0.15, ease: easeOut }}
             >
               {texts.home.heroSubtitle}
             </motion.p>
@@ -99,7 +99,7 @@ const Home: React.FC = () => {
               className="relative max-w-xl mx-auto"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.3, ease: 'easeOut' }}
+              transition={{ duration: 0.5, delay: 0.3, ease: easeOut }}
             >
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
