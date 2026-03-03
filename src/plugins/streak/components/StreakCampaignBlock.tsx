@@ -1,6 +1,6 @@
 /**
- * Casino-style streak campaigns section with dramatic presentation.
- * Horizontal scroll of campaign cards with ambient background.
+ * Streak campaigns section — casino/rewards style that blends with the warm app theme.
+ * Uses a subtle warm-dark gradient instead of pure gray-900.
  * Plugin: plugins/streak
  */
 
@@ -30,15 +30,17 @@ export const StreakCampaignBlock: React.FC = () => {
 
   return (
     <section className="relative py-10 overflow-hidden">
-      {/* Dark ambient background that bleeds across full width */}
-      <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-900 to-gray-950" />
-      {/* Decorative ambient orbs */}
-      <div className="absolute top-0 left-1/4 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-48 h-48 bg-orange-500/5 rounded-full blur-3xl pointer-events-none" />
-      {/* Top edge glow line */}
-      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-500/40 to-transparent" />
-      {/* Bottom edge glow line */}
-      <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-500/20 to-transparent" />
+      {/* Warm-dark gradient that blends with the app's warm palette */}
+      <div className="absolute inset-0 bg-gradient-to-b from-amber-950/90 via-orange-950/80 to-amber-950/90" />
+      {/* Subtle texture overlay */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(245,158,11,0.08)_0%,_transparent_60%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(234,88,12,0.06)_0%,_transparent_50%)]" />
+      {/* Top edge warm glow */}
+      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
+      {/* Bottom soft blend — matches --background */}
+      <div className="absolute bottom-0 inset-x-0 h-8 bg-gradient-to-t from-background to-transparent" />
+      {/* Top soft blend */}
+      <div className="absolute top-0 inset-x-0 h-8 bg-gradient-to-b from-background to-transparent" />
 
       <div className="relative container mx-auto px-4">
         {/* Section header */}
@@ -57,7 +59,7 @@ export const StreakCampaignBlock: React.FC = () => {
               Campanii Active
               <Sparkles className="h-4 w-4 text-amber-400/60 streak-sparkle" />
             </h2>
-            <p className="text-xs text-amber-400/40">Completează streak-ul și câștigă puncte bonus</p>
+            <p className="text-xs text-amber-400/50">Completează streak-ul și câștigă puncte bonus</p>
           </div>
         </motion.div>
 
