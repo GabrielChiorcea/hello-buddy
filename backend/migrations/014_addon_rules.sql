@@ -13,7 +13,40 @@ CREATE TABLE IF NOT EXISTS category_addon_rules (
   CONSTRAINT fk_addon_rule_category FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
   CONSTRAINT fk_addon_rule_product FOREIGN KEY (addon_product_id) REFERENCES products(id) ON DELETE CASCADE,
   CONSTRAINT uq_category_addon UNIQUE (category_id, addon_product_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+SET @idx_addon_category_exists := (
+  SELECT COUNT(1)
+  FROM INFORMATION_SCHEMA.STATISTICS
+  WHERE table_schema = DATABASE()
+    AND table_name = 'category_addon_rules'
+    AND index_name = 'idx_addon_rules_category'
 );
 
-CREATE INDEX idx_addon_rules_category ON category_addon_rules (category_id);
-CREATE INDEX idx_addon_rules_product ON category_addon_rules (addon_product_id);
+SET @create_idx_addon_category_sql := IF(
+  @idx_addon_category_exists = 0,
+  'CREATE INDEX idx_addon_rules_category ON category_addon_rules (category_id)',
+  'SELECT 1'
+);
+
+PREPARE stmt_cat FROM @create_idx_addon_category_sql;
+EXECUTE stmt_cat;
+DEALLOCATE PREPARE stmt_cat;
+
+SET @idx_addon_product_exists := (
+  SELECT COUNT(1)
+  FROM INFORMATION_SCHEMA.STATISTICS
+  WHERE table_schema = DATABASE()
+    AND table_name = 'category_addon_rules'
+    AND index_name = 'idx_addon_rules_product'
+);
+
+SET @create_idx_addon_product_sql := IF(
+  @idx_addon_product_exists = 0,
+  'CREATE INDEX idx_addon_rules_product ON category_addon_rules (addon_product_id)',
+  'SELECT 1'
+);
+
+PREPARE stmt_prod FROM @create_idx_addon_product_sql;
+EXECUTE stmt_prod;
+DEALLOCATE PREPARE stmt_prod;
