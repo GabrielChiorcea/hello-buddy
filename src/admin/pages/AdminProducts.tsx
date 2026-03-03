@@ -70,6 +70,7 @@ interface Category {
 
 export default function AdminProducts() {
   const { getProducts, getCategories, createProduct, updateProduct, deleteProduct } = useAdminApi();
+  const { enabled: addonsPluginEnabled } = usePluginEnabled('addons');
   
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
