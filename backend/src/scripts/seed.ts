@@ -12,6 +12,8 @@ const categories = [
   { name: 'salate', displayName: 'Salate', icon: '🥗', sortOrder: 4 },
   { name: 'desert', displayName: 'Deserturi', icon: '🍰', sortOrder: 5 },
   { name: 'bauturi', displayName: 'Băuturi', icon: '🥤', sortOrder: 6 },
+  { name: 'sosuri', displayName: 'Sosuri', icon: '🫙', sortOrder: 7 },
+  { name: 'garnituri', displayName: 'Garnituri', icon: '🍟', sortOrder: 8 },
 ];
 
 const products = [
@@ -25,6 +27,10 @@ const products = [
   { name: 'Tiramisu', description: 'Desert italian cu mascarpone și cafea', price: 22, category: 'desert', ingredients: ['mascarpone', 'cafea', 'pișcoturi'] },
   { name: 'Cheesecake', description: 'Cu fructe de pădure', price: 24, category: 'desert', ingredients: ['brânză cremă', 'fructe pădure'] },
   { name: 'Limonadă', description: 'Limonadă proaspătă cu mentă', price: 12, category: 'bauturi', ingredients: ['lămâie', 'mentă', 'zahăr'] },
+  { name: 'Sos garlic', description: 'Sos de usturoi cremos', price: 3, category: 'sosuri', ingredients: ['usturoi', 'maioneză'] },
+  { name: 'Sos BBQ', description: 'Sos barbecue clasic', price: 3, category: 'sosuri', ingredients: ['roșii', 'miere', 'condimente'] },
+  { name: 'Cartofi prăjiți', description: 'Porție cartofi prăjiți', price: 8, category: 'garnituri', ingredients: ['cartofi'] },
+  { name: 'Cartofi cu brânză', description: 'Cartofi copți cu brânză topită', price: 12, category: 'garnituri', ingredients: ['cartofi', 'brânză'] },
 ];
 
 async function seed() {

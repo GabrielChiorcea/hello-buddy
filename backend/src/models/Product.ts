@@ -21,6 +21,7 @@ export interface Product {
   categoryId: string;
   categoryName?: string;
   isAvailable: boolean;
+  isAddon: boolean;
   preparationTime: number;
   ingredients: ProductIngredient[];
   createdAt: Date;
@@ -36,6 +37,7 @@ interface ProductRow {
   category_id: string;
   category_name?: string;
   is_available: boolean;
+  is_addon?: boolean;
   preparation_time: number;
   created_at: Date;
   updated_at: Date;
@@ -55,6 +57,7 @@ export interface CreateProductInput {
   image?: string;
   categoryId: string;
   preparationTime?: number;
+  isAddon?: boolean;
   ingredients?: Array<{ name: string; isAllergen?: boolean }>;
 }
 
@@ -65,6 +68,7 @@ export interface UpdateProductInput {
   image?: string;
   categoryId?: string;
   isAvailable?: boolean;
+  isAddon?: boolean;
   preparationTime?: number;
   ingredients?: Array<{ name: string; isAllergen?: boolean }>;
 }
@@ -80,6 +84,7 @@ function mapRowToProduct(row: ProductRow, ingredients: ProductIngredient[] = [])
     categoryId: row.category_id,
     categoryName: row.category_name,
     isAvailable: row.is_available,
+    isAddon: Boolean(row.is_addon),
     preparationTime: row.preparation_time,
     ingredients,
     createdAt: row.created_at,
@@ -125,6 +130,7 @@ export async function findById(id: string): Promise<Product | null> {
 export async function findAll(options: {
   categoryId?: string;
   isAvailable?: boolean;
+  addonOnly?: boolean;
   search?: string;
   page?: number;
   limit?: number;
@@ -134,6 +140,7 @@ export async function findAll(options: {
   const {
     categoryId,
     isAvailable,
+    addonOnly,
     search,
     page = 1,
     limit = 50,
@@ -151,6 +158,9 @@ export async function findAll(options: {
   if (isAvailable !== undefined) {
     conditions.push('p.is_available = ?');
     params.push(isAvailable);
+  }
+  if (addonOnly === true) {
+    conditions.push('p.is_addon = TRUE');
   }
   if (search) {
     conditions.push('(p.name LIKE ? OR p.description LIKE ?)');
@@ -171,8 +181,9 @@ export async function findAll(options: {
   const safeSortBy = allowedSorts.includes(sortBy) ? sortBy : 'created_at';
   const safeSortOrder = sortOrder === 'ASC' ? 'ASC' : 'DESC';
 
+  const selectColumns = 'p.id, p.name, p.description, p.price, p.image, p.category_id, p.is_available, COALESCE(p.is_addon, FALSE) as is_addon, p.preparation_time, p.created_at, p.updated_at, c.display_name as category_name';
   const rows = await query<ProductRow[]>(
-    `SELECT p.*, c.display_name as category_name
+    `SELECT ${selectColumns}
      FROM products p
      LEFT JOIN categories c ON p.category_id = c.id
      ${whereClause}
@@ -235,8 +246,8 @@ export async function create(input: CreateProductInput): Promise<Product> {
     const id = uuidv4();
     
     await connection.execute(
-      `INSERT INTO products (id, name, description, price, image, category_id, preparation_time)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO products (id, name, description, price, image, category_id, preparation_time, is_addon)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         input.name,
@@ -245,6 +256,7 @@ export async function create(input: CreateProductInput): Promise<Product> {
         input.image || null,
         input.categoryId,
         input.preparationTime || 30,
+        input.isAddon ? 1 : 0,
       ]
     );
     
@@ -309,6 +321,10 @@ export async function update(id: string, input: UpdateProductInput): Promise<Pro
     if (input.preparationTime !== undefined) {
       updates.push('preparation_time = ?');
       values.push(input.preparationTime);
+    }
+    if (input.isAddon !== undefined) {
+      updates.push('is_addon = ?');
+      values.push(input.isAddon ? 1 : 0);
     }
     
     if (updates.length > 0) {

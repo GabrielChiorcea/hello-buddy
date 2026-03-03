@@ -14,10 +14,20 @@ export async function getActiveCampaign(): Promise<CampaignsRepo.StreakCampaign 
   return CampaignsRepo.getActiveCampaign();
 }
 
+export async function getActiveCampaigns(): Promise<CampaignsRepo.StreakCampaign[]> {
+  return CampaignsRepo.getActiveCampaigns();
+}
+
 export async function enrollUser(userId: string, campaignId: string): Promise<EnrollmentsRepo.UserStreakCampaign> {
   const campaign = await CampaignsRepo.getCampaignById(campaignId);
   if (!campaign) throw new Error('Campaign not found');
   if (!CampaignsRepo.isCampaignActive(campaign)) throw new Error('Campaign is not active');
+
+  const activeEnrollments = await EnrollmentsRepo.getActiveEnrollmentsForUser(userId);
+  const alreadyInThis = activeEnrollments.some((e) => e.campaignId === campaignId);
+  if (!alreadyInThis && activeEnrollments.length > 0) {
+    throw new Error('Ești deja înscris la o campanie. Poți participa doar la o campanie în același timp.');
+  }
 
   const enrollment = await EnrollmentsRepo.enrollUser(userId, campaignId);
   // Prepare email content for future email service (no send)

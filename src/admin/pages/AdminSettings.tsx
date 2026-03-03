@@ -36,6 +36,8 @@ interface EditableSettings {
   contact_phone: string;
   plugin_points_enabled: boolean;
   plugin_streak_enabled: boolean;
+  plugin_welcome_bonus_enabled: boolean;
+  plugin_addons_enabled: boolean;
   has_tables: boolean;
 }
 
@@ -50,6 +52,8 @@ function parseSettings(map: SettingsMap): EditableSettings {
     contact_phone: map.contact_phone?.value ?? '',
     plugin_points_enabled: (map.plugin_points_enabled?.value ?? 'true') === 'true',
     plugin_streak_enabled: (map.plugin_streak_enabled?.value ?? 'true') === 'true',
+    plugin_welcome_bonus_enabled: (map.plugin_welcome_bonus_enabled?.value ?? 'true') === 'true',
+    plugin_addons_enabled: (map.plugin_addons_enabled?.value ?? 'true') === 'true',
     has_tables: (map.has_tables?.value ?? 'true') === 'true',
   };
 }
@@ -99,6 +103,8 @@ export default function AdminSettings() {
         contact_phone: settings.contact_phone,
         plugin_points_enabled: settings.plugin_points_enabled ? 'true' : 'false',
         plugin_streak_enabled: settings.plugin_streak_enabled ? 'true' : 'false',
+        plugin_welcome_bonus_enabled: settings.plugin_welcome_bonus_enabled ? 'true' : 'false',
+        plugin_addons_enabled: settings.plugin_addons_enabled ? 'true' : 'false',
         has_tables: settings.has_tables ? 'true' : 'false',
       });
       toast({
@@ -312,6 +318,30 @@ export default function AdminSettings() {
             <Switch
               checked={settings.plugin_streak_enabled}
               onCheckedChange={(checked) => updateField('plugin_streak_enabled', checked)}
+            />
+          </div>
+          <div className="flex items-center justify-between pt-4 border-t">
+            <div>
+              <Label>Puncte cadou la prima autentificare</Label>
+              <p className="text-sm text-muted-foreground">
+                Popup „Ai câștigat X puncte” și alocare puncte la înregistrare (folosește setarea puncte cadou din plugin Puncte)
+              </p>
+            </div>
+            <Switch
+              checked={settings.plugin_welcome_bonus_enabled}
+              onCheckedChange={(checked) => updateField('plugin_welcome_bonus_enabled', checked)}
+            />
+          </div>
+          <div className="flex items-center justify-between pt-4 border-t">
+            <div>
+              <Label>Add-on la coș</Label>
+              <p className="text-sm text-muted-foreground">
+                Secțiunea «Adaugă la comandă» în coș – sosuri, băuturi, desert, garnituri; pe viitor reguli per produs
+              </p>
+            </div>
+            <Switch
+              checked={settings.plugin_addons_enabled}
+              onCheckedChange={(checked) => updateField('plugin_addons_enabled', checked)}
             />
           </div>
         </CardContent>

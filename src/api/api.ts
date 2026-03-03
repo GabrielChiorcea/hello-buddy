@@ -12,6 +12,7 @@ import {
   GET_PRODUCTS,
   GET_PRODUCT_BY_ID,
   GET_PRODUCTS_BY_CATEGORY,
+  GET_ADDON_PRODUCTS,
   SEARCH_PRODUCTS,
   GET_CATEGORIES,
   GET_CURRENT_USER,
@@ -330,6 +331,18 @@ export const fetchProductsByCategoryApi = async (
   } catch (error) {
     console.error('Fetch products by category API error:', error);
     return { success: false, error: 'Eroare la filtrarea produselor' };
+  }
+};
+
+export const fetchAddonProductsApi = async (): Promise<ApiResponse<Product[]>> => {
+  try {
+    const { data } = await apolloClient.query<{ addonProducts: Product[] }>({
+      query: GET_ADDON_PRODUCTS,
+    });
+    return { success: true, data: data?.addonProducts || [] };
+  } catch (error) {
+    console.error('Fetch addon products API error:', error);
+    return { success: false, error: 'Eroare la încărcarea produselor add-on' };
   }
 };
 

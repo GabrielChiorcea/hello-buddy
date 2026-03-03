@@ -157,10 +157,11 @@ export const authResolvers = {
       // Creează utilizatorul
       const user = await UserModel.create({ email, password, name, phone: normalizedPhone });
       
-      // Cadou puncte la înregistrare (dacă plugin puncte e activ)
+      // Cadou puncte la înregistrare (dacă plugin welcome_bonus și puncte sunt active)
       let userToReturn = user;
+      const welcomeBonusEnabled = await isPluginEnabled('welcome_bonus');
       const pointsEnabled = await isPluginEnabled('points');
-      if (pointsEnabled) {
+      if (welcomeBonusEnabled && pointsEnabled) {
         const bonusRow = await queryOne<{ value: string }>(
           "SELECT value FROM app_settings WHERE id = 'points_welcome_bonus'"
         );

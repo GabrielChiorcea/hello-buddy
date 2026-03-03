@@ -23,6 +23,25 @@ export const ACTIVE_STREAK_CAMPAIGN = gql`
   }
 `;
 
+export const ACTIVE_STREAK_CAMPAIGNS = gql`
+  query ActiveStreakCampaigns {
+    activeStreakCampaigns {
+      id
+      name
+      streakType
+      ordersRequired
+      bonusPoints
+      customText
+      startDate
+      endDate
+      resetOnMiss
+      pointsExpireAfterCampaign
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
 export const MY_STREAK_ENROLLMENT = gql`
   query MyStreakEnrollment($campaignId: ID) {
     myStreakEnrollment(campaignId: $campaignId) {

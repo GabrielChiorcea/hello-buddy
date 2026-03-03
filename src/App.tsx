@@ -30,7 +30,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { WelcomeBonusGate } from "@/components/WelcomeBonusGate";
+import { WelcomeBonusGateWrapped } from "@/plugins/welcome_bonus";
 import { Provider } from "react-redux";
 import { store } from "@/store";
 import { routes } from "@/config/routes";
@@ -133,7 +133,7 @@ const App = () => (
             {/* Gestionare refresh token-uri JWT */}
             <TokenRefreshHandler>
               {/* Modal cadou puncte la prima autentificare */}
-              <WelcomeBonusGate />
+              <WelcomeBonusGateWrapped />
               {/* Error Boundary - prinde erori React și afișează fallback */}
               <ErrorBoundary>
                 <Routes>

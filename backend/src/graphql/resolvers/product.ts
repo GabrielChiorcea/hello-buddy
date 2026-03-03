@@ -38,6 +38,18 @@ export const productResolvers = {
     },
 
     /**
+     * Listează produsele marcate ca add-on la coș (disponibile pentru secțiunea "Adaugă la comandă")
+     */
+    async addonProducts() {
+      const { products } = await ProductModel.findAll({
+        isAvailable: true,
+        addonOnly: true,
+        limit: 100,
+      });
+      return products;
+    },
+
+    /**
      * Caută produse
      */
     async searchProducts(_: unknown, { query }: { query: string }) {

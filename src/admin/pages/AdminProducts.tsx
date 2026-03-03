@@ -54,6 +54,7 @@ interface AdminProduct {
   categoryId: string;
   categoryName?: string;
   isAvailable: boolean;
+  isAddon?: boolean;
   rating: number;
   reviewsCount: number;
   preparationTime: number;
@@ -73,6 +74,7 @@ export default function AdminProducts() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [categoryFilterId, setCategoryFilterId] = useState<string>('');
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
     limit: 10,
@@ -94,6 +96,7 @@ export default function AdminProducts() {
     price: '',
     categoryId: '',
     isAvailable: true,
+    isAddon: false,
     preparationTime: '',
     image: '',
     ingredients: '',  // Text liber pentru ingrediente
@@ -111,7 +114,7 @@ export default function AdminProducts() {
 
   useEffect(() => {
     fetchProducts();
-  }, [pagination.page, pagination.limit, search]);
+  }, [pagination.page, pagination.limit, search, categoryFilterId]);
 
   const fetchCategories = async () => {
     try {
@@ -130,6 +133,7 @@ export default function AdminProducts() {
         limit: String(pagination.limit),
       });
       if (search) params.append('search', search);
+      if (categoryFilterId) params.append('categoryId', categoryFilterId);
 
       const result = await getProducts(params.toString());
       setProducts(result.products || []);
@@ -169,6 +173,7 @@ export default function AdminProducts() {
       price: String(product.price),
       categoryId: product.categoryId,
       isAvailable: product.isAvailable,
+      isAddon: product.isAddon ?? false,
       preparationTime: String(product.preparationTime || ''),
       image: product.image || '',
       ingredients: regularIngredients,
@@ -187,6 +192,7 @@ export default function AdminProducts() {
       price: '',
       categoryId: categories[0]?.id || '',
       isAvailable: true,
+      isAddon: false,
       preparationTime: '30',
       image: '',
       ingredients: '',
@@ -255,6 +261,7 @@ export default function AdminProducts() {
         price: parseFloat(formData.price),
         categoryId: formData.categoryId,
         isAvailable: formData.isAvailable,
+        isAddon: formData.isAddon,
         preparationTime: formData.preparationTime ? parseInt(formData.preparationTime) : 30,
         image: imagePreview || formData.image || '/placeholder.svg',
         ingredients: allIngredients.length > 0 ? allIngredients : undefined,
@@ -413,6 +420,34 @@ export default function AdminProducts() {
           <Plus className="mr-2 h-4 w-4" />
           Adaugă produs
         </Button>
+      </div>
+
+      {/* Filtru categorie */}
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="flex items-center gap-2">
+          <Label htmlFor="category-filter" className="text-muted-foreground whitespace-nowrap">
+            Categorie
+          </Label>
+          <Select
+            value={categoryFilterId || 'all'}
+            onValueChange={(value) => {
+              setCategoryFilterId(value === 'all' ? '' : value);
+              setPagination((prev) => ({ ...prev, page: 1 }));
+            }}
+          >
+            <SelectTrigger id="category-filter" className="w-[200px]">
+              <SelectValue placeholder="Toate categoriile" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toate categoriile</SelectItem>
+              {categories.map((cat) => (
+                <SelectItem key={cat.id} value={cat.id}>
+                  {cat.displayName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Tabel */}
@@ -619,6 +654,21 @@ export default function AdminProducts() {
                 checked={formData.isAvailable}
                 onCheckedChange={(checked) =>
                   setFormData((prev) => ({ ...prev, isAvailable: checked }))
+                }
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="isAddon">Add-on la coș</Label>
+                <p className="text-xs text-muted-foreground">
+                  Apare în secțiunea „Adaugă la comandă” pe pagina Coș
+                </p>
+              </div>
+              <Switch
+                id="isAddon"
+                checked={formData.isAddon}
+                onCheckedChange={(checked) =>
+                  setFormData((prev) => ({ ...prev, isAddon: checked }))
                 }
               />
             </div>

@@ -39,8 +39,11 @@ const STREAK_TYPE_LABELS: Record<StreakType, string> = {
 };
 
 function isCampaignActive(c: StreakCampaign): boolean {
-  const today = new Date().toISOString().slice(0, 10);
-  return c.startDate <= today && c.endDate >= today;
+  const d = new Date();
+  const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const start = String(c.startDate).slice(0, 10);
+  const end = String(c.endDate).slice(0, 10);
+  return start <= today && end >= today;
 }
 
 const defaultForm = {

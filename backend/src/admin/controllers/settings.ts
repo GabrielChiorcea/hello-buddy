@@ -69,6 +69,8 @@ export async function updateSettings(req: Request, res: Response): Promise<void>
       'points_welcome_bonus',
       'plugin_points_enabled',
       'plugin_streak_enabled',
+      'plugin_welcome_bonus_enabled',
+      'plugin_addons_enabled',
       'has_tables',
     ];
     
@@ -98,6 +100,13 @@ export async function updateSettings(req: Request, res: Response): Promise<void>
         const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
         if (!timeRegex.test(value as string)) {
           res.status(400).json({ error: `Format oră invalid pentru ${key}` });
+          return;
+        }
+      }
+      if (['plugin_points_enabled', 'plugin_streak_enabled', 'plugin_welcome_bonus_enabled', 'plugin_addons_enabled'].includes(key)) {
+        const v = String(value).toLowerCase();
+        if (!['true', 'false'].includes(v)) {
+          res.status(400).json({ error: `${key} trebuie să fie true sau false` });
           return;
         }
       }

@@ -8,6 +8,7 @@ import { query, queryOne } from '../../../config/database.js';
 
 export type StreakType = 'consecutive_days' | 'days_per_week' | 'working_days';
 
+/** Raw row from DB; date columns may come as Date or string depending on driver. */
 export interface StreakCampaignRow {
   id: string;
   name: string;
@@ -15,12 +16,12 @@ export interface StreakCampaignRow {
   orders_required: number;
   bonus_points: number;
   custom_text: string | null;
-  start_date: string;
-  end_date: string;
+  start_date: Date | string;
+  end_date: Date | string;
   reset_on_miss: boolean;
   points_expire_after_campaign: boolean;
-  created_at: Date;
-  updated_at: Date;
+  created_at: Date | string;
+  updated_at: Date | string;
 }
 
 export interface StreakCampaign {
@@ -34,8 +35,23 @@ export interface StreakCampaign {
   endDate: string;
   resetOnMiss: boolean;
   pointsExpireAfterCampaign: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Normalize date to YYYY-MM-DD for start/end, ISO for timestamps. */
+function toDateString(v: Date | string): string {
+  if (v instanceof Date) return v.toISOString().slice(0, 10);
+  const s = String(v);
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? s : d.toISOString().slice(0, 10);
+}
+function toISOString(v: Date | string): string {
+  if (v instanceof Date) return v.toISOString();
+  const s = String(v);
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? s : d.toISOString();
 }
 
 function mapRow(r: StreakCampaignRow): StreakCampaign {
@@ -46,25 +62,43 @@ function mapRow(r: StreakCampaignRow): StreakCampaign {
     ordersRequired: r.orders_required,
     bonusPoints: r.bonus_points,
     customText: r.custom_text,
-    startDate: r.start_date,
-    endDate: r.end_date,
+    startDate: toDateString(r.start_date),
+    endDate: toDateString(r.end_date),
     resetOnMiss: Boolean(r.reset_on_miss),
     pointsExpireAfterCampaign: Boolean(r.points_expire_after_campaign),
-    createdAt: r.created_at,
-    updatedAt: r.updated_at,
+    createdAt: toISOString(r.created_at),
+    updatedAt: toISOString(r.updated_at),
   };
 }
 
+/** First campaign that is currently active (start_date <= today <= end_date). */
 export async function getActiveCampaign(): Promise<StreakCampaign | null> {
-  const today = new Date().toISOString().slice(0, 10);
-  const row = await queryOne<StreakCampaignRow>(
+  const campaigns = await getActiveCampaigns();
+  const today = getTodayLocal();
+  const active = campaigns.find((c) => c.startDate <= today && c.endDate >= today);
+  return active ?? null;
+}
+
+/** Data de azi în timezone-ul local (YYYY-MM-DD) pentru filtrarea campaniilor active. */
+function getTodayLocal(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+export async function getActiveCampaigns(): Promise<StreakCampaign[]> {
+  const today = getTodayLocal();
+  /* Return all campaigns that have not ended yet (end_date >= today), so users see both
+   * currently active and upcoming campaigns; they can only join when start_date <= today. */
+  const rows = await query<StreakCampaignRow[]>(
     `SELECT * FROM streak_campaigns
-     WHERE start_date <= ? AND end_date >= ?
-     ORDER BY start_date ASC
-     LIMIT 1`,
-    [today, today]
+     WHERE end_date >= ?
+     ORDER BY start_date ASC`,
+    [today]
   );
-  return row ? mapRow(row) : null;
+  return rows.map(mapRow);
 }
 
 export async function getCampaignById(id: string): Promise<StreakCampaign | null> {
@@ -183,7 +217,7 @@ function toDateOnly(v: Date | string): string {
 }
 
 export function isCampaignActive(campaign: StreakCampaign): boolean {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getTodayLocal();
   const start = toDateOnly(campaign.startDate as Date | string);
   const end = toDateOnly(campaign.endDate as Date | string);
   return start <= today && end >= today;

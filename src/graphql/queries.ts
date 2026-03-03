@@ -41,6 +41,7 @@ export const PRODUCT_FRAGMENT = gql`
     category
     categoryId
     isAvailable
+    isAddon
     preparationTime
     ingredients {
       ...IngredientFields
@@ -167,6 +168,15 @@ export const GET_PRODUCT_BY_ID = gql`
 export const GET_PRODUCTS_BY_CATEGORY = gql`
   query GetProductsByCategory($category: String!) {
     productsByCategory(category: $category) {
+      ...ProductFields
+    }
+  }
+  ${PRODUCT_FRAGMENT}
+`;
+
+export const GET_ADDON_PRODUCTS = gql`
+  query GetAddonProducts {
+    addonProducts {
       ...ProductFields
     }
   }

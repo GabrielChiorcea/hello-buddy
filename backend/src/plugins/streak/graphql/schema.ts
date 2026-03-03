@@ -38,6 +38,7 @@ export const streakSchemaExtension = `#graphql
 
   extend type Query {
     activeStreakCampaign: StreakCampaign
+    activeStreakCampaigns: [StreakCampaign!]!
     myStreakEnrollment(campaignId: ID): StreakEnrollment
   }
 

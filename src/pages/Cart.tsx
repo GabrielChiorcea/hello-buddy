@@ -15,6 +15,7 @@ import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { getImageUrl } from '@/lib/imageUrl';
 import { toast } from '@/hooks/use-toast';
+import { CartAddonSectionWrapped } from '@/plugins/addons';
 
 const Cart: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -149,6 +150,8 @@ const Cart: React.FC = () => {
                 </Link>
               </Button>
             </div>
+
+            <CartAddonSectionWrapped />
           </div>
 
           {/* Order Summary */}

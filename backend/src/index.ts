@@ -152,7 +152,8 @@ async function startServer() {
       setRefreshTokenCookie(res, rotationResult.refreshToken);
       
       let welcomeBonusAmount = 0;
-      if (!user.welcomeBonusSeen) {
+      const welcomeBonusEnabled = await isPluginEnabled('welcome_bonus');
+      if (welcomeBonusEnabled && !user.welcomeBonusSeen) {
         const pointsEnabled = await isPluginEnabled('points');
         if (pointsEnabled) {
           const row = await queryOne<{ value: string }>(

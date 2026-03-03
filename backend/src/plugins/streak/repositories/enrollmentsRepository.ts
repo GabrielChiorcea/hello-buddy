@@ -46,8 +46,13 @@ export async function getEnrollment(userId: string, campaignId: string): Promise
   return row ? mapRow(row) : null;
 }
 
+function getTodayLocal(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 export async function getEnrollmentByUserAndActive(userId: string): Promise<UserStreakCampaign | null> {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getTodayLocal();
   const row = await queryOne<UserStreakCampaignRow & { start_date: string; end_date: string }>(
     `SELECT usc.* FROM user_streak_campaigns usc
      JOIN streak_campaigns sc ON sc.id = usc.campaign_id
@@ -103,7 +108,7 @@ export async function listEnrollmentsByCampaign(campaignId: string): Promise<Use
 }
 
 export async function getActiveEnrollmentsForUser(userId: string): Promise<UserStreakCampaign[]> {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getTodayLocal();
   const rows = await query<UserStreakCampaignRow[]>(
     `SELECT usc.* FROM user_streak_campaigns usc
      JOIN streak_campaigns sc ON sc.id = usc.campaign_id

@@ -1,6 +1,6 @@
 /**
- * Afișează modalul „Ai câștigat X puncte” la prima autentificare (după signup sau login).
- * Se montează în App și verifică user.welcomeBonusSeen / user.welcomeBonusAmount din Redux.
+ * Afișează modalul „Ai câștigat X puncte” când plugin-ul e activ și userul nu a văzut încă popup-ul.
+ * Plugin: plugins/welcome_bonus
  */
 
 import React, { useState, useEffect } from 'react';
@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { fetchCurrentUser } from '@/store/slices/userSlice';
 import { markWelcomeBonusSeenApi } from '@/api/api';
-import { WelcomeBonusModal } from '@/components/WelcomeBonusModal';
+import { WelcomeBonusModal } from './WelcomeBonusModal';
 import { routes } from '@/config/routes';
 
 export const WelcomeBonusGate: React.FC = () => {
@@ -29,6 +29,7 @@ export const WelcomeBonusGate: React.FC = () => {
     if (shouldShow && !shown) {
       setShown(true);
       setModalOpen(true);
+      markWelcomeBonusSeenApi().catch(() => {});
     }
   }, [shouldShow, shown]);
 

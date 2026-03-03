@@ -18,6 +18,11 @@ export const streakResolvers = {
       if (!enabled) return null;
       return StreakService.getActiveCampaign();
     },
+    async activeStreakCampaigns(_: unknown, __: unknown) {
+      const enabled = await isPluginEnabled('streak');
+      if (!enabled) return [];
+      return StreakService.getActiveCampaigns();
+    },
     async myStreakEnrollment(
       _: unknown,
       args: { campaignId?: string },

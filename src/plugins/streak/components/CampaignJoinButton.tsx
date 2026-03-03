@@ -10,13 +10,15 @@ import { Button } from '@/components/ui/button';
 import { useAppSelector } from '@/store';
 import { routes } from '@/config/routes';
 import { JOIN_STREAK_CAMPAIGN } from '../mutations';
-import { MY_STREAK_ENROLLMENT } from '../queries';
+import { ACTIVE_STREAK_CAMPAIGNS, MY_STREAK_ENROLLMENT } from '../queries';
 import type { StreakCampaign } from '../types';
 import { Loader2 } from 'lucide-react';
 
 export interface CampaignJoinButtonProps {
   campaign: StreakCampaign;
   enrollment: { completedAt: string | null } | null | undefined;
+  /** When true, user is already in another campaign; show disabled state. */
+  enrolledInOtherCampaign?: boolean;
   onJoined?: () => void;
   className?: string;
 }
@@ -24,6 +26,7 @@ export interface CampaignJoinButtonProps {
 export const CampaignJoinButton: React.FC<CampaignJoinButtonProps> = ({
   campaign,
   enrollment,
+  enrolledInOtherCampaign,
   onJoined,
   className,
 }) => {
@@ -34,6 +37,7 @@ export const CampaignJoinButton: React.FC<CampaignJoinButtonProps> = ({
     refetchQueries: [
       { query: MY_STREAK_ENROLLMENT, variables: { campaignId: campaign.id } },
       { query: MY_STREAK_ENROLLMENT },
+      { query: ACTIVE_STREAK_CAMPAIGNS },
     ],
   });
 
@@ -63,6 +67,13 @@ export const CampaignJoinButton: React.FC<CampaignJoinButtonProps> = ({
     return (
       <Button disabled className={className} variant="outline">
         Streak complet
+      </Button>
+    );
+  }
+  if (enrolledInOtherCampaign) {
+    return (
+      <Button disabled className={className} variant="outline" title="Poți participa doar la o campanie în același timp">
+        Înscris la altă campanie
       </Button>
     );
   }

@@ -1,6 +1,6 @@
 /**
- * Modal afișat la prima autentificare după ce utilizatorul a primit puncte cadou la înregistrare.
- * Afișează confetti și mesaj „Ai câștigat X puncte” cu buton „Mergi la produse”.
+ * Modal puncte cadou la prima autentificare.
+ * Plugin: plugins/welcome_bonus
  */
 
 import React, { useEffect } from 'react';
