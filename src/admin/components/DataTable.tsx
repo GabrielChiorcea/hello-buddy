@@ -34,7 +34,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export interface Column<T> {
   key: string;
-  header: string;
+  header: string | (() => React.ReactNode);
   cell: (item: T) => React.ReactNode;
   sortable?: boolean;
   className?: string;
@@ -97,7 +97,7 @@ export function DataTable<T extends { id: string }>({
                   key={column.key}
                   className={`text-xs font-medium uppercase tracking-wider text-muted-foreground ${column.className || ''}`}
                 >
-                  {column.header}
+                  {typeof column.header === 'function' ? column.header() : column.header}
                 </TableHead>
               ))}
             </TableRow>
