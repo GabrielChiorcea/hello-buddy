@@ -11,6 +11,7 @@ import { paymentResolvers } from './payment.js';
 import { resolvers as pointsResolvers } from '../../plugins/points/index.js';
 import { streakResolvers } from '../../plugins/streak/index.js';
 import { resolvers as welcomeBonusResolvers } from '../../plugins/welcome_bonus/index.js';
+import { addonsResolvers } from '../../plugins/addons/index.js';
 import { queryOne } from '../../config/database.js';
 
 // Combină toate rezolverele
@@ -23,6 +24,7 @@ export const resolvers: any = {
     ...orderResolvers.Query,
     ...pointsResolvers.Query,
     ...streakResolvers.Query,
+    ...addonsResolvers.Query,
 
     /**
      * Returnează valoarea unei setări din app_settings

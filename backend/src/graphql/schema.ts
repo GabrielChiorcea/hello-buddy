@@ -5,6 +5,7 @@
 import { schemaExtension as pointsSchemaExtension } from '../plugins/points/index.js';
 import { schemaExtension as streakSchemaExtension } from '../plugins/streak/index.js';
 import { schemaExtension as welcomeBonusSchemaExtension } from '../plugins/welcome_bonus/index.js';
+import { addonsSchemaExtension } from '../plugins/addons/index.js';
 
 const coreTypeDefs = `#graphql
   # ============================================
@@ -243,4 +244,4 @@ const coreTypeDefs = `#graphql
   }
 `;
 
-export const typeDefs = coreTypeDefs + '\n' + pointsSchemaExtension + '\n' + streakSchemaExtension + '\n' + welcomeBonusSchemaExtension;
+export const typeDefs = coreTypeDefs + '\n' + pointsSchemaExtension + '\n' + streakSchemaExtension + '\n' + welcomeBonusSchemaExtension + '\n' + addonsSchemaExtension;
