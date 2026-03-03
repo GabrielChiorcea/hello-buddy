@@ -6,6 +6,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useAdminApi } from '@/admin/hooks/useAdminApi';
+import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { DataTable, Column } from '@/admin/components/DataTable';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -69,6 +70,7 @@ interface Category {
 
 export default function AdminProducts() {
   const { getProducts, getCategories, createProduct, updateProduct, deleteProduct } = useAdminApi();
+  const { enabled: addonsPluginEnabled } = usePluginEnabled('addons');
   
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -657,16 +659,19 @@ export default function AdminProducts() {
                 }
               />
             </div>
-            <div className="flex items-center justify-between">
+            <div className={`flex items-center justify-between${!addonsPluginEnabled ? ' opacity-50' : ''}`}>
               <div>
                 <Label htmlFor="isAddon">Add-on la coș</Label>
                 <p className="text-xs text-muted-foreground">
-                  Apare în secțiunea „Adaugă la comandă” pe pagina Coș
+                  {addonsPluginEnabled
+                    ? 'Apare în secțiunea „Adaugă la comandă" pe pagina Coș'
+                    : 'Plugin-ul Add-ons este dezactivat din Setări → Plugin-uri'}
                 </p>
               </div>
               <Switch
                 id="isAddon"
-                checked={formData.isAddon}
+                checked={addonsPluginEnabled ? formData.isAddon : false}
+                disabled={!addonsPluginEnabled}
                 onCheckedChange={(checked) =>
                   setFormData((prev) => ({ ...prev, isAddon: checked }))
                 }
