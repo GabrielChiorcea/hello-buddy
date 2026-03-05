@@ -36,6 +36,7 @@ import { queryOne } from './config/database.js';
 import { isPluginEnabled } from './utils/pluginFlags.js';
 import { logTokenInvalid, logSecurityEvent, SecurityEventType } from './utils/securityLogger.js';
 import { logError } from './utils/safeErrorLogger.js';
+import * as AddonRuleConversionModel from './models/AddonRuleConversion.js';
 
 async function startServer() {
   // Testează conexiunea la DB
@@ -99,6 +100,30 @@ async function startServer() {
   app.use('/graphql', expressMiddleware(apolloServer, {
     context: async ({ req, res }) => createContext({ req, res }),
   }));
+
+  // Analytics: înregistrare conversie add-on (produs adăugat din secțiunea Add-ons)
+  app.post('/api/track-addon-conversion', async (req, res) => {
+    try {
+      const { productId, ruleId, origin, cartId, cartValue } = req.body || {};
+      if (!productId || typeof productId !== 'string' || !origin || typeof origin !== 'string') {
+        return res.status(400).json({ error: 'productId și origin sunt obligatorii' });
+      }
+      if (origin.length > 32) {
+        return res.status(400).json({ error: 'origin prea lung' });
+      }
+      await AddonRuleConversionModel.create({
+        productId: String(productId).slice(0, 36),
+        ruleId: ruleId != null ? Number(ruleId) : null,
+        origin: String(origin).slice(0, 32),
+        cartId: cartId != null ? String(cartId).slice(0, 64) : null,
+        cartValue: cartValue != null && Number.isFinite(Number(cartValue)) ? Number(cartValue) : null,
+      });
+      return res.status(204).send();
+    } catch (err) {
+      logError('track-addon-conversion', err);
+      return res.status(500).json({ error: 'Eroare server' });
+    }
+  });
 
   // Admin API
   app.use('/admin', createAdminRouter({

@@ -19,14 +19,72 @@ export async function getAddonRules(_req: Request, res: Response) {
   }
 }
 
+export interface AddonRuleDto {
+  id: number;
+  categoryId: string;
+  addonProductId: string;
+  priority: number;
+  timeStart: string | null;
+  timeEnd: string | null;
+  minCartValue: number | null;
+}
+
+/**
+ * GET /admin/addon-rules/full
+ * Returnează toate regulile cu metadate complete (priority, time_start, time_end, min_cart_value).
+ */
+export async function getAddonRulesFull(_req: Request, res: Response) {
+  try {
+    const rules = await AddonRuleModel.findAll();
+    const data: AddonRuleDto[] = rules.map((r) => ({
+      id: r.id,
+      categoryId: r.categoryId,
+      addonProductId: r.addonProductId,
+      priority: r.priority,
+      timeStart: r.timeStart,
+      timeEnd: r.timeEnd,
+      minCartValue: r.minCartValue,
+    }));
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error('Error fetching addon rules full:', error);
+    res.status(500).json({ success: false, error: 'Eroare internă' });
+  }
+}
+
 /**
  * PUT /admin/addon-rules
- * Body: { rules: { [categoryId]: string[] } }
- * Actualizează batch regulile pentru categoriile trimise
+ * Body: { rules?: { [categoryId]: string[] }, rulesFull?: AddonRuleInput[] }
+ * - rules: format vechi, actualizează doar regulile pentru categoriile trimise.
+ * - rulesFull: listă completă de reguli (cu priority, time_start, time_end, min_cart_value); înlocuiește toate regulile.
  */
 export async function updateAddonRules(req: Request, res: Response) {
   try {
-    const { rules } = req.body;
+    const { rules, rulesFull } = req.body;
+
+    if (rulesFull && Array.isArray(rulesFull)) {
+      const input = rulesFull.map((r: { categoryId: string; addonProductId: string; priority?: number; timeStart?: string | null; timeEnd?: string | null; minCartValue?: number | null }) => ({
+        categoryId: r.categoryId,
+        addonProductId: r.addonProductId,
+        priority: r.priority ?? 0,
+        timeStart: r.timeStart ?? null,
+        timeEnd: r.timeEnd ?? null,
+        minCartValue: r.minCartValue != null ? Number(r.minCartValue) : null,
+      }));
+      await AddonRuleModel.replaceRulesBatchFull(input);
+      const full = await AddonRuleModel.findAll();
+      const data = full.map((r) => ({
+        id: r.id,
+        categoryId: r.categoryId,
+        addonProductId: r.addonProductId,
+        priority: r.priority,
+        timeStart: r.timeStart,
+        timeEnd: r.timeEnd,
+        minCartValue: r.minCartValue,
+      }));
+      return res.json({ success: true, data, dataFull: data });
+    }
+
     if (!rules || typeof rules !== 'object') {
       return res.status(400).json({ success: false, error: 'Payload invalid' });
     }

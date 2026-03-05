@@ -29,18 +29,16 @@ export const StreakCampaignBlock: React.FC = () => {
   if (loading || !enabled || campaigns.length === 0) return null;
 
   return (
-    <section className="relative py-10 overflow-hidden">
-      {/* Warm-dark gradient that blends with the app's warm palette */}
-      <div className="absolute inset-0 bg-gradient-to-b from-amber-950/90 via-orange-950/80 to-amber-950/90" />
-      {/* Subtle texture overlay */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(245,158,11,0.08)_0%,_transparent_60%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(234,88,12,0.06)_0%,_transparent_50%)]" />
+    <section className="relative py-10 overflow-hidden bg-background">
+      {/* Subtle warm overlay that matches the app background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-24 -left-16 w-72 h-72 bg-[radial-gradient(circle_at_top,_rgba(251,146,60,0.16),_transparent_60%)]" />
+        <div className="absolute -bottom-24 right-0 w-80 h-80 bg-[radial-gradient(circle_at_bottom,_rgba(248,113,113,0.14),_transparent_60%)]" />
+      </div>
       {/* Top edge warm glow */}
-      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
-      {/* Bottom soft blend — matches --background */}
-      <div className="absolute bottom-0 inset-x-0 h-8 bg-gradient-to-t from-background to-transparent" />
-      {/* Top soft blend */}
-      <div className="absolute top-0 inset-x-0 h-8 bg-gradient-to-b from-background to-transparent" />
+      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-500/20 to-transparent" />
+      {/* Bottom edge soft glow */}
+      <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-500/15 to-transparent" />
 
       <div className="relative container mx-auto px-4">
         {/* Section header */}
@@ -55,11 +53,13 @@ export const StreakCampaignBlock: React.FC = () => {
             <Flame className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
               Campanii Active
               <Sparkles className="h-4 w-4 text-amber-400/60 streak-sparkle" />
             </h2>
-            <p className="text-xs text-amber-400/50">Completează streak-ul și câștigă puncte bonus</p>
+            <p className="text-xs text-muted-foreground">
+              Completează streak-ul și câștigă puncte bonus
+            </p>
           </div>
         </motion.div>
 

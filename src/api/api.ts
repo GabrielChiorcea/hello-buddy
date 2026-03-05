@@ -347,11 +347,18 @@ export const fetchAddonProductsApi = async (): Promise<ApiResponse<Product[]>> =
   }
 };
 
+export interface AddonSuggestion {
+  product: Product;
+  ruleId: number | null;
+}
+
 export const fetchSuggestedAddonsForCartApi = async (
   cartProductIds: string[]
-): Promise<ApiResponse<Product[]>> => {
+): Promise<ApiResponse<AddonSuggestion[]>> => {
   try {
-    const { data } = await apolloClient.query<{ suggestedAddonsForCart: Product[] }>({
+    const { data } = await apolloClient.query<{
+      suggestedAddonsForCart: AddonSuggestion[];
+    }>({
       query: GET_SUGGESTED_ADDONS_FOR_CART,
       variables: { cartProductIds },
       fetchPolicy: 'network-only',
@@ -681,4 +688,38 @@ export const setDefaultAddressApi = async (
     return { success: false, error: getErrorMessage(error) };
   }
 };
+
+// ============================================================================
+// ANALYTICS – conversii add-on
+// ============================================================================
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
+
+/**
+ * Înregistrează un eveniment de tip „produs adăugat din secțiunea Add-ons" (origin_addons).
+ * Folosit pentru măsurarea ratei de conversie a regulilor.
+ */
+export async function trackAddonConversion(payload: {
+  productId: string;
+  ruleId?: number | null;
+  origin?: string;
+  cartId?: string | null;
+  cartValue?: number | null;
+}): Promise<void> {
+  try {
+    await fetch(`${API_BASE}/api/track-addon-conversion`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        productId: payload.productId,
+        ruleId: payload.ruleId ?? null,
+        origin: payload.origin ?? 'origin_addons',
+        cartId: payload.cartId ?? null,
+        cartValue: payload.cartValue ?? null,
+      }),
+    });
+  } catch {
+    // Fire-and-forget; nu blocăm UI-ul
+  }
+}
 

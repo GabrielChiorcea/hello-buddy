@@ -22,6 +22,7 @@ export interface Product {
   categoryName?: string;
   isAvailable: boolean;
   isAddon: boolean;
+  priorityDrain: boolean;
   preparationTime: number;
   ingredients: ProductIngredient[];
   createdAt: Date;
@@ -38,6 +39,7 @@ interface ProductRow {
   category_name?: string;
   is_available: boolean;
   is_addon?: boolean;
+  priority_drain?: boolean;
   preparation_time: number;
   created_at: Date;
   updated_at: Date;
@@ -58,6 +60,7 @@ export interface CreateProductInput {
   categoryId: string;
   preparationTime?: number;
   isAddon?: boolean;
+  priorityDrain?: boolean;
   ingredients?: Array<{ name: string; isAllergen?: boolean }>;
 }
 
@@ -69,6 +72,7 @@ export interface UpdateProductInput {
   categoryId?: string;
   isAvailable?: boolean;
   isAddon?: boolean;
+  priorityDrain?: boolean;
   preparationTime?: number;
   ingredients?: Array<{ name: string; isAllergen?: boolean }>;
 }
@@ -85,6 +89,7 @@ function mapRowToProduct(row: ProductRow, ingredients: ProductIngredient[] = [])
     categoryName: row.category_name,
     isAvailable: row.is_available,
     isAddon: Boolean(row.is_addon),
+    priorityDrain: Boolean(row.priority_drain),
     preparationTime: row.preparation_time,
     ingredients,
     createdAt: row.created_at,
@@ -181,7 +186,10 @@ export async function findAll(options: {
   const safeSortBy = allowedSorts.includes(sortBy) ? sortBy : 'created_at';
   const safeSortOrder = sortOrder === 'ASC' ? 'ASC' : 'DESC';
 
-  const selectColumns = 'p.id, p.name, p.description, p.price, p.image, p.category_id, p.is_available, COALESCE(p.is_addon, FALSE) as is_addon, p.preparation_time, p.created_at, p.updated_at, c.display_name as category_name';
+  const selectColumns =
+    'p.id, p.name, p.description, p.price, p.image, p.category_id, p.is_available, ' +
+    'COALESCE(p.is_addon, FALSE) as is_addon, COALESCE(p.priority_drain, FALSE) as priority_drain, ' +
+    'p.preparation_time, p.created_at, p.updated_at, c.display_name as category_name';
   const rows = await query<ProductRow[]>(
     `SELECT ${selectColumns}
      FROM products p
@@ -246,8 +254,8 @@ export async function create(input: CreateProductInput): Promise<Product> {
     const id = uuidv4();
     
     await connection.execute(
-      `INSERT INTO products (id, name, description, price, image, category_id, preparation_time, is_addon)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO products (id, name, description, price, image, category_id, preparation_time, is_addon, priority_drain)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         input.name,
@@ -257,6 +265,7 @@ export async function create(input: CreateProductInput): Promise<Product> {
         input.categoryId,
         input.preparationTime || 30,
         input.isAddon ? 1 : 0,
+        input.priorityDrain ? 1 : 0,
       ]
     );
     
@@ -326,7 +335,11 @@ export async function update(id: string, input: UpdateProductInput): Promise<Pro
       updates.push('is_addon = ?');
       values.push(input.isAddon ? 1 : 0);
     }
-    
+    if (input.priorityDrain !== undefined) {
+      updates.push('priority_drain = ?');
+      values.push(input.priorityDrain ? 1 : 0);
+    }
+
     if (updates.length > 0) {
       values.push(id);
       await connection.execute(

@@ -8,21 +8,74 @@
 import * as AddonRuleModel from '../../models/AddonRule.js';
 import * as ProductModel from '../../models/Product.js';
 import { isPluginEnabled } from '../../utils/pluginFlags.js';
+import { queryOne } from '../../config/database.js';
+
+interface AddonSuggestion {
+  product: ProductModel.Product;
+  ruleId: number | null;
+}
 
 // ============================================
 // GraphQL schema extension
 // ============================================
 
 export const addonsSchemaExtension = `#graphql
+  type AddonSuggestion {
+    product: Product!
+    ruleId: Int
+  }
+
   extend type Query {
     """
     Returnează add-on-uri sugerate pe baza produselor din coș.
     Folosește regulile per categorie din category_addon_rules.
     Fallback: dacă o categorie nu are reguli, returnează add-on-urile globale.
     """
-    suggestedAddonsForCart(cartProductIds: [ID!]!): [Product!]!
+    suggestedAddonsForCart(cartProductIds: [ID!]!): [AddonSuggestion!]!
   }
 `;
+
+function timeToMinutes(time: string | null): number | null {
+  if (!time) return null;
+  const parts = time.split(':');
+  const hours = parseInt(parts[0] || '0', 10);
+  const minutes = parseInt(parts[1] || '0', 10);
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
+  return hours * 60 + minutes;
+}
+
+function isRuleActiveNow(
+  rule: Pick<AddonRuleModel.AddonRule, 'timeStart' | 'timeEnd'>,
+  now: Date
+): boolean {
+  const startMinutes = timeToMinutes(rule.timeStart);
+  const endMinutes = timeToMinutes(rule.timeEnd);
+
+  // Fără interval orar – regula este mereu activă
+  if (startMinutes === null || endMinutes === null) {
+    return true;
+  }
+
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+  if (startMinutes <= endMinutes) {
+    // Interval normal (ex: 08:00 - 12:00)
+    return nowMinutes >= startMinutes && nowMinutes <= endMinutes;
+  }
+
+  // Interval peste miezul nopții (ex: 22:00 - 02:00)
+  return nowMinutes >= startMinutes || nowMinutes <= endMinutes;
+}
+
+async function getFreeDeliveryThreshold(): Promise<number> {
+  const row = await queryOne<{ value: string }>(
+    'SELECT value FROM app_settings WHERE id = ?',
+    ['free_delivery_threshold']
+  );
+  if (!row) return 75;
+  const value = parseFloat(row.value);
+  return Number.isFinite(value) && value > 0 ? value : 75;
+}
 
 // ============================================
 // Resolvers
@@ -33,7 +86,7 @@ export const addonsResolvers = {
     async suggestedAddonsForCart(
       _: unknown,
       { cartProductIds }: { cartProductIds: string[] }
-    ): Promise<ProductModel.Product[]> {
+    ): Promise<AddonSuggestion[]> {
       // Verifică feature flag
       const enabled = await isPluginEnabled('addons');
       if (!enabled) return [];
@@ -45,58 +98,116 @@ export const addonsResolvers = {
           addonOnly: true,
           limit: 50,
         });
-        return products;
+        return products.map(p => ({ product: p, ruleId: null }));
       }
 
-      // 1. Obține produsele din coș pentru a extrage category_id-urile
+      // 1. Obține produsele din coș pentru a extrage category_id-urile și subtotalul
       const cartProducts: ProductModel.Product[] = [];
+      let cartSubtotal = 0;
       for (const id of cartProductIds) {
         const p = await ProductModel.findById(id);
-        if (p) cartProducts.push(p);
+        if (p) {
+          cartProducts.push(p);
+          cartSubtotal += p.price;
+        }
+      }
+
+      if (cartProducts.length === 0) {
+        return [];
       }
 
       const categoryIds = [...new Set(cartProducts.map(p => p.categoryId))];
 
-      // 2. Caută regulile per categorie
-      const { ruleBasedIds, categoriesWithRules } =
-        await AddonRuleModel.findAddonProductIdsForCategories(categoryIds);
+      // 2. Încarcă regulile pentru categoriile din coș
+      const allRules = await AddonRuleModel.findRulesForCategories(categoryIds);
+      const freeDeliveryThreshold = await getFreeDeliveryThreshold();
+      const gap = freeDeliveryThreshold - cartSubtotal;
+      const isInGapWindow =
+        gap > 0 && gap <= freeDeliveryThreshold * 0.15;
 
-      // 3. Fallback pentru categorii fără reguli: adaugă toate add-on-urile globale
-      const categoriesWithoutRules = categoryIds.filter(
-        c => !categoriesWithRules.includes(c)
-      );
+      const now = new Date();
 
-      let finalProductIds = new Set(ruleBasedIds);
+      // 3. Filtrare pe timp și valoare minimă coș
+      const activeRules = allRules.filter(rule => {
+        if (!isRuleActiveNow(rule, now)) return false;
+        if (rule.minCartValue != null && cartSubtotal < rule.minCartValue) {
+          return false;
+        }
+        return true;
+      });
 
-      if (categoriesWithoutRules.length > 0) {
-        // Fallback: include all global addon products
-        const { products: globalAddons } = await ProductModel.findAll({
+      if (activeRules.length === 0) {
+        // Fallback: add-on-uri globale dacă nu există reguli active
+        const { products } = await ProductModel.findAll({
           isAvailable: true,
           addonOnly: true,
-          limit: 100,
+          limit: 50,
         });
-        for (const p of globalAddons) {
-          finalProductIds.add(p.id);
+        return products.map(p => ({ product: p, ruleId: null }));
+      }
+
+      // 4. Construiește candidații (produs + regulă)
+      const cartCategoryIdsSet = new Set(categoryIds);
+      const candidates: { product: ProductModel.Product; rule: AddonRuleModel.AddonRule }[] = [];
+
+      for (const rule of activeRules) {
+        const product = await ProductModel.findById(rule.addonProductId);
+        if (!product) continue;
+        if (!product.isAvailable || !product.isAddon) continue;
+
+        // Excludere mutuală: nu sugerăm produse din categorii deja în coș
+        if (cartCategoryIdsSet.has(product.categoryId)) continue;
+
+        // Exclude produsele deja în coș (după ID)
+        if (cartProductIds.includes(product.id)) continue;
+
+        candidates.push({ product, rule });
+      }
+
+      if (candidates.length === 0) {
+        return [];
+      }
+
+      // 5. Ordonare după priority_drain, apoi priority, apoi „gap to free delivery”, apoi preț
+      candidates.sort((a, b) => {
+        // priority_drain DESC
+        if (a.product.priorityDrain !== b.product.priorityDrain) {
+          return a.product.priorityDrain ? -1 : 1;
         }
-      }
 
-      // 4. Exclude produsele deja în coș
-      for (const id of cartProductIds) {
-        finalProductIds.delete(id);
-      }
-
-      if (finalProductIds.size === 0) return [];
-
-      // 5. Încarcă produsele finale
-      const results: ProductModel.Product[] = [];
-      for (const pid of finalProductIds) {
-        const p = await ProductModel.findById(pid);
-        if (p && p.isAvailable && p.isAddon) {
-          results.push(p);
+        // rule.priority DESC
+        if (a.rule.priority !== b.rule.priority) {
+          return b.rule.priority - a.rule.priority;
         }
+
+        // Gap livrare gratuită – cât de aproape de gap este prețul
+        if (isInGapWindow) {
+          const aDiff = Math.abs(a.product.price - gap);
+          const bDiff = Math.abs(b.product.price - gap);
+          if (aDiff !== bDiff) {
+            return aDiff - bDiff;
+          }
+        }
+
+        // Fallback: preț ASC
+        return a.product.price - b.product.price;
+      });
+
+      // 6. Deduplicare pe produs, păstrând instanța cu prioritatea cea mai bună
+      const seenProductIds = new Set<string>();
+      const suggestions: AddonSuggestion[] = [];
+
+      for (const { product, rule } of candidates) {
+        if (seenProductIds.has(product.id)) continue;
+        seenProductIds.add(product.id);
+        suggestions.push({
+          product,
+          ruleId: rule.id,
+        });
+        if (suggestions.length >= 50) break;
       }
 
-      return results.slice(0, 50);
+      return suggestions;
     },
   },
 };

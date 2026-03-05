@@ -186,7 +186,10 @@ export const GET_ADDON_PRODUCTS = gql`
 export const GET_SUGGESTED_ADDONS_FOR_CART = gql`
   query GetSuggestedAddonsForCart($cartProductIds: [ID!]!) {
     suggestedAddonsForCart(cartProductIds: $cartProductIds) {
-      ...ProductFields
+      product {
+        ...ProductFields
+      }
+      ruleId
     }
   }
   ${PRODUCT_FRAGMENT}

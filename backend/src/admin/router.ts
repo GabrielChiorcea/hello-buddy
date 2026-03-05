@@ -81,6 +81,7 @@ pointsPlugin.registerAdminRoutes(router);
 streakPlugin.registerAdminRoutes(router);
 
 // Reguli add-on per categorie
+router.get('/addon-rules/full', addonsController.getAddonRulesFull);
 router.get('/addon-rules', addonsController.getAddonRules);
 router.put('/addon-rules', addonsController.updateAddonRules);
 

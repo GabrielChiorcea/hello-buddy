@@ -50,5 +50,5 @@ export const resolvers: any = {
   // Field resolvers
   Product: productResolvers.Product,
   Order: orderResolvers.Order,
-  User: { ...userResolvers.User, ...welcomeBonusResolvers.User },
+  User: welcomeBonusResolvers.User,
 };

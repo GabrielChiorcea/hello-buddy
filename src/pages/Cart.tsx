@@ -150,8 +150,6 @@ const Cart: React.FC = () => {
                 </Link>
               </Button>
             </div>
-
-            <CartAddonSectionWrapped />
           </div>
 
           {/* Order Summary */}
@@ -184,6 +182,9 @@ const Cart: React.FC = () => {
                 <div className="flex justify-between text-lg font-bold">
                   <span>{texts.cart.total}</span>
                   <span className="text-primary">{total} {texts.common.currency}</span>
+                </div>
+                <div className="pt-2">
+                  <CartAddonSectionWrapped />
                 </div>
               </CardContent>
               <CardFooter>

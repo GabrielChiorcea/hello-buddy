@@ -1,40 +1,63 @@
 /**
- * Plugin Add-ons – secțiunea "Adaugă la comandă" în coș
- * Mod avansat: sugestii bazate pe conținutul coșului (reguli per categorie).
- * Fallback: dacă nu există reguli, afișează add-on-urile globale.
+ * Plugin Add-ons – secțiunea "Adaugă la comandă" în coș (Smart Add-ons V2)
+ * Carousel orizontal, badge-uri contextuale, selector cantitate după prima adăugare.
  */
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { addItem } from '@/store/slices/cartSlice';
+import { addItem, changeQuantity } from '@/store/slices/cartSlice';
 import { getImageUrl } from '@/lib/imageUrl';
 import { texts } from '@/config/texts';
 import { toast } from '@/hooks/use-toast';
-import { fetchSuggestedAddonsForCartApi, fetchAddonProductsApi } from '@/api/api';
+import {
+  fetchSuggestedAddonsForCartApi,
+  fetchAddonProductsApi,
+  trackAddonConversion,
+  type AddonSuggestion,
+} from '@/api/api';
 import { Product } from '@/types';
 
-function groupByCategory(products: Product[]): { displayName: string; products: Product[] }[] {
-  const map = new Map<string, Product[]>();
-  for (const p of products) {
-    const key = p.category || 'Altele';
-    if (!map.has(key)) map.set(key, []);
-    map.get(key)!.push(p);
+const FREE_DELIVERY_THRESHOLD = 75;
+
+function suggestionFromProduct(p: Product): AddonSuggestion {
+  return { product: p, ruleId: null };
+}
+
+function getBadges(
+  product: Product,
+  subtotal: number
+): { key: string; label: string }[] {
+  const badges: { key: string; label: string }[] = [];
+  if (subtotal + product.price >= FREE_DELIVERY_THRESHOLD && subtotal < FREE_DELIVERY_THRESHOLD) {
+    badges.push({ key: 'free-delivery', label: 'Completează pentru livrare moka' });
   }
-  return Array.from(map.entries()).map(([displayName, products]) => ({ displayName, products }));
+  const hour = new Date().getHours();
+  if (hour >= 18) {
+    badges.push({ key: 'evening', label: 'Popular seara' });
+  }
+  badges.push({ key: 'recommended', label: 'Recomandat pentru coșul tău' });
+  return badges.slice(0, 2);
 }
 
 export function CartAddonSection() {
   const dispatch = useAppDispatch();
   const cartItems = useAppSelector((state) => state.cart.items);
-  const [addonProducts, setAddonProducts] = useState<Product[]>([]);
+  const subtotal = useAppSelector((state) => state.cart.subtotal);
+  const [suggestions, setSuggestions] = useState<AddonSuggestion[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Extract cart product IDs for the query
   const cartProductIds = useMemo(
-    () => cartItems.map((item) => item.product.id),
+    () => cartItems.flatMap((item) => Array(item.quantity).fill(item.product.id)),
     [cartItems]
   );
 
@@ -43,32 +66,28 @@ export function CartAddonSection() {
     setLoading(true);
 
     const fetchAddons = async () => {
-      let res;
+      let list: AddonSuggestion[];
       if (cartProductIds.length > 0) {
-        // Mod avansat: sugestii bazate pe conținutul coșului
-        res = await fetchSuggestedAddonsForCartApi(cartProductIds);
+        const res = await fetchSuggestedAddonsForCartApi(cartProductIds);
+        list = res.success && res.data ? res.data : [];
       } else {
-        // Coș gol: fallback la global
-        res = await fetchAddonProductsApi();
+        const res = await fetchAddonProductsApi();
+        const products = res.success && res.data ? res.data : [];
+        list = products.map(suggestionFromProduct);
       }
 
       if (cancelled) return;
 
-      let products = res.success && res.data ? res.data : [];
-
-      // Deduplicare de siguranță
       const seen = new Set<string>();
-      products = products.filter((p) => {
-        if (seen.has(p.id)) return false;
-        seen.add(p.id);
+      list = list.filter((s) => {
+        if (seen.has(s.product.id)) return false;
+        seen.add(s.product.id);
         return true;
       });
-
-      // Exclude produsele deja în coș (fallback frontend)
       const cartIdSet = new Set(cartProductIds);
-      products = products.filter((p) => !cartIdSet.has(p.id));
+      list = list.filter((s) => !cartIdSet.has(s.product.id));
 
-      setAddonProducts(products);
+      setSuggestions(list);
       setLoading(false);
     };
 
@@ -76,67 +95,147 @@ export function CartAddonSection() {
     return () => {
       cancelled = true;
     };
-  }, [cartProductIds]);
+  }, [cartProductIds.join(',')]);
 
-  const handleAddAddon = (product: Product) => {
-    dispatch(addItem(product));
-    toast({
-      title: 'Adăugat în coș',
-      description: product.name,
+  const getQuantity = (productId: string) =>
+    cartItems.find((i) => i.product.id === productId)?.quantity ?? 0;
+
+  const handleAdd = (suggestion: AddonSuggestion) => {
+    dispatch(addItem(suggestion.product));
+    toast({ title: 'Adăugat în coș', description: suggestion.product.name });
+    trackAddonConversion({
+      productId: suggestion.product.id,
+      ruleId: suggestion.ruleId,
+      origin: 'origin_addons',
+      cartValue: subtotal,
     });
   };
 
-  const groups = groupByCategory(addonProducts);
+  const handleChangeQty = (productId: string, delta: number) => {
+    const q = getQuantity(productId);
+    const newQty = q + delta;
+    if (newQty <= 0) return;
+    dispatch(changeQuantity({ productId, quantity: newQty }));
+    if (delta > 0) {
+      const s = suggestions.find((x) => x.product.id === productId);
+      if (s) {
+        trackAddonConversion({
+          productId: s.product.id,
+          ruleId: s.ruleId,
+          origin: 'origin_addons',
+          cartValue: subtotal,
+        });
+      }
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="pt-6">
+        <h2 className="text-xl font-semibold text-foreground mb-4">Adaugă la comandă</h2>
+        <p className="text-sm text-muted-foreground">Se încarcă...</p>
+      </div>
+    );
+  }
+
+  if (suggestions.length === 0) {
+    return (
+      <div className="pt-6">
+        <h2 className="text-xl font-semibold text-foreground mb-4">Adaugă la comandă</h2>
+        <p className="text-sm text-muted-foreground">Niciun produs add-on disponibil.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="pt-8">
-      <h2 className="text-xl font-semibold text-foreground mb-4">
-        Adaugă la comandă
-      </h2>
-      {loading ? (
-        <p className="text-sm text-muted-foreground">Se încarcă...</p>
-      ) : groups.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Niciun produs add-on disponibil.
-        </p>
-      ) : (
-        <div className="space-y-6">
-          {groups.map(({ displayName, products }) => (
-            <div key={displayName}>
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">
-                {displayName}
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {products.map((product) => (
-                  <Card key={product.id} className="flex items-center gap-3 p-3 w-full max-w-md">
+    <div className="pt-6">
+      <h2 className="text-xl font-semibold text-foreground mb-4">Adaugă la comandă</h2>
+      <Carousel
+        opts={{
+          align: 'start',
+          loop: false,
+          dragFree: true,
+        }}
+        className="w-full"
+      >
+        <CarouselContent className="-ml-2 md:-ml-4">
+          {suggestions.map((s) => {
+            const product = s.product;
+            const qty = getQuantity(product.id);
+            const badges = getBadges(product, subtotal);
+
+            return (
+              <CarouselItem
+                key={product.id}
+                className="pl-2 md:pl-4 basis-full sm:basis-[280px] md:basis-[300px]"
+              >
+                <Card className="overflow-hidden flex flex-col h-full">
+                  <div className="relative">
                     <img
                       src={getImageUrl(product.image)}
                       alt={product.name}
-                      className="h-14 w-14 rounded-md object-cover shrink-0"
+                      className="h-32 w-full object-cover"
                     />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground truncate">
-                        {product.name}
-                      </p>
-                      <p className="text-sm text-primary font-medium">
-                        {product.price} {texts.common.currency}
-                      </p>
+                    {badges.length > 0 && (
+                      <div className="absolute bottom-2 left-2 right-2 flex flex-wrap gap-1">
+                        {badges.map((b) => (
+                          <span
+                            key={b.key}
+                            className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-primary/90 text-primary-foreground truncate max-w-full"
+                          >
+                            {b.label}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3 flex-1 flex flex-col">
+                    <p className="font-medium text-foreground truncate text-sm">{product.name}</p>
+                    <p className="text-sm text-primary font-medium mt-0.5">
+                      {product.price} {texts.common.currency}
+                    </p>
+                    <div className="mt-2 flex items-center gap-2">
+                      {qty === 0 ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => handleAdd(s)}
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Adaugă
+                        </Button>
+                      ) : (
+                        <div className="flex items-center gap-1 border rounded-md">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 shrink-0"
+                            onClick={() => handleChangeQty(product.id, -1)}
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                          <span className="w-8 text-center text-sm font-medium">{qty}</span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 shrink-0"
+                            onClick={() => handleChangeQty(product.id, 1)}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleAddAddon(product)}
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Adaugă
-                    </Button>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+                  </div>
+                </Card>
+              </CarouselItem>
+            );
+          })}
+        </CarouselContent>
+        <CarouselPrevious className="left-0 -translate-y-1/2" />
+        <CarouselNext className="right-0 -translate-y-1/2" />
+      </Carousel>
     </div>
   );
 }

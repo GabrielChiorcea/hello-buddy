@@ -379,11 +379,43 @@ export const useAdminApi = () => {
     [fetchWithAuth]
   );
 
+  const getAddonRulesFull = useCallback(
+    () =>
+      fetchWithAuth<{
+        data: Array<{
+          id: number;
+          categoryId: string;
+          addonProductId: string;
+          priority: number;
+          timeStart: string | null;
+          timeEnd: string | null;
+          minCartValue: number | null;
+        }>;
+      }>('/admin/addon-rules/full'),
+    [fetchWithAuth]
+  );
+
   const updateAddonRules = useCallback(
     (rules: Record<string, string[]>) =>
       fetchWithAuth<{ data: Record<string, string[]> }>('/admin/addon-rules', {
         method: 'PUT',
         body: JSON.stringify({ rules }),
+      }),
+    [fetchWithAuth]
+  );
+
+  const updateAddonRulesFull = useCallback(
+    (rulesFull: Array<{
+      categoryId: string;
+      addonProductId: string;
+      priority?: number;
+      timeStart?: string | null;
+      timeEnd?: string | null;
+      minCartValue?: number | null;
+    }>) =>
+      fetchWithAuth<{ success: boolean; dataFull?: unknown[] }>('/admin/addon-rules', {
+        method: 'PUT',
+        body: JSON.stringify({ rulesFull }),
       }),
     [fetchWithAuth]
   );
@@ -432,7 +464,9 @@ export const useAdminApi = () => {
     getStreakCampaignEnrollments,
     // Add-on rules
     getAddonRules,
+    getAddonRulesFull,
     updateAddonRules,
+    updateAddonRulesFull,
     // Upload
     uploadImage,
   };
