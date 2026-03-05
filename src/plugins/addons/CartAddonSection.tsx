@@ -43,9 +43,9 @@ function getBadge(
 }
 
 const badgeStyles = {
-  primary: 'bg-primary/15 text-primary font-medium',
-  success: 'bg-green-500/15 text-green-700 dark:text-green-400 font-medium',
-  muted: 'bg-muted text-muted-foreground',
+  primary: 'bg-primary text-primary-foreground font-semibold shadow-sm',
+  success: 'bg-success text-success-foreground font-semibold shadow-sm',
+  muted: 'bg-accent text-accent-foreground font-medium',
 };
 
 export function CartAddonSection() {
@@ -138,9 +138,9 @@ export function CartAddonSection() {
 
   const sectionHeader = (
     <div className="flex items-center gap-2 mb-3">
-      <h3 className="text-sm font-semibold text-foreground">Adaugă la comandă</h3>
-      <span className="text-xs text-muted-foreground">•</span>
-      <p className="text-xs text-muted-foreground">Swipe pentru mai multe →</p>
+      <span className="text-base">🎁</span>
+      <h3 className="text-sm font-bold text-foreground">Adaugă la comandă</h3>
+      <span className="ml-auto text-xs text-muted-foreground italic">Swipe →</span>
     </div>
   );
 
@@ -172,80 +172,84 @@ export function CartAddonSection() {
 
   return (
     <div className="pt-4">
-      {sectionHeader}
-      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none -mr-4 pr-4">
-        {suggestions.map((s) => {
-          const product = s.product;
-          const qty = getQuantity(product.id);
-          const badge = getBadge(product, subtotal, s.ruleId);
+      <div className="rounded-2xl bg-accent/50 border border-accent p-3">
+        {sectionHeader}
+        <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none -mr-1 pr-1">
+          {suggestions.map((s) => {
+            const product = s.product;
+            const qty = getQuantity(product.id);
+            const badge = getBadge(product, subtotal, s.ruleId);
 
-          return (
-            <div
-              key={product.id}
-              className="shrink-0 w-[140px] rounded-xl border border-border bg-card overflow-hidden group hover:shadow-md transition-shadow duration-200"
-            >
-              {/* Image */}
-              <div className="relative h-20 overflow-hidden">
-                <img
-                  src={getImageUrl(product.image)}
-                  alt={product.name}
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                {badge && (
-                  <span
-                    className={`absolute top-1.5 left-1.5 text-[9px] px-1.5 py-0.5 rounded-full ${badgeStyles[badge.variant]}`}
-                  >
-                    {badge.label}
-                  </span>
-                )}
-              </div>
-
-              {/* Content */}
-              <div className="p-2">
-                <p className="text-xs font-medium text-foreground truncate leading-tight">
-                  {product.name}
-                </p>
-                <p className="text-xs font-bold text-primary mt-0.5">
-                  {product.price} {texts.common.currency}
-                </p>
-
-                <div className="mt-1.5">
-                  {qty === 0 ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="w-full h-7 text-xs rounded-lg border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
-                      onClick={() => handleAdd(s)}
-                    >
-                      <Plus className="h-3 w-3 mr-1" />
-                      Adaugă
-                    </Button>
-                  ) : (
-                    <div className="flex items-center justify-between border border-primary/30 rounded-lg h-7">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 shrink-0 text-primary hover:bg-primary/10 rounded-l-lg"
-                        onClick={() => handleChangeQty(product.id, -1)}
+            return (
+              <div
+                key={product.id}
+                className="shrink-0 w-[140px] rounded-xl border border-border bg-card overflow-hidden group hover:shadow-lg hover:border-primary/30 transition-all duration-200"
+              >
+                {/* Image with gradient overlay for badge */}
+                <div className="relative h-24 overflow-hidden">
+                  <img
+                    src={getImageUrl(product.image)}
+                    alt={product.name}
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                  {/* Dark gradient at bottom for readability */}
+                  {badge && (
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent pt-4 pb-1.5 px-1.5">
+                      <span
+                        className={`text-[10px] px-2 py-0.5 rounded-full ${badgeStyles[badge.variant]}`}
                       >
-                        <Minus className="h-3 w-3" />
-                      </Button>
-                      <span className="text-xs font-bold text-foreground">{qty}</span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 shrink-0 text-primary hover:bg-primary/10 rounded-r-lg"
-                        onClick={() => handleChangeQty(product.id, 1)}
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
+                        {badge.label}
+                      </span>
                     </div>
                   )}
                 </div>
+
+                {/* Content */}
+                <div className="p-2.5">
+                  <p className="text-xs font-semibold text-foreground truncate leading-tight">
+                    {product.name}
+                  </p>
+                  <p className="text-sm font-bold text-primary mt-1">
+                    {product.price} {texts.common.currency}
+                  </p>
+
+                  <div className="mt-2">
+                    {qty === 0 ? (
+                      <Button
+                        size="sm"
+                        className="w-full h-7 text-xs rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
+                        onClick={() => handleAdd(s)}
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Adaugă
+                      </Button>
+                    ) : (
+                      <div className="flex items-center justify-between bg-primary/10 rounded-lg h-7">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 shrink-0 text-primary hover:bg-primary/20 rounded-l-lg"
+                          onClick={() => handleChangeQty(product.id, -1)}
+                        >
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                        <span className="text-xs font-bold text-primary">{qty}</span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 shrink-0 text-primary hover:bg-primary/20 rounded-r-lg"
+                          onClick={() => handleChangeQty(product.id, 1)}
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );
