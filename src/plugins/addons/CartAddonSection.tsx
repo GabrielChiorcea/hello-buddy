@@ -43,9 +43,9 @@ function getBadge(
 }
 
 const badgeStyles = {
-  primary: 'bg-primary/15 text-primary font-medium',
-  success: 'bg-green-500/15 text-green-700 dark:text-green-400 font-medium',
-  muted: 'bg-muted text-muted-foreground',
+  primary: 'bg-primary text-primary-foreground font-semibold shadow-sm',
+  success: 'bg-success text-success-foreground font-semibold shadow-sm',
+  muted: 'bg-accent text-accent-foreground font-medium',
 };
 
 export function CartAddonSection() {
