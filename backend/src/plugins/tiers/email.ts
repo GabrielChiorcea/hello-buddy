@@ -1,15 +1,16 @@
 /**
  * Email - notificare level up
  * Plugin: plugins/tiers
- * Deocamdată doar loghează mesajul, nu trimite email real.
+ * Delegă către serviciul centralizat de email.
  */
+
+import { sendLevelUpEmail as sendEmail } from '../../services/emailService.js';
 
 export function sendLevelUpEmail(
   userEmail: string,
   tierName: string,
   message: string
 ): void {
-  const msg = `[Email][Tiers] Către ${userEmail}: Nivel nou "${tierName}". Mesaj: ${message}`;
-  console.log(msg);
+  // Fire-and-forget
+  sendEmail(userEmail, tierName, message).catch(() => {});
 }
-
