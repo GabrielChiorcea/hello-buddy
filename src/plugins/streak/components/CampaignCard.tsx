@@ -43,11 +43,22 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
   const enrollment =
     enrollmentProp !== undefined ? enrollmentProp : campaign ? enrollmentData?.myStreakEnrollment ?? null : null;
 
-  if (campaignProp === undefined && (campaignLoading || !campaign)) return null;
-  if (!campaign) return null;
-
   const completed = enrollment?.completedAt != null;
   const confettiFired = useRef(false);
+
+  useEffect(() => {
+    if (completed && !confettiFired.current) {
+      confettiFired.current = true;
+      const gold = ['#f59e0b', '#fbbf24', '#d97706', '#fcd34d', '#ffffff'];
+      confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: gold, scalar: 1.2 });
+      setTimeout(() => {
+        confetti({ particleCount: 60, spread: 100, origin: { y: 0.5, x: 0.4 }, colors: gold, scalar: 0.9 });
+      }, 300);
+    }
+  }, [completed]);
+
+  if (campaignProp === undefined && (campaignLoading || !campaign)) return null;
+  if (!campaign) return null;
 
   useEffect(() => {
     if (completed && !confettiFired.current) {
