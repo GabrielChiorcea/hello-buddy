@@ -117,7 +117,7 @@ export function CartAddonSection() {
     return () => {
       cancelled = true;
     };
-  }, [cartKey]);
+  }, [cartKey, cartProductIds]);
 
   const getQuantity = (productId: string) =>
     cartItems.find((i) => i.product.id === productId)?.quantity ?? 0;
@@ -213,7 +213,7 @@ export function CartAddonSection() {
           {suggestions.map((s) => {
             const product = s.product;
             const qty = getQuantity(product.id);
-            const badges = getBadges(product, subtotal);
+            const badges = getBadges(product, subtotal, s.ruleId);
 
             return (
               <CarouselItem
