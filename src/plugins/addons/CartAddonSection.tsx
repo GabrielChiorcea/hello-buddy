@@ -36,7 +36,7 @@ function suggestionFromProduct(p: Product): AddonSuggestion {
 function getBadges(
   product: Product,
   subtotal: number,
-  ruleId: string | null,
+  ruleId: string | number | null,
 ): { key: string; label: string }[] {
   const badges: { key: string; label: string }[] = [];
 
