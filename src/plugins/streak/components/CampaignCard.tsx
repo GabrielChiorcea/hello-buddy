@@ -4,7 +4,8 @@
  * Plugin: plugins/streak
  */
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import confetti from 'canvas-confetti';
 import { useQuery } from '@apollo/client';
 import { ACTIVE_STREAK_CAMPAIGN, MY_STREAK_ENROLLMENT } from '../queries';
 import { StreakProgressBar } from './StreakProgressBar';
