@@ -1,14 +1,16 @@
 /**
  * Email - puncte câștigate
  * Plugin: plugins/points
- * Structură pregătită - doar loghează, nu trimite
+ * Delegă către serviciul centralizat de email.
  */
+
+import { sendPointsEarnedEmail as sendEmail } from '../../services/emailService.js';
 
 export function sendPointsEarnedEmail(
   userEmail: string,
   pointsEarned: number,
   totalPoints: number
 ): void {
-  const message = `[Email] Către ${userEmail}: Ai primit ${pointsEarned} puncte. Total puncte: ${totalPoints}`;
-  console.log(message);
+  // Fire-and-forget
+  sendEmail(userEmail, pointsEarned, totalPoints).catch(() => {});
 }
