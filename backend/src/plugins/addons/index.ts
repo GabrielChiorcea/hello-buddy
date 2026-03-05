@@ -101,19 +101,23 @@ export const addonsResolvers = {
         return products.map(p => ({ product: p, ruleId: null }));
       }
 
-      // 1. Obține produsele din coș pentru a extrage category_id-urile și subtotalul
-      const cartProducts: ProductModel.Product[] = [];
-      let cartSubtotal = 0;
+      // 1. Obține produsele din coș pentru a extrage category_id-urile și subtotalul (fără N+1)
+      const quantityById = new Map<string, number>();
       for (const id of cartProductIds) {
-        const p = await ProductModel.findById(id);
-        if (p) {
-          cartProducts.push(p);
-          cartSubtotal += p.price;
-        }
+        quantityById.set(id, (quantityById.get(id) ?? 0) + 1);
       }
+      const uniqueCartProductIds = [...quantityById.keys()];
+
+      const cartProducts = await ProductModel.findByIds(uniqueCartProductIds);
 
       if (cartProducts.length === 0) {
         return [];
+      }
+
+      let cartSubtotal = 0;
+      for (const p of cartProducts) {
+        const qty = quantityById.get(p.id) ?? 1;
+        cartSubtotal += p.price * qty;
       }
 
       const categoryIds = [...new Set(cartProducts.map(p => p.categoryId))];
@@ -146,12 +150,20 @@ export const addonsResolvers = {
         return products.map(p => ({ product: p, ruleId: null }));
       }
 
-      // 4. Construiește candidații (produs + regulă)
+      // 4. Construiește candidații (produs + regulă) cu un singur query de produse
       const cartCategoryIdsSet = new Set(categoryIds);
       const candidates: { product: ProductModel.Product; rule: AddonRuleModel.AddonRule }[] = [];
+      const addonProductIds = [
+        ...new Set(activeRules.map(rule => rule.addonProductId)),
+      ];
+      const addonProducts = await ProductModel.findByIds(addonProductIds);
+      const productById = new Map<string, ProductModel.Product>(
+        addonProducts.map(p => [p.id, p])
+      );
+      const cartProductIdSet = new Set(cartProductIds);
 
       for (const rule of activeRules) {
-        const product = await ProductModel.findById(rule.addonProductId);
+        const product = productById.get(rule.addonProductId);
         if (!product) continue;
         if (!product.isAvailable || !product.isAddon) continue;
 
@@ -159,7 +171,7 @@ export const addonsResolvers = {
         if (cartCategoryIdsSet.has(product.categoryId)) continue;
 
         // Exclude produsele deja în coș (după ID)
-        if (cartProductIds.includes(product.id)) continue;
+        if (cartProductIdSet.has(product.id)) continue;
 
         candidates.push({ product, rule });
       }

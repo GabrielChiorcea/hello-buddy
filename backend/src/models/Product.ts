@@ -130,6 +130,51 @@ export async function findById(id: string): Promise<Product | null> {
 }
 
 /**
+ * Găsește mai multe produse după ID (folosit pentru a evita N+1 queries).
+ */
+export async function findByIds(ids: string[]): Promise<Product[]> {
+  if (ids.length === 0) return [];
+
+  const placeholders = ids.map(() => '?').join(',');
+  const rows = await query<ProductRow[]>(
+    `SELECT p.id, p.name, p.description, p.price, p.image, p.category_id, p.is_available,
+            COALESCE(p.is_addon, FALSE) as is_addon,
+            COALESCE(p.priority_drain, FALSE) as priority_drain,
+            p.preparation_time, p.created_at, p.updated_at,
+            c.display_name as category_name
+     FROM products p
+     LEFT JOIN categories c ON p.category_id = c.id
+     WHERE p.id IN (${placeholders})`,
+    ids
+  );
+
+  const productIds = rows.map(r => r.id);
+  const ingredientsMap: Map<string, ProductIngredient[]> = new Map();
+
+  if (productIds.length > 0) {
+    const allIngredients = await query<IngredientRow[]>(
+      `SELECT * FROM product_ingredients WHERE product_id IN (${productIds
+        .map(() => '?')
+        .join(',')})`,
+      productIds
+    );
+
+    for (const ing of allIngredients) {
+      if (!ingredientsMap.has(ing.product_id)) {
+        ingredientsMap.set(ing.product_id, []);
+      }
+      ingredientsMap.get(ing.product_id)!.push({
+        id: ing.id,
+        name: ing.name,
+        isAllergen: ing.is_allergen,
+      });
+    }
+  }
+
+  return rows.map(row => mapRowToProduct(row, ingredientsMap.get(row.id) || []));
+}
+
+/**
  * Listează toate produsele
  */
 export async function findAll(options: {

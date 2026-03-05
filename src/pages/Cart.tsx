@@ -16,6 +16,7 @@ import { texts } from '@/config/texts';
 import { getImageUrl } from '@/lib/imageUrl';
 import { toast } from '@/hooks/use-toast';
 import { CartAddonSectionWrapped } from '@/plugins/addons';
+import { FREE_DELIVERY_THRESHOLD } from '@/config/cart';
 
 const Cart: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -142,6 +143,8 @@ const Cart: React.FC = () => {
               </Card>
             ))}
 
+            <CartAddonSectionWrapped />
+
             {/* Continue Shopping Link */}
             <div className="pt-4">
               <Button variant="outline" asChild>
@@ -175,7 +178,8 @@ const Cart: React.FC = () => {
                 </div>
                 {deliveryFee > 0 && (
                   <p className="text-xs text-muted-foreground">
-                    Livrare gratuită pentru comenzi de peste 75 {texts.common.currency}
+                    Livrare gratuită pentru comenzi de peste {FREE_DELIVERY_THRESHOLD}{' '}
+                    {texts.common.currency}
                   </p>
                 )}
                 <Separator />

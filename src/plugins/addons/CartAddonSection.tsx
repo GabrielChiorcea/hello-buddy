@@ -14,6 +14,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { addItem, changeQuantity } from '@/store/slices/cartSlice';
 import { getImageUrl } from '@/lib/imageUrl';
@@ -26,17 +27,13 @@ import {
   type AddonSuggestion,
 } from '@/api/api';
 import { Product } from '@/types';
-
-const FREE_DELIVERY_THRESHOLD = 75;
+import { FREE_DELIVERY_THRESHOLD } from '@/config/cart';
 
 function suggestionFromProduct(p: Product): AddonSuggestion {
   return { product: p, ruleId: null };
 }
 
-function getBadges(
-  product: Product,
-  subtotal: number
-): { key: string; label: string }[] {
+function getBadges(product: Product, subtotal: number): { key: string; label: string }[] {
   const badges: { key: string; label: string }[] = [];
   if (subtotal + product.price >= FREE_DELIVERY_THRESHOLD && subtotal < FREE_DELIVERY_THRESHOLD) {
     badges.push({ key: 'free-delivery', label: 'Completează pentru livrare moka' });
@@ -45,7 +42,6 @@ function getBadges(
   if (hour >= 18) {
     badges.push({ key: 'evening', label: 'Popular seara' });
   }
-  badges.push({ key: 'recommended', label: 'Recomandat pentru coșul tău' });
   return badges.slice(0, 2);
 }
 
@@ -59,6 +55,11 @@ export function CartAddonSection() {
   const cartProductIds = useMemo(
     () => cartItems.flatMap((item) => Array(item.quantity).fill(item.product.id)),
     [cartItems]
+  );
+
+  const cartKey = useMemo(
+    () => (cartProductIds.length ? cartProductIds.join(',') : ''),
+    [cartProductIds]
   );
 
   useEffect(() => {
@@ -95,7 +96,7 @@ export function CartAddonSection() {
     return () => {
       cancelled = true;
     };
-  }, [cartProductIds.join(',')]);
+  }, [cartKey]);
 
   const getQuantity = (productId: string) =>
     cartItems.find((i) => i.product.id === productId)?.quantity ?? 0;
@@ -114,7 +115,11 @@ export function CartAddonSection() {
   const handleChangeQty = (productId: string, delta: number) => {
     const q = getQuantity(productId);
     const newQty = q + delta;
-    if (newQty <= 0) return;
+    if (newQty <= 0) {
+      // 0 scoate produsul din coș (folosește logica existentă din cartSlice)
+      dispatch(changeQuantity({ productId, quantity: 0 }));
+      return;
+    }
     dispatch(changeQuantity({ productId, quantity: newQty }));
     if (delta > 0) {
       const s = suggestions.find((x) => x.product.id === productId);
@@ -133,7 +138,32 @@ export function CartAddonSection() {
     return (
       <div className="pt-6">
         <h2 className="text-xl font-semibold text-foreground mb-4">Adaugă la comandă</h2>
-        <p className="text-sm text-muted-foreground">Se încarcă...</p>
+        <Carousel
+          opts={{
+            align: 'start',
+            loop: false,
+            dragFree: true,
+          }}
+          className="w-full"
+        >
+          <CarouselContent className="-ml-2 md:-ml-4">
+            {[0, 1, 2].map((i) => (
+              <CarouselItem
+                key={i}
+                className="pl-2 md:pl-4 basis-full sm:basis-[280px] md:basis-[300px]"
+              >
+                <Card className="overflow-hidden flex flex-col h-full">
+                  <Skeleton className="h-32 w-full" />
+                  <div className="p-3 space-y-2">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/3" />
+                    <Skeleton className="h-9 w-full" />
+                  </div>
+                </Card>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
       </div>
     );
   }

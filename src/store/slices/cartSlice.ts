@@ -5,10 +5,7 @@
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { CartState, CartItem, Product } from '@/types';
-
-// Delivery fee threshold for free delivery
-const FREE_DELIVERY_THRESHOLD = 75;
-const DELIVERY_FEE = 10;
+import { FREE_DELIVERY_THRESHOLD, DELIVERY_FEE } from '@/config/cart';
 
 // Helper to calculate cart totals
 const calculateTotals = (items: CartItem[]) => {
