@@ -183,7 +183,7 @@ export function CartAddonSection() {
             return (
               <div
                 key={product.id}
-                className="shrink-0 w-[140px] rounded-xl border border-border bg-card overflow-hidden group hover:shadow-lg hover:border-primary/30 transition-all duration-200"
+                className="shrink-0 w-[140px] snap-start rounded-xl border border-border bg-card overflow-hidden group hover:shadow-lg hover:border-primary/30 transition-all duration-200"
               >
                 {/* Image with gradient overlay for badge */}
                 <div className="relative h-24 overflow-hidden">
