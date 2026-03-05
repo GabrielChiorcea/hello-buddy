@@ -291,3 +291,17 @@ export const GET_ADDRESS_BY_ID = gql`
 `;
 
 // Puncte loialitate: GET_POINTS_REWARDS este în plugins/points/queries.ts
+
+export const GET_LOYALTY_TIERS = gql`
+  query GetLoyaltyTiers {
+    loyaltyTiers {
+      id
+      name
+      xpThreshold
+      pointsMultiplier
+      badgeIcon
+      sortOrder
+      benefitDescription
+    }
+  }
+`;
