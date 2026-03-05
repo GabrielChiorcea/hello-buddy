@@ -138,28 +138,30 @@ const Home: React.FC = () => {
             </Button>
           </div>
           
-          <motion.div
-            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4"
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            {categories.map((category) => (
-              <motion.div key={category.id} variants={cardVariant}>
-                <Link
-                  to={routes.catalog}
-                  onClick={() => handleCategoryClick(category.name)}
-                  className="flex flex-col items-center justify-center p-6 rounded-xl bg-card border hover:border-primary hover:shadow-md transition-all group"
-                >
-                  <span className="text-4xl mb-2">{getCategoryIcon(category.name, category.icon)}</span>
-                  <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
-                    {category.displayName}
-                  </span>
-                </Link>
-              </motion.div>
-            ))}
-          </motion.div>
+          <div className="overflow-x-auto scrollbar-none -mx-4 px-4">
+            <motion.div
+              className="flex gap-3 w-max"
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+            >
+              {categories.map((category) => (
+                <motion.div key={category.id} variants={cardVariant} className="shrink-0">
+                  <Link
+                    to={routes.catalog}
+                    onClick={() => handleCategoryClick(category.name)}
+                    className="flex flex-col items-center justify-center w-[110px] p-4 rounded-xl bg-card border hover:border-primary hover:shadow-md transition-all group"
+                  >
+                    <span className="text-3xl mb-1.5">{getCategoryIcon(category.name, category.icon)}</span>
+                    <span className="text-xs font-medium text-foreground group-hover:text-primary transition-colors text-center leading-tight">
+                      {category.displayName}
+                    </span>
+                  </Link>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
         </div>
       </section>
 
