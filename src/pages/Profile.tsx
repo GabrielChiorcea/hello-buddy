@@ -24,6 +24,7 @@ import { toast } from '@/hooks/use-toast';
 import { OrderStatus } from '@/types';
 import { PointsBalance, PointsOrderBadge } from '@/plugins/points';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
+import { cn } from '@/lib/utils';
 import { GET_LOYALTY_TIERS } from '@/graphql/queries';
 import { format, isValid } from 'date-fns';
 import { ro } from 'date-fns/locale';

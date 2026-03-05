@@ -11,7 +11,7 @@ import { ShoppingCart, Clock, Check } from 'lucide-react';
 import { Product } from '@/types';
 import { texts } from '@/config/texts';
 import { getProductUrl } from '@/config/routes';
-import { useAppDispatch } from '@/store';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { addItem } from '@/store/slices/cartSlice';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
