@@ -174,7 +174,7 @@ export function CartAddonSection() {
     <div className="pt-4">
       <div className="rounded-2xl bg-accent/50 border border-accent p-3">
         {sectionHeader}
-        <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none -mr-1 pr-1">
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none snap-x snap-mandatory" style={{ maxWidth: '100%' }}>
           {suggestions.map((s) => {
             const product = s.product;
             const qty = getQuantity(product.id);
@@ -183,7 +183,7 @@ export function CartAddonSection() {
             return (
               <div
                 key={product.id}
-                className="shrink-0 w-[140px] rounded-xl border border-border bg-card overflow-hidden group hover:shadow-lg hover:border-primary/30 transition-all duration-200"
+                className="shrink-0 w-[140px] snap-start rounded-xl border border-border bg-card overflow-hidden group hover:shadow-lg hover:border-primary/30 transition-all duration-200"
               >
                 {/* Image with gradient overlay for badge */}
                 <div className="relative h-24 overflow-hidden">

@@ -80,7 +80,7 @@ const Cart: React.FC = () => {
 
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Cart Items */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-2 space-y-4 min-w-0">
             {items.map(({ product, quantity }) => (
               <Card key={product.id}>
                 <CardContent className="p-4">
