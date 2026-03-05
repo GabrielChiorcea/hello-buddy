@@ -33,15 +33,36 @@ function suggestionFromProduct(p: Product): AddonSuggestion {
   return { product: p, ruleId: null };
 }
 
-function getBadges(product: Product, subtotal: number): { key: string; label: string }[] {
+function getBadges(
+  product: Product,
+  subtotal: number,
+  ruleId: string | null,
+): { key: string; label: string }[] {
   const badges: { key: string; label: string }[] = [];
+
+  // Contextual: free delivery threshold
   if (subtotal + product.price >= FREE_DELIVERY_THRESHOLD && subtotal < FREE_DELIVERY_THRESHOLD) {
-    badges.push({ key: 'free-delivery', label: 'Completează pentru livrare moka' });
+    badges.push({ key: 'free-delivery', label: 'Livrare gratuită cu acest produs' });
   }
+
+  // Contextual: rule-based suggestion = perfect match
+  if (ruleId) {
+    badges.push({ key: 'match', label: 'Potrivire perfectă' });
+  }
+
+  // Time-based
   const hour = new Date().getHours();
   if (hour >= 18) {
     badges.push({ key: 'evening', label: 'Popular seara' });
+  } else if (hour >= 6 && hour < 11) {
+    badges.push({ key: 'morning', label: 'Ideal pentru dimineață' });
   }
+
+  // Price-based
+  if (product.price <= 10) {
+    badges.push({ key: 'cheap', label: 'Preț mic' });
+  }
+
   return badges.slice(0, 2);
 }
 

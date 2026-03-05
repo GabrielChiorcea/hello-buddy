@@ -187,9 +187,6 @@ const Cart: React.FC = () => {
                   <span>{texts.cart.total}</span>
                   <span className="text-primary">{total} {texts.common.currency}</span>
                 </div>
-                <div className="pt-2">
-                  <CartAddonSectionWrapped />
-                </div>
               </CardContent>
               <CardFooter>
                 <Button className="w-full" size="lg" onClick={handleCheckout}>
