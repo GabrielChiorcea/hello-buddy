@@ -11,6 +11,7 @@ import { query } from '../../config/database.js';
 import { sendPointsEarnedEmail } from './email.js';
 import { logError } from '../../utils/safeErrorLogger.js';
 import { isPluginEnabled } from '../../utils/pluginFlags.js';
+import { tiersPlugin } from '../tiers/index.js';
 
 export interface ApplyAtCheckoutResult {
   pointsUsed: number;
@@ -103,6 +104,16 @@ export async function awardOnDelivery(orderId: string, order: { userId: string; 
     let pointsEarned = pointsPerOrder;
     if (pointsPerRon > 0) {
       pointsEarned += Math.floor(order.total / pointsPerRon);
+    }
+
+    // Aplică multiplicatorul de nivel (tiers), dacă este activ
+    try {
+      const multiplier = await tiersPlugin.service.getPointsMultiplierForUser(order.userId);
+      if (multiplier && multiplier > 0) {
+        pointsEarned = Math.round(pointsEarned * multiplier);
+      }
+    } catch (e) {
+      logError('calcul multiplicator puncte (tiers)', e);
     }
 
     if (pointsEarned > 0) {

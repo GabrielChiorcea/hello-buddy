@@ -31,6 +31,7 @@ import { setSearchQuery } from '@/store/slices/productsSlice';
 import { selectCartItemCount } from '@/store/slices/cartSlice';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
+import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
@@ -41,6 +42,7 @@ const Navbar: React.FC = () => {
   
   const { isAuthenticated, user } = useAppSelector((state) => state.user);
   const cartItemCount = useAppSelector(selectCartItemCount);
+  const { enabled: tiersEnabled } = usePluginEnabled('tiers');
 
   const handleLogout = async () => {
     await dispatch(logout());
@@ -70,6 +72,24 @@ const Navbar: React.FC = () => {
   ];
 
   const isActive = (path: string) => location.pathname === path;
+
+  const hasTierData = Boolean(user && user.tier);
+  const currentXp = user?.totalXp ?? 0;
+  const currentTierThreshold = user?.tier?.xpThreshold ?? 0;
+  const nextTierThreshold = user?.nextTier?.xpThreshold;
+  const xpToNextLevel = user?.xpToNextLevel ?? null;
+
+  let progressPercent = 100;
+  if (xpToNextLevel != null && nextTierThreshold !== undefined) {
+    const range = nextTierThreshold - currentTierThreshold;
+    const gainedInRange = currentXp - currentTierThreshold;
+    if (range > 0) {
+      progressPercent = Math.min(
+        100,
+        Math.max(0, Math.round((gainedInRange / range) * 100))
+      );
+    }
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 hidden md:block">
@@ -184,6 +204,40 @@ const Navbar: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Bara de progres nivel (tiers) */}
+      {tiersEnabled && isAuthenticated && hasTierData && (
+        <div className="border-t border-amber-900/40 bg-gradient-to-r from-amber-950/60 via-background to-amber-950/60">
+          <div className="container mx-auto px-4 py-2 flex items-center gap-3 text-xs">
+            <div className="flex items-center gap-2 min-w-[140px]">
+              <span className="font-semibold text-amber-200">
+                Lvl {user?.tier?.name}
+              </span>
+              <span className="rounded-full bg-amber-900/70 px-2 py-0.5 text-[11px] text-amber-100">
+                x{(user?.tier?.pointsMultiplier ?? 1).toFixed(2)} puncte
+              </span>
+            </div>
+            <div className="flex-1">
+              <div className="h-2 w-full rounded-full bg-amber-950/40 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-300 transition-all"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+              <div className="mt-1 flex justify-between text-[11px] text-muted-foreground">
+                <span>{currentXp} XP</span>
+                {xpToNextLevel != null && nextTierThreshold !== undefined && xpToNextLevel > 0 ? (
+                  <span>
+                    Mai ai {xpToNextLevel} XP până la {user?.nextTier?.name}
+                  </span>
+                ) : (
+                  <span>Ai atins nivelul maxim</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mobile search dropdown */}
       {showSearch && (

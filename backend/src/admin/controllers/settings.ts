@@ -67,10 +67,16 @@ export async function updateSettings(req: Request, res: Response): Promise<void>
       'points_per_order',
       'points_per_ron',
       'points_welcome_bonus',
+      'tiers_xp_per_ron',
+      'tiers_xp_per_order',
       'plugin_points_enabled',
       'plugin_streak_enabled',
       'plugin_welcome_bonus_enabled',
       'plugin_addons_enabled',
+      'plugin_tiers_enabled',
+      'tiers_secret_addons_enabled',
+      'tiers_notify_on_level_up',
+      'tiers_notify_message',
       'has_tables',
     ];
     
@@ -87,7 +93,7 @@ export async function updateSettings(req: Request, res: Response): Promise<void>
           return;
         }
       }
-      if (['points_per_order', 'points_per_ron', 'points_welcome_bonus'].includes(key)) {
+      if (['points_per_order', 'points_per_ron', 'points_welcome_bonus', 'tiers_xp_per_ron', 'tiers_xp_per_order'].includes(key)) {
         const numValue = parseInt(value as string, 10);
         if (isNaN(numValue) || numValue < 0) {
           res.status(400).json({ error: `Valoare invalidă pentru ${key} (întreg >= 0)` });
@@ -103,7 +109,7 @@ export async function updateSettings(req: Request, res: Response): Promise<void>
           return;
         }
       }
-      if (['plugin_points_enabled', 'plugin_streak_enabled', 'plugin_welcome_bonus_enabled', 'plugin_addons_enabled'].includes(key)) {
+      if (['plugin_points_enabled', 'plugin_streak_enabled', 'plugin_welcome_bonus_enabled', 'plugin_addons_enabled', 'plugin_tiers_enabled', 'tiers_secret_addons_enabled', 'tiers_notify_on_level_up'].includes(key)) {
         const v = String(value).toLowerCase();
         if (!['true', 'false'].includes(v)) {
           res.status(400).json({ error: `${key} trebuie să fie true sau false` });

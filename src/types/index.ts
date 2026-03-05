@@ -27,6 +27,26 @@ export interface User {
   pointsBalance?: number;
   welcomeBonusSeen?: boolean;
   welcomeBonusAmount?: number;
+  /** Total XP acumulat (din pluginul de niveluri) */
+  totalXp?: number;
+  /** Nivelul curent de loialitate (dacă pluginul tiers este activ) */
+  tier?: {
+    id: string;
+    name: string;
+    xpThreshold: number;
+    pointsMultiplier: number;
+    badgeIcon?: string | null;
+  } | null;
+  /** Următorul nivel și pragul său de XP */
+  nextTier?: {
+    id: string;
+    name: string;
+    xpThreshold: number;
+    pointsMultiplier: number;
+    badgeIcon?: string | null;
+  } | null;
+  /** XP rămas până la următorul nivel */
+  xpToNextLevel?: number | null;
   createdAt: string;
 }
 

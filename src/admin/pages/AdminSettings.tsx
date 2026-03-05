@@ -38,6 +38,12 @@ interface EditableSettings {
   plugin_streak_enabled: boolean;
   plugin_welcome_bonus_enabled: boolean;
   plugin_addons_enabled: boolean;
+  plugin_tiers_enabled: boolean;
+  tiers_xp_per_ron: string;
+  tiers_xp_per_order: string;
+  tiers_secret_addons_enabled: boolean;
+  tiers_notify_on_level_up: boolean;
+  tiers_notify_message: string;
   has_tables: boolean;
 }
 
@@ -54,6 +60,14 @@ function parseSettings(map: SettingsMap): EditableSettings {
     plugin_streak_enabled: (map.plugin_streak_enabled?.value ?? 'true') === 'true',
     plugin_welcome_bonus_enabled: (map.plugin_welcome_bonus_enabled?.value ?? 'true') === 'true',
     plugin_addons_enabled: (map.plugin_addons_enabled?.value ?? 'true') === 'true',
+    plugin_tiers_enabled: (map.plugin_tiers_enabled?.value ?? 'true') === 'true',
+    tiers_xp_per_ron: map.tiers_xp_per_ron?.value ?? '1',
+    tiers_xp_per_order: map.tiers_xp_per_order?.value ?? '0',
+    tiers_secret_addons_enabled: (map.tiers_secret_addons_enabled?.value ?? 'true') === 'true',
+    tiers_notify_on_level_up: (map.tiers_notify_on_level_up?.value ?? 'true') === 'true',
+    tiers_notify_message:
+      map.tiers_notify_message?.value ??
+      'Felicitări! Ai ajuns la nivelul [Nume Nivel]. De acum câștigi cu [X]% mai multe puncte!',
     has_tables: (map.has_tables?.value ?? 'true') === 'true',
   };
 }
@@ -105,6 +119,12 @@ export default function AdminSettings() {
         plugin_streak_enabled: settings.plugin_streak_enabled ? 'true' : 'false',
         plugin_welcome_bonus_enabled: settings.plugin_welcome_bonus_enabled ? 'true' : 'false',
         plugin_addons_enabled: settings.plugin_addons_enabled ? 'true' : 'false',
+        plugin_tiers_enabled: settings.plugin_tiers_enabled ? 'true' : 'false',
+        tiers_xp_per_ron: settings.tiers_xp_per_ron,
+        tiers_xp_per_order: settings.tiers_xp_per_order,
+        tiers_secret_addons_enabled: settings.tiers_secret_addons_enabled ? 'true' : 'false',
+        tiers_notify_on_level_up: settings.tiers_notify_on_level_up ? 'true' : 'false',
+        tiers_notify_message: settings.tiers_notify_message,
         has_tables: settings.has_tables ? 'true' : 'false',
       });
       toast({
@@ -343,6 +363,105 @@ export default function AdminSettings() {
               checked={settings.plugin_addons_enabled}
               onCheckedChange={(checked) => updateField('plugin_addons_enabled', checked)}
             />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Loialitate / Niveluri */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Puzzle className="h-5 w-5" />
+            Loialitate / Niveluri
+          </CardTitle>
+          <CardDescription>
+            Configurează sistemul de XP și niveluri (tiers) și vizibilitatea produselor secrete
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Plugin niveluri (tiers)</Label>
+              <p className="text-sm text-muted-foreground">
+                Activează sistemul de level-up bazat pe XP și multiplicatorul de puncte per nivel.
+              </p>
+            </div>
+            <Switch
+              checked={settings.plugin_tiers_enabled}
+              onCheckedChange={(checked) => updateField('plugin_tiers_enabled', checked)}
+            />
+          </div>
+
+          <Separator />
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="tiersXpPerRon">XP per RON</Label>
+              <Input
+                id="tiersXpPerRon"
+                type="number"
+                min={0}
+                value={settings.tiers_xp_per_ron}
+                onChange={(e) => updateField('tiers_xp_per_ron', e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Câți XP primește utilizatorul pentru fiecare 1 RON cheltuit (0 = dezactivat).
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tiersXpPerOrder">XP fix per comandă</Label>
+              <Input
+                id="tiersXpPerOrder"
+                type="number"
+                min={0}
+                value={settings.tiers_xp_per_order}
+                onChange={(e) => updateField('tiers_xp_per_order', e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                XP acordat pentru fiecare comandă livrată, indiferent de valoare.
+              </p>
+            </div>
+          </div>
+
+          <Separator />
+
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Add-on-uri secrete pe nivel</Label>
+              <p className="text-sm text-muted-foreground">
+                Dacă este activat, anumite produse pot fi vizibile doar de la un anumit nivel în sus.
+              </p>
+            </div>
+            <Switch
+              checked={settings.tiers_secret_addons_enabled}
+              onCheckedChange={(checked) => updateField('tiers_secret_addons_enabled', checked)}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Notificare automată la level-up</Label>
+              <p className="text-sm text-muted-foreground">
+                Trimite un mesaj automat când utilizatorul crește în nivel.
+              </p>
+            </div>
+            <Switch
+              checked={settings.tiers_notify_on_level_up}
+              onCheckedChange={(checked) => updateField('tiers_notify_on_level_up', checked)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="tiersNotifyMessage">Mesaj notificare level-up</Label>
+            <Input
+              id="tiersNotifyMessage"
+              type="text"
+              value={settings.tiers_notify_message}
+              onChange={(e) => updateField('tiers_notify_message', e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Poți folosi variabilele [Nume Nivel] și [X]% pentru a personaliza mesajul.
+            </p>
           </div>
         </CardContent>
       </Card>

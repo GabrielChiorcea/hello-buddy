@@ -78,7 +78,17 @@ export async function getProduct(req: Request, res: Response): Promise<void> {
  */
 export async function createProduct(req: Request, res: Response): Promise<void> {
   try {
-    const { name, description, price, image, categoryId, preparationTime, isAddon, ingredients } = req.body;
+    const {
+      name,
+      description,
+      price,
+      image,
+      categoryId,
+      preparationTime,
+      isAddon,
+      ingredients,
+      minVisibilityTierId,
+    } = req.body;
     
     // Validare
     if (!name || !price || !categoryId) {
@@ -97,6 +107,7 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
       categoryId,
       preparationTime: preparationTime ? parseInt(preparationTime) : undefined,
       isAddon: Boolean(isAddon),
+      minVisibilityTierId: minVisibilityTierId ?? null,
       ingredients,
     });
     
@@ -114,7 +125,18 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
 export async function updateProduct(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
-    const { name, description, price, image, categoryId, isAvailable, isAddon, preparationTime, ingredients } = req.body;
+    const {
+      name,
+      description,
+      price,
+      image,
+      categoryId,
+      isAvailable,
+      isAddon,
+      preparationTime,
+      ingredients,
+      minVisibilityTierId,
+    } = req.body;
     
     // Obține produsul existent pentru imaginea veche
     const existingProduct = await ProductModel.findById(id);
@@ -135,6 +157,7 @@ export async function updateProduct(req: Request, res: Response): Promise<void> 
       isAvailable,
       isAddon: isAddon !== undefined ? Boolean(isAddon) : undefined,
       preparationTime: preparationTime !== undefined ? parseInt(preparationTime) : undefined,
+      minVisibilityTierId: minVisibilityTierId ?? null,
       ingredients,
     });
     

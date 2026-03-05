@@ -3,6 +3,7 @@
  */
 
 import React, { useEffect } from 'react';
+import { useQuery } from '@apollo/client';
 import { User, Package, Settings, MapPin, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +24,7 @@ import { toast } from '@/hooks/use-toast';
 import { OrderStatus } from '@/types';
 import { PointsBalance, PointsOrderBadge } from '@/plugins/points';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
+import { GET_LOYALTY_TIERS } from '@/graphql/queries';
 import { format, isValid } from 'date-fns';
 import { ro } from 'date-fns/locale';
 
@@ -40,6 +42,19 @@ const Profile: React.FC = () => {
   const navigate = useNavigate();
   const { user, orders, ordersLoading } = useAppSelector((state) => state.user);
   const { enabled: pointsEnabled } = usePluginEnabled('points');
+  const { enabled: tiersEnabled } = usePluginEnabled('tiers');
+  const { data: tiersData } = useQuery<{ loyaltyTiers: Array<{
+    id: string;
+    name: string;
+    xpThreshold: number;
+    pointsMultiplier: number;
+    badgeIcon?: string | null;
+    benefitDescription?: string | null;
+  }> }>(GET_LOYALTY_TIERS, {
+    skip: !tiersEnabled,
+    fetchPolicy: 'cache-first',
+  });
+  const loyaltyTiers = tiersData?.loyaltyTiers ?? [];
 
   const handleLogout = async () => {
     await dispatch(logout());
@@ -73,10 +88,10 @@ const Profile: React.FC = () => {
   }, [user, dispatch]);
 
   useEffect(() => {
-    if (pointsEnabled && user) {
+    if ((pointsEnabled || tiersEnabled) && user) {
       dispatch(fetchCurrentUser());
     }
-  }, [pointsEnabled, user?.id, dispatch]);
+  }, [pointsEnabled, tiersEnabled, user?.id, dispatch]);
 
   if (!user) {
     return (
@@ -123,10 +138,126 @@ const Profile: React.FC = () => {
                   <CardTitle>{texts.profile.personalInfo}</CardTitle>
                   <CardDescription>{user.email}</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                   {pointsEnabled && <PointsBalance points={user.pointsBalance ?? 0} />}
+
+                  {tiersEnabled && user.tier && (
+                    <div className="rounded-lg border bg-muted/40 p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                        <div>
+                          <p className="text-xs uppercase text-muted-foreground">
+                            Nivelul tău de loialitate
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="secondary">
+                              {user.tier.badgeIcon && (
+                                <span className="mr-1">{user.tier.badgeIcon}</span>
+                              )}
+                              {user.tier.name}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              x{(user.tier.pointsMultiplier ?? 1).toFixed(2)} puncte
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-muted-foreground">XP total</p>
+                          <p className="text-lg font-semibold text-foreground">
+                            {user.totalXp ?? 0} XP
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-300"
+                          style={{
+                            width:
+                              user.xpToNextLevel != null &&
+                              user.nextTier &&
+                              user.tier
+                                ? `${Math.min(
+                                    100,
+                                    Math.max(
+                                      0,
+                                      Math.round(
+                                        ((user.totalXp ?? 0) - user.tier.xpThreshold) /
+                                          (user.nextTier.xpThreshold -
+                                            user.tier.xpThreshold || 1) *
+                                          100
+                                      )
+                                    )
+                                  )}%`
+                                : '100%',
+                          }}
+                        />
+                      </div>
+                      <div className="mt-2 flex justify-between text-xs text-muted-foreground">
+                        <span>
+                          Nivel curent: {user.tier.name} ({user.totalXp ?? 0} XP)
+                        </span>
+                        {user.xpToNextLevel != null && user.nextTier ? (
+                          <span>
+                            Mai ai {user.xpToNextLevel} XP până la {user.nextTier.name}
+                          </span>
+                        ) : (
+                          <span>Ai atins nivelul maxim disponibil</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
+
+              {tiersEnabled && loyaltyTiers.length > 0 && (
+                <Card className="mt-4">
+                  <CardHeader>
+                    <CardTitle>Timeline niveluri</CardTitle>
+                    <CardDescription>
+                      Vezi beneficiile deblocate și ce urmează să obții la nivelurile următoare.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {loyaltyTiers.map((tier) => {
+                        const unlocked = (user.totalXp ?? 0) >= tier.xpThreshold;
+                        return (
+                          <div
+                            key={tier.id}
+                            className={cn(
+                              'flex items-center justify-between rounded-md border px-3 py-2 text-sm',
+                              unlocked
+                                ? 'bg-emerald-950/20 border-emerald-700/40'
+                                : 'bg-muted/40 border-border'
+                            )}
+                          >
+                            <div className="flex flex-col gap-0.5">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">
+                                  {tier.badgeIcon && <span className="mr-1">{tier.badgeIcon}</span>}
+                                  {tier.name}
+                                </span>
+                                <Badge variant={unlocked ? 'default' : 'outline'} className="text-[10px]">
+                                  {unlocked ? 'Deblocat' : 'Blocat'}
+                                </Badge>
+                              </div>
+                              <span className="text-xs text-muted-foreground">
+                                de la {tier.xpThreshold} XP · Multiplicator puncte x
+                                {tier.pointsMultiplier.toFixed(2)}
+                              </span>
+                              {tier.benefitDescription && (
+                                <span className="text-xs text-muted-foreground">
+                                  {tier.benefitDescription}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
 
             {/* Addresses Tab */}

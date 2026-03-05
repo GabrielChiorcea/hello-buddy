@@ -16,6 +16,7 @@ import * as settingsController from './controllers/settings.js';
 import * as authController from './controllers/auth.js';
 import { pointsPlugin } from '../plugins/points/index.js';
 import { streakPlugin } from '../plugins/streak/index.js';
+import { tiersPlugin } from '../plugins/tiers/index.js';
 import * as addonsController from './controllers/addons.js';
 
 export type AdminRateLimiters = {
@@ -77,6 +78,8 @@ router.put('/settings', settingsController.updateSettings);
 
 // Puncte loialitate (plugin)
 pointsPlugin.registerAdminRoutes(router);
+// Niveluri de loialitate (tiers plugin)
+tiersPlugin.registerAdminRoutes(router);
 // Campanii streak (plugin)
 streakPlugin.registerAdminRoutes(router);
 

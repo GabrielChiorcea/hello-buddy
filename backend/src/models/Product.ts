@@ -24,6 +24,8 @@ export interface Product {
   isAddon: boolean;
   priorityDrain: boolean;
   preparationTime: number;
+   /** Nivel minim de vizibilitate (tier) sau null dacă e vizibil pentru toți */
+  minVisibilityTierId: string | null;
   ingredients: ProductIngredient[];
   createdAt: Date;
   updatedAt: Date;
@@ -41,6 +43,7 @@ interface ProductRow {
   is_addon?: boolean;
   priority_drain?: boolean;
   preparation_time: number;
+  min_visibility_tier_id?: string | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -61,6 +64,7 @@ export interface CreateProductInput {
   preparationTime?: number;
   isAddon?: boolean;
   priorityDrain?: boolean;
+  minVisibilityTierId?: string | null;
   ingredients?: Array<{ name: string; isAllergen?: boolean }>;
 }
 
@@ -74,6 +78,7 @@ export interface UpdateProductInput {
   isAddon?: boolean;
   priorityDrain?: boolean;
   preparationTime?: number;
+  minVisibilityTierId?: string | null;
   ingredients?: Array<{ name: string; isAllergen?: boolean }>;
 }
 
@@ -91,6 +96,7 @@ function mapRowToProduct(row: ProductRow, ingredients: ProductIngredient[] = [])
     isAddon: Boolean(row.is_addon),
     priorityDrain: Boolean(row.priority_drain),
     preparationTime: row.preparation_time,
+    minVisibilityTierId: row.min_visibility_tier_id ?? null,
     ingredients,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -140,7 +146,7 @@ export async function findByIds(ids: string[]): Promise<Product[]> {
     `SELECT p.id, p.name, p.description, p.price, p.image, p.category_id, p.is_available,
             COALESCE(p.is_addon, FALSE) as is_addon,
             COALESCE(p.priority_drain, FALSE) as priority_drain,
-            p.preparation_time, p.created_at, p.updated_at,
+            p.preparation_time, p.min_visibility_tier_id, p.created_at, p.updated_at,
             c.display_name as category_name
      FROM products p
      LEFT JOIN categories c ON p.category_id = c.id
@@ -186,6 +192,8 @@ export async function findAll(options: {
   limit?: number;
   sortBy?: 'name' | 'price' | 'rating' | 'created_at';
   sortOrder?: 'ASC' | 'DESC';
+  /** XP utilizatorului pentru filtrarea vizibilității pe nivel (tiers). Dacă e omis, nu se aplică filtrul. */
+  minVisibilityXp?: number;
 } = {}): Promise<{ products: Product[]; total: number }> {
   const {
     categoryId,
@@ -196,6 +204,7 @@ export async function findAll(options: {
     limit = 50,
     sortBy = 'created_at',
     sortOrder = 'DESC',
+    minVisibilityXp,
   } = options;
 
   const conditions: string[] = [];
@@ -216,6 +225,16 @@ export async function findAll(options: {
     conditions.push('(p.name LIKE ? OR p.description LIKE ?)');
     params.push(`%${search}%`, `%${search}%`);
   }
+  if (typeof minVisibilityXp === 'number') {
+    conditions.push(
+      `(p.min_visibility_tier_id IS NULL OR EXISTS (
+         SELECT 1 FROM loyalty_tiers lt
+         WHERE lt.id = p.min_visibility_tier_id
+           AND lt.xp_threshold <= ?
+       ))`
+    );
+    params.push(minVisibilityXp);
+  }
 
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
@@ -234,7 +253,7 @@ export async function findAll(options: {
   const selectColumns =
     'p.id, p.name, p.description, p.price, p.image, p.category_id, p.is_available, ' +
     'COALESCE(p.is_addon, FALSE) as is_addon, COALESCE(p.priority_drain, FALSE) as priority_drain, ' +
-    'p.preparation_time, p.created_at, p.updated_at, c.display_name as category_name';
+    'p.preparation_time, p.min_visibility_tier_id, p.created_at, p.updated_at, c.display_name as category_name';
   const rows = await query<ProductRow[]>(
     `SELECT ${selectColumns}
      FROM products p
@@ -299,8 +318,8 @@ export async function create(input: CreateProductInput): Promise<Product> {
     const id = uuidv4();
     
     await connection.execute(
-      `INSERT INTO products (id, name, description, price, image, category_id, preparation_time, is_addon, priority_drain)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO products (id, name, description, price, image, category_id, preparation_time, is_addon, priority_drain, min_visibility_tier_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         input.name,
@@ -311,6 +330,7 @@ export async function create(input: CreateProductInput): Promise<Product> {
         input.preparationTime || 30,
         input.isAddon ? 1 : 0,
         input.priorityDrain ? 1 : 0,
+        input.minVisibilityTierId ?? null,
       ]
     );
     
@@ -383,6 +403,10 @@ export async function update(id: string, input: UpdateProductInput): Promise<Pro
     if (input.priorityDrain !== undefined) {
       updates.push('priority_drain = ?');
       values.push(input.priorityDrain ? 1 : 0);
+    }
+    if (input.minVisibilityTierId !== undefined) {
+      updates.push('min_visibility_tier_id = ?');
+      values.push(input.minVisibilityTierId ?? null);
     }
 
     if (updates.length > 0) {

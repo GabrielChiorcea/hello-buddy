@@ -19,6 +19,22 @@ export const USER_FRAGMENT = gql`
     pointsBalance
     welcomeBonusSeen
     welcomeBonusAmount
+    totalXp
+    tier {
+      id
+      name
+      xpThreshold
+      pointsMultiplier
+      badgeIcon
+    }
+    nextTier {
+      id
+      name
+      xpThreshold
+      pointsMultiplier
+      badgeIcon
+    }
+    xpToNextLevel
     createdAt
   }
 `;

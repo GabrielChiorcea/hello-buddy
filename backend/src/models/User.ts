@@ -23,6 +23,10 @@ export interface User {
   isBlocked: boolean;
   pointsBalance: number;
   welcomeBonusSeen: boolean;
+  /** Total XP acumulat (nu se consumă) */
+  totalXp: number;
+  /** ID nivel curent (tier) sau null dacă nu are */
+  tierId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -36,6 +40,8 @@ interface UserRow {
   is_blocked: boolean;
   points_balance: number;
   welcome_bonus_seen: number | boolean;
+  total_xp: number;
+  tier_id: string | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -62,6 +68,8 @@ function mapRowToUser(row: UserRow): User {
     isBlocked: row.is_blocked,
     pointsBalance: row.points_balance ?? 0,
     welcomeBonusSeen: Boolean(row.welcome_bonus_seen),
+    totalXp: row.total_xp ?? 0,
+    tierId: row.tier_id ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

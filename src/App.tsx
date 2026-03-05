@@ -73,6 +73,7 @@ import AdminOrders from "./admin/pages/AdminOrders";
 import AdminUsers from "./admin/pages/AdminUsers";
 import { AdminPoints } from "./plugins/points";
 import { AdminStreakCampaigns } from "./plugins/streak";
+import { AdminTiers } from "./plugins/tiers";
 import AdminSettings from "./admin/pages/AdminSettings";
 import AdminAddonRules from "./admin/pages/AdminAddonRules";
 
@@ -170,6 +171,7 @@ const App = () => (
                   <Route path="categories" element={<AdminCategories />} />
                   <Route path="points" element={<AdminPoints />} />
                   <Route path="streak" element={<AdminStreakCampaigns />} />
+                  <Route path="tiers" element={<AdminTiers />} />
                   <Route path="orders" element={<AdminOrders />} />
                   <Route path="users" element={<AdminUsers />} />
                   <Route path="settings" element={<AdminSettings />} />

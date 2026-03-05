@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { pointsPlugin } from '@/plugins/points';
 import { streakPlugin } from '@/plugins/streak';
+import { tiersPlugin } from '@/plugins/tiers';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import {
   Sidebar,
@@ -60,11 +61,13 @@ export function AdminSidebar() {
   const { enabled: pointsEnabled } = usePluginEnabled('points');
   const { enabled: streakEnabled } = usePluginEnabled('streak');
   const { enabled: addonsEnabled } = usePluginEnabled('addons');
+  const { enabled: tiersEnabled } = usePluginEnabled('tiers');
 
   const mainNavItems = [
     ...baseNavItems,
     ...(pointsEnabled ? pointsPlugin.navItems : []),
     ...(streakEnabled ? streakPlugin.navItems : []),
+    ...(tiersEnabled ? tiersPlugin.navItems : []),
     ...(addonsEnabled ? [{ title: 'Reguli Add-on', url: '/admin/addon-rules', icon: Puzzle }] : []),
   ];
 

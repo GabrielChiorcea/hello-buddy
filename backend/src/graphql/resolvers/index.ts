@@ -10,6 +10,7 @@ import { orderResolvers } from './order.js';
 import { paymentResolvers } from './payment.js';
 import { resolvers as pointsResolvers } from '../../plugins/points/index.js';
 import { streakResolvers } from '../../plugins/streak/index.js';
+import { tiersResolvers } from '../../plugins/tiers/index.js';
 import { resolvers as welcomeBonusResolvers } from '../../plugins/welcome_bonus/index.js';
 import { addonsResolvers } from '../../plugins/addons/index.js';
 import { queryOne } from '../../config/database.js';
@@ -24,6 +25,7 @@ export const resolvers: any = {
     ...orderResolvers.Query,
     ...pointsResolvers.Query,
     ...streakResolvers.Query,
+    ...tiersResolvers.Query,
     ...addonsResolvers.Query,
 
     /**
@@ -50,5 +52,8 @@ export const resolvers: any = {
   // Field resolvers
   Product: productResolvers.Product,
   Order: orderResolvers.Order,
-  User: welcomeBonusResolvers.User,
+  User: {
+    ...welcomeBonusResolvers.User,
+    ...tiersResolvers.User,
+  },
 };

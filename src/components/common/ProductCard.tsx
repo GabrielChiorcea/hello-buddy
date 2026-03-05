@@ -16,6 +16,7 @@ import { addItem } from '@/store/slices/cartSlice';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { getImageUrl } from '@/lib/imageUrl';
+import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 
 // Category display names mapping
 const categoryNames: Record<string, string> = {
@@ -36,6 +37,8 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLink = false }) => {
   const dispatch = useAppDispatch();
   const [isAdded, setIsAdded] = useState(false);
+  const { isAuthenticated, user } = useAppSelector((state) => state.user);
+  const { enabled: tiersEnabled } = usePluginEnabled('tiers');
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -95,9 +98,22 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLi
         </div>
         
         <div className="flex items-center justify-between">
-          <span className="text-lg font-bold text-primary">
-            {product.price} {texts.common.currency}
-          </span>
+          <div className="flex flex-col">
+            <span className="text-lg font-bold text-primary">
+              {product.price} {texts.common.currency}
+            </span>
+            {tiersEnabled && isAuthenticated && user?.tier && (
+              <span className="mt-0.5 text-[11px] text-muted-foreground">
+                {(() => {
+                  const basePoints = Math.max(1, Math.round(product.price));
+                  const multiplier = user.tier?.pointsMultiplier ?? 1;
+                  const withBonus = Math.round(basePoints * multiplier);
+                  const bonus = Math.max(0, withBonus - basePoints);
+                  return `+${withBonus} puncte (+${bonus} bonus de nivel)`;
+                })()}
+              </span>
+            )}
+          </div>
           <Button
             size="sm"
             onClick={handleAddToCart}

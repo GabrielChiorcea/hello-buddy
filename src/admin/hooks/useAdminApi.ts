@@ -306,6 +306,38 @@ export const useAdminApi = () => {
     [fetchWithAuth]
   );
 
+  // Niveluri de loialitate (tiers)
+  const getTiers = useCallback(
+    () => fetchWithAuth<any[]>('/admin/tiers'),
+    [fetchWithAuth]
+  );
+
+  const createTier = useCallback(
+    (data: unknown) =>
+      fetchWithAuth<any>('/admin/tiers', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    [fetchWithAuth]
+  );
+
+  const updateTier = useCallback(
+    (id: string, data: unknown) =>
+      fetchWithAuth<any>(`/admin/tiers/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    [fetchWithAuth]
+  );
+
+  const deleteTier = useCallback(
+    (id: string) =>
+      fetchWithAuth<{ success: boolean }>(`/admin/tiers/${id}`, {
+        method: 'DELETE',
+      }),
+    [fetchWithAuth]
+  );
+
   // Campanii streak
   const getStreakCampaigns = useCallback(
     () => fetchWithAuth<any[]>('/admin/streak/campaigns'),
@@ -455,6 +487,11 @@ export const useAdminApi = () => {
     createPointsReward,
     updatePointsReward,
     deletePointsReward,
+    // Tiers
+    getTiers,
+    createTier,
+    updateTier,
+    deleteTier,
     // Streak
     getStreakCampaigns,
     getStreakCampaign,

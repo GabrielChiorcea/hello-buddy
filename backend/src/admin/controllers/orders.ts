@@ -8,6 +8,7 @@ import * as OrderModel from '../../models/Order.js';
 import { query } from '../../config/database.js';
 import { pointsPlugin } from '../../plugins/points/index.js';
 import { streakPlugin } from '../../plugins/streak/index.js';
+import { tiersPlugin } from '../../plugins/tiers/index.js';
 
 /**
  * GET /admin/orders
@@ -153,11 +154,18 @@ export async function updateOrderStatus(req: Request, res: Response): Promise<vo
     }
 
     if (status === 'delivered') {
+      // 1) XP & niveluri (tiers)
+      await tiersPlugin.hooks.onOrderDelivered(id, {
+        userId: order.userId,
+        total: order.total,
+      });
+      // 2) Puncte loialitate
       await pointsPlugin.hooks.onOrderDelivered(id, {
         userId: order.userId,
         total: order.total,
         pointsEarned: order.pointsEarned,
       });
+      // 3) Campanii streak
       await streakPlugin.hooks.onOrderDelivered(id, {
         userId: order.userId,
         total: order.total,
