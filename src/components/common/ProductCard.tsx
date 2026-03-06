@@ -62,19 +62,18 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLi
   const cardContent = (
     <div
       className={cn(
-        // Mobile: glassmorphism card
-        'flex flex-row items-center gap-4 rounded-2xl overflow-hidden transition-all group py-4 pl-4 pr-0',
-        'bg-white/40 backdrop-blur-2xl border border-white/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.12),inset_0_1px_0_0_rgba(255,255,255,0.4)]',
-        // Desktop: vertical card, solid background
-        'md:flex-col md:items-stretch md:gap-0 md:py-0 md:pl-0 md:pr-0 md:rounded-xl md:bg-card md:backdrop-blur-none md:border-border md:shadow-sm',
+        // Mobile: horizontal row
+        'flex flex-row items-center gap-4 rounded-xl border border-border bg-card overflow-hidden transition-all hover:shadow-md group py-4 pl-4 pr-0',
+        // Desktop: vertical card
+        'md:flex-col md:items-stretch md:gap-0 md:py-0 md:pl-0 md:pr-0',
         !product.isAvailable && 'opacity-60',
         className,
       )}
     >
       {/* Image */}
       <div className={cn(
-        'relative w-28 h-28 shrink-0 overflow-hidden rounded-2xl flex items-center justify-center shadow-lg ring-1 ring-white/30',
-        'md:w-full md:h-auto md:aspect-[4/3] md:rounded-none md:shadow-none md:ring-0',
+        'relative w-28 h-28 shrink-0 overflow-hidden rounded-xl flex items-center justify-center',
+        'md:w-full md:h-auto md:aspect-[4/3] md:rounded-none',
       )}>
         <img
           src={getImageUrl(product.image)}
