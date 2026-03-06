@@ -73,8 +73,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLi
     >
       {/* Image */}
       <div className={cn(
-        'relative w-28 h-28 shrink-0 overflow-hidden rounded-xl flex items-center justify-center',
-        'md:w-full md:h-auto md:aspect-[4/3] md:rounded-none',
+        'relative w-24 h-24 shrink-0 overflow-hidden rounded-xl flex items-center justify-center',
+        'md:w-full md:h-auto md:aspect-[4/3] md:rounded-none md:rounded-t-xl',
       )}>
         <img
           src={getImageUrl(product.image)}
