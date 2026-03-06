@@ -62,25 +62,25 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLi
   const cardContent = (
     <div
       className={cn(
-        // Mobile: horizontal row with fixed height
-        'flex flex-row rounded-xl border border-border bg-card overflow-hidden transition-all hover:shadow-md group',
-        // Desktop: vertical card
-        'md:flex-col',
+        // Mobile: horizontal row, poză cu spațiu stânga/dreapta (nu lipită de margini)
+        'flex flex-row items-center gap-4 rounded-xl border-2 border-primary/30 bg-card overflow-hidden transition-all hover:shadow-md group py-4 pl-4 pr-0',
+        // Desktop: vertical card, fără padding lateral
+        'md:flex-col md:items-stretch md:gap-0 md:py-0 md:pl-0 md:pr-0',
         !product.isAvailable && 'opacity-60',
         className,
       )}
     >
       {/* Image */}
       <div className={cn(
-        // Mobile: fixed square image
-        'relative w-24 h-24 shrink-0 overflow-hidden',
+        // Mobile: poză cu border-radius, centrată vertical
+        'relative w-28 h-28 shrink-0 overflow-hidden rounded-xl flex items-center justify-center',
         // Desktop: full width, aspect ratio
-        'md:w-full md:h-auto md:aspect-[4/3]',
+        'md:w-full md:h-auto md:aspect-[4/3] md:rounded-none',
       )}>
         <img
           src={getImageUrl(product.image)}
           alt={product.name}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          className="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
           loading="lazy"
         />
         {!product.isAvailable && (
@@ -99,8 +99,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLi
 
       {/* Info – Mobile layout */}
       <div className={cn(
-        'flex flex-1 min-w-0 p-3 flex-col justify-between',
-        'md:p-4',
+        'flex flex-1 min-w-0 flex-col justify-between gap-3 pr-4',
+        'md:p-4 md:pr-4 md:gap-1',
       )}>
         {/* Row 1: Title + Price */}
         <div className="flex items-start justify-between gap-2">
@@ -112,25 +112,25 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLi
           </span>
         </div>
 
-        {/* Row 2: Ingredients (mobile) / description (desktop) */}
+        {/* Row 2: Ingredients (mobile, toate afișate) / description (desktop) */}
         {product.ingredients && product.ingredients.length > 0 && (
-          <p className="text-xs text-muted-foreground mt-0.5 md:hidden line-clamp-1">
+          <p className="text-xs text-muted-foreground mt-0.5 md:hidden md:mt-0">
             {product.ingredients.map(i => i.name).join(', ')}
           </p>
         )}
-        <p className="text-sm text-muted-foreground mt-1 line-clamp-2 hidden md:block">
+        <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2 hidden md:block md:mt-1">
           {product.description}
         </p>
         {/* Desktop prep time */}
         {product.preparationTime && (
-          <div className="items-center gap-1 text-xs text-muted-foreground mt-2 hidden md:flex">
+          <div className="items-center gap-1 text-xs text-muted-foreground mt-1 hidden md:flex md:mt-2">
             <Clock className="h-3 w-3" />
             <span>{product.preparationTime} min</span>
           </div>
         )}
 
         {/* Row 3: Add to cart button */}
-        <div className="flex items-center justify-between mt-1.5 md:mt-3">
+        <div className="flex items-center justify-between mt-3 md:mt-3">
           {pointsInfo && (
             <span className="text-[10px] text-muted-foreground">
               {pointsInfo}
