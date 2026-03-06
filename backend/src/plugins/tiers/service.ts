@@ -14,23 +14,17 @@ interface OrderForXp {
 }
 
 interface XpConfig {
-  xpPerOrder: number;
   xpPerRon: number;
 }
 
 async function getXpConfig(): Promise<XpConfig> {
-  const [perOrderRow] = await query<{ value: string }[]>(
-    "SELECT value FROM app_settings WHERE id = 'tiers_xp_per_order'"
-  );
   const [perRonRow] = await query<{ value: string }[]>(
     "SELECT value FROM app_settings WHERE id = 'tiers_xp_per_ron'"
   );
 
-  const xpPerOrder = perOrderRow ? parseInt(perOrderRow.value, 10) || 0 : 0;
   const xpPerRon = perRonRow ? parseInt(perRonRow.value, 10) || 0 : 0;
 
   return {
-    xpPerOrder: Math.max(0, xpPerOrder),
     xpPerRon: Math.max(0, xpPerRon),
   };
 }
@@ -46,11 +40,11 @@ export async function addXpOnOrderDelivered(
   if (!enabled) return;
 
   try {
-    const { xpPerOrder, xpPerRon } = await getXpConfig();
+    const { xpPerRon } = await getXpConfig();
 
-    let xpGained = xpPerOrder;
+    let xpGained = 0;
     if (xpPerRon > 0) {
-      xpGained += Math.floor(order.total / xpPerRon);
+      xpGained = Math.floor(order.total / xpPerRon);
     }
 
     if (xpGained <= 0) return;

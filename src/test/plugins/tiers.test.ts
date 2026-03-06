@@ -171,36 +171,29 @@ describe('Tiers - Multiplicator puncte', () => {
 });
 
 // ============================================================================
-// 5. Calcul XP din comandă
+// 5. Calcul XP din comandă (doar pe baza RON cheltuiți)
 // ============================================================================
 
 describe('Tiers - Calcul XP din comandă', () => {
-  function calcXpFromOrder(
-    total: number,
-    xpPerOrder: number,
-    xpPerRon: number
-  ): number {
-    let xp = xpPerOrder;
-    if (xpPerRon > 0) {
-      xp += Math.floor(total / xpPerRon);
-    }
-    return Math.max(0, xp);
+  function calcXpFromOrder(total: number, xpPerRon: number): number {
+    if (xpPerRon <= 0) return 0;
+    return Math.floor(total / xpPerRon);
   }
 
-  it('doar XP fix per comandă', () => {
-    expect(calcXpFromOrder(100, 10, 0)).toBe(10);
+  it('XP per RON (1 XP per 1 RON)', () => {
+    expect(calcXpFromOrder(85, 1)).toBe(85);
   });
 
-  it('XP per RON (1 XP per RON)', () => {
-    expect(calcXpFromOrder(85, 0, 1)).toBe(85);
+  it('XP per RON (1 XP la fiecare 5 RON)', () => {
+    expect(calcXpFromOrder(100, 5)).toBe(20);
   });
 
-  it('combinat: fix + per RON', () => {
-    expect(calcXpFromOrder(100, 5, 2)).toBe(55); // 5 + floor(100/2)
+  it('total 0 => 0 XP', () => {
+    expect(calcXpFromOrder(0, 1)).toBe(0);
   });
 
-  it('total 0 => doar XP fix', () => {
-    expect(calcXpFromOrder(0, 10, 1)).toBe(10);
+  it('xpPerRon 0 => 0 XP', () => {
+    expect(calcXpFromOrder(100, 0)).toBe(0);
   });
 });
 

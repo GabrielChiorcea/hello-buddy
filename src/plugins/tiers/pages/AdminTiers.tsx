@@ -26,16 +26,12 @@ import { cn } from '@/lib/utils';
 
 interface TiersGlobalSettings {
   tiers_xp_per_ron: string;
-  tiers_xp_per_order: string;
-  tiers_secret_addons_enabled: boolean;
   tiers_notify_on_level_up: boolean;
   tiers_notify_message: string;
 }
 
 const defaultTiersSettings: TiersGlobalSettings = {
   tiers_xp_per_ron: '1',
-  tiers_xp_per_order: '0',
-  tiers_secret_addons_enabled: true,
   tiers_notify_on_level_up: true,
   tiers_notify_message:
     'Felicitări! Ai ajuns la nivelul [Nume Nivel]. De acum câștigi cu [X]% mai multe puncte!',
@@ -44,9 +40,6 @@ const defaultTiersSettings: TiersGlobalSettings = {
 function parseTiersSettings(map: Record<string, { value: string } | undefined>): TiersGlobalSettings {
   return {
     tiers_xp_per_ron: map.tiers_xp_per_ron?.value ?? defaultTiersSettings.tiers_xp_per_ron,
-    tiers_xp_per_order: map.tiers_xp_per_order?.value ?? defaultTiersSettings.tiers_xp_per_order,
-    tiers_secret_addons_enabled:
-      (map.tiers_secret_addons_enabled?.value ?? 'true') === 'true',
     tiers_notify_on_level_up:
       (map.tiers_notify_on_level_up?.value ?? 'true') === 'true',
     tiers_notify_message:
@@ -117,8 +110,6 @@ export default function AdminTiers() {
     try {
       await updateSettings({
         tiers_xp_per_ron: tiersSettings.tiers_xp_per_ron,
-        tiers_xp_per_order: tiersSettings.tiers_xp_per_order,
-        tiers_secret_addons_enabled: tiersSettings.tiers_secret_addons_enabled ? 'true' : 'false',
         tiers_notify_on_level_up: tiersSettings.tiers_notify_on_level_up ? 'true' : 'false',
         tiers_notify_message: tiersSettings.tiers_notify_message,
       });
@@ -251,7 +242,7 @@ export default function AdminTiers() {
         <CardHeader>
           <CardTitle>Setări generale</CardTitle>
           <CardDescription>
-            Cum se câștigă XP la livrare și opțiuni pentru add-on-uri secrete și notificări la level-up.
+            Cum se câștigă XP la livrare (în funcție de RON cheltuiți) și notificări la level-up.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -261,55 +252,23 @@ export default function AdminTiers() {
             </div>
           ) : (
             <>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="tiersXpPerRon">1 XP la fiecare X RON</Label>
-                  <Input
-                    id="tiersXpPerRon"
-                    type="number"
-                    min={0}
-                    value={tiersSettings.tiers_xp_per_ron}
-                    onChange={(e) =>
-                      setTiersSettings((p) => ({ ...p, tiers_xp_per_ron: e.target.value }))
-                    }
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Utilizatorul primește 1 XP la fiecare X RON cheltuiți (ex: 5 = 1 XP la 5 RON). 0 = dezactivat.
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="tiersXpPerOrder">XP fix per comandă</Label>
-                  <Input
-                    id="tiersXpPerOrder"
-                    type="number"
-                    min={0}
-                    value={tiersSettings.tiers_xp_per_order}
-                    onChange={(e) =>
-                      setTiersSettings((p) => ({ ...p, tiers_xp_per_order: e.target.value }))
-                    }
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    XP acordat pentru fiecare comandă livrată, indiferent de valoare.
-                  </p>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="tiersXpPerRon">1 XP la fiecare X RON</Label>
+                <Input
+                  id="tiersXpPerRon"
+                  type="number"
+                  min={0}
+                  value={tiersSettings.tiers_xp_per_ron}
+                  onChange={(e) =>
+                    setTiersSettings((p) => ({ ...p, tiers_xp_per_ron: e.target.value }))
+                  }
+                />
+                <p className="text-xs text-muted-foreground">
+                  Utilizatorul primește 1 XP la fiecare X RON cheltuiți (ex: 5 = 1 XP la 5 RON). 0 = dezactivat.
+                </p>
               </div>
 
               <Separator />
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Add-on-uri secrete pe nivel</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Anumite produse pot fi vizibile doar de la un anumit nivel (setat la fiecare produs în Admin → Produse).
-                  </p>
-                </div>
-                <Switch
-                  checked={tiersSettings.tiers_secret_addons_enabled}
-                  onCheckedChange={(checked) =>
-                    setTiersSettings((p) => ({ ...p, tiers_secret_addons_enabled: checked }))
-                  }
-                />
-              </div>
 
               <div className="flex items-center justify-between">
                 <div>
@@ -552,7 +511,7 @@ export default function AdminTiers() {
                       benefitDescription: e.target.value,
                     }))
                   }
-                  placeholder="Ex: Puncte x1.2, Acces la add-on-uri secrete"
+                  placeholder="Ex: Puncte x1.2"
                 />
               </div>
 

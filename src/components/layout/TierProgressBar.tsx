@@ -57,7 +57,6 @@ export const TierProgressBar: React.FC = () => {
 
   const { data: economyData } = useQuery<{
     tiers_xp_per_ron: string | null;
-    tiers_xp_per_order: string | null;
     points_per_order: string | null;
     points_per_ron: string | null;
   }>(GET_TIERS_ECONOMY_SETTINGS, {
@@ -107,15 +106,10 @@ export const TierProgressBar: React.FC = () => {
       ? `Puncte x${nextMultiplier.toFixed(1)} la fiecare comandă`
       : null);
 
-  // XP formula
-  const xpPerOrder = Math.max(0, parseInt(economyData?.tiers_xp_per_order ?? '0', 10) || 0);
+  // XP formula (doar pe baza RON cheltuiți)
   const xpPerRon = Math.max(0, parseInt(economyData?.tiers_xp_per_ron ?? '0', 10) || 0);
-
-  const xpFormulaParts: string[] = [];
-  if (xpPerOrder > 0) xpFormulaParts.push(`+${xpPerOrder} XP per comandă`);
-  if (xpPerRon > 0) xpFormulaParts.push(`+1 XP la fiecare ${xpPerRon} RON`);
-  const xpFormulaText = xpFormulaParts.length > 0
-    ? xpFormulaParts.join(', ')
+  const xpFormulaText = xpPerRon > 0
+    ? `+1 XP la fiecare ${xpPerRon} RON cheltuiți`
     : 'XP se acumulează la fiecare comandă';
 
   return (
