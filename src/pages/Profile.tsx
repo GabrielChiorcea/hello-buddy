@@ -55,9 +55,10 @@ const Profile: React.FC = () => {
     benefitDescription?: string | null;
   }> }>(GET_LOYALTY_TIERS, {
     skip: !tiersEnabled,
-    fetchPolicy: 'cache-first',
+    fetchPolicy: 'network-only',
   });
-  const loyaltyTiers = tiersData?.loyaltyTiers ?? [];
+  const rawTiers = tiersData?.loyaltyTiers ?? [];
+  const loyaltyTiers = [...rawTiers].sort((a, b) => a.xpThreshold - b.xpThreshold);
   const currentXp = user?.totalXp ?? 0;
   const nextTierFromList = loyaltyTiers
     .filter((t) => t.xpThreshold > currentXp)
@@ -230,11 +231,11 @@ const Profile: React.FC = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {loyaltyTiers.map((tier) => {
+                      {loyaltyTiers.map((tier, index) => {
                         const unlocked = (user.totalXp ?? 0) >= tier.xpThreshold;
                         return (
                           <div
-                            key={tier.id}
+                            key={tier.id || `tier-${index}`}
                             className={cn(
                               'flex items-center justify-between rounded-md border px-3 py-2 text-sm',
                               unlocked
