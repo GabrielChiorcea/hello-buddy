@@ -28,7 +28,7 @@ export interface User {
   welcomeBonusSeen?: boolean;
   welcomeBonusAmount?: number;
   /** Total XP acumulat (din pluginul de niveluri) */
-  totalXp?: number;
+  totalXp: number;
   /** Nivelul curent de loialitate (dacă pluginul tiers este activ) */
   tier?: {
     id: string;
