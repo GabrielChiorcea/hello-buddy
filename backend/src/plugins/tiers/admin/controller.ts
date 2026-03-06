@@ -102,8 +102,14 @@ export async function updateTier(req: Request, res: Response): Promise<void> {
           .json({ error: 'xpThreshold trebuie să fie un număr întreg >= 0' });
         return;
       }
+      // Validare: xpThreshold trebuie să fie unic (exclusiv tier-ul curent)
+      const existingTiers = await TiersRepo.getAll();
+      const duplicate = existingTiers.find(t => t.xpThreshold === xpThreshold && t.id !== id);
+      if (duplicate) {
+        res.status(400).json({ error: `Există deja un nivel cu pragul XP ${xpThreshold} (${duplicate.name})` });
+        return;
+      }
       updates.xpThreshold = xpThreshold;
-    }
     if (pointsMultiplier !== undefined) {
       if (
         typeof pointsMultiplier !== 'number' ||

@@ -72,17 +72,7 @@ export const TierProgressBar: React.FC = () => {
     fetchPolicy: 'cache-first',
   });
 
-  const { data: tiersData } = useQuery<{ loyaltyTiers: Array<{
-    id: string;
-    name: string;
-    xpThreshold: number;
-    pointsMultiplier: number;
-    badgeIcon?: string | null;
-    benefitDescription?: string | null;
-  }> }>(GET_LOYALTY_TIERS, {
-    skip: !tiersEnabled,
-    fetchPolicy: 'cache-first',
-  });
+  // loyaltyTiers query eliminat - nextTier vine din user.nextTier (GraphQL resolver)
 
   const currentXp = user?.totalXp ?? 0;
 
