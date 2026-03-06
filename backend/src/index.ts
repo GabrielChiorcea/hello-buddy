@@ -60,13 +60,28 @@ async function startServer() {
     contentSecurityPolicy: isDevelopment ? false : undefined,
     crossOriginResourcePolicy: { policy: 'same-site' }, // Doar same-site (localhost:5173+4000, sau app+api pe același domeniu)
   }));
-  const corsOrigins = [env.FRONTEND_URL, env.ADMIN_URL];
+  const corsOrigins: string[] = [env.FRONTEND_URL, env.ADMIN_URL];
   if (env.FRONTEND_URL_NETWORK) corsOrigins.push(env.FRONTEND_URL_NETWORK);
-  app.use(cors({
-    origin: corsOrigins,
+  // În development: acceptă și orice origin de pe rețea locală (192.168.x.x, 10.x.x.x) pe portul 8080
+  const corsOptions: cors.CorsOptions = {
+    origin: isDevelopment
+      ? (origin, cb) => {
+          if (!origin) return cb(null, true);
+          if (corsOrigins.includes(origin)) return cb(null, true);
+          try {
+            const u = new URL(origin);
+            const isLocalNetwork =
+              (u.hostname.startsWith('192.168.') || u.hostname.startsWith('10.')) && u.port === '8080';
+            return cb(null, isLocalNetwork || corsOrigins.includes(origin));
+          } catch {
+            return cb(null, false);
+          }
+        }
+      : corsOrigins,
     credentials: true, // IMPORTANT: permite cookies
     maxAge: 86400, // Cache preflight 24h (secunde) - reduce round-trip-urile OPTIONS
-  }));
+  };
+  app.use(cors(corsOptions));
   app.use(cookieParser()); // Parser pentru cookies
 
   // Webhook Stripe – raw body (înainte de express.json) pentru verificare semnătură

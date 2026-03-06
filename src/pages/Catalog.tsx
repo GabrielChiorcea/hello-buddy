@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Layout } from '@/components/layout/Layout';
+import { TierProgressBar } from '@/components/layout/TierProgressBar';
 import { ProductCard } from '@/components/common/ProductCard';
 import { PageLoader, SkeletonLoader } from '@/components/common/Loader';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -88,8 +89,11 @@ const Catalog: React.FC = () => {
 
   return (
     <Layout>
+      {/* Bara de progres nivel – full-width, același spațiu ca pe Home */}
+      <TierProgressBar />
+      {/* Campanii active – același context ca pe Home (full-width, fără container) */}
+      <StreakCampaignBlock />
       <div className="container mx-auto px-4 py-8">
-        <StreakCampaignBlock />
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">

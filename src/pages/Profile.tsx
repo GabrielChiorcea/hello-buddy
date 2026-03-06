@@ -26,6 +26,7 @@ import { PointsBalance, PointsOrderBadge } from '@/plugins/points';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { cn } from '@/lib/utils';
 import { GET_LOYALTY_TIERS } from '@/graphql/queries';
+import { TierProgressBar } from '@/components/layout/TierProgressBar';
 import { format, isValid } from 'date-fns';
 import { ro } from 'date-fns/locale';
 
@@ -140,6 +141,9 @@ const Profile: React.FC = () => {
                   <CardDescription>{user.email}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {/* Bara de progres nivel – integrată în cardul cu informații personale */}
+                  <TierProgressBar />
+
                   {pointsEnabled && <PointsBalance points={user.pointsBalance ?? 0} />}
 
                   {tiersEnabled && user.tier && (

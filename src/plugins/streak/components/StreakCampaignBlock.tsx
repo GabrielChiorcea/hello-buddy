@@ -1,6 +1,5 @@
 /**
- * Streak campaigns section — casino/rewards style that blends with the warm app theme.
- * Uses a subtle warm-dark gradient instead of pure gray-900.
+ * Streak campaigns section — casino/rewards style.
  * Plugin: plugins/streak
  */
 
@@ -30,16 +29,6 @@ export const StreakCampaignBlock: React.FC = () => {
 
   return (
     <section className="relative py-10 overflow-hidden bg-background">
-      {/* Subtle warm overlay that matches the app background */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-24 -left-16 w-72 h-72 bg-[radial-gradient(circle_at_top,_rgba(251,146,60,0.16),_transparent_60%)]" />
-        <div className="absolute -bottom-24 right-0 w-80 h-80 bg-[radial-gradient(circle_at_bottom,_rgba(248,113,113,0.14),_transparent_60%)]" />
-      </div>
-      {/* Top edge warm glow */}
-      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-500/20 to-transparent" />
-      {/* Bottom edge soft glow */}
-      <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-500/15 to-transparent" />
-
       <div className="relative container mx-auto px-4">
         {/* Section header */}
         <motion.div
@@ -63,9 +52,9 @@ export const StreakCampaignBlock: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* Cards scroll */}
-        <div className="overflow-x-auto overflow-y-hidden -mx-4 px-4 sm:-mx-6 sm:px-6 md:mx-0 md:px-0">
-          <div className="flex gap-5 pb-2 min-w-0 scroll-smooth" style={{ scrollbarGutter: 'stable' }}>
+        {/* Cards scroll — bg-background ca zona vizibilă la scroll să nu fie gri */}
+        <div className="overflow-x-auto overflow-y-hidden -mx-4 px-4 sm:-mx-6 sm:px-6 md:mx-0 md:px-0 bg-background scrollbar-none">
+          <div className="flex gap-5 pb-2 min-w-0 scroll-smooth">
             {campaigns.map((campaign, index) => {
               const enrollment =
                 myActiveEnrollment?.campaignId === campaign.id ? myActiveEnrollment : null;

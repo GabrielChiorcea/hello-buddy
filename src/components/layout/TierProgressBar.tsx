@@ -1,6 +1,7 @@
 /**
- * Floating mini-card — tier progress with circular XP ring.
- * Uses design system tokens to match the app's clean Glovo/Bolt aesthetic.
+ * Mini-card progres nivel (tiers) — inel XP și următorul nivel.
+ * Feature flag: se afișează doar când plugin-ul "tiers" e activ și userul e autentificat.
+ * Folosește același spațiu de la margini (px-4 sm:px-6) oriunde e randat.
  */
 
 import React from 'react';
@@ -82,12 +83,12 @@ export const TierProgressBar: React.FC = () => {
     (user?.nextTier ? `x${(user.nextTier.pointsMultiplier ?? 1).toFixed(1)} puncte` : null);
 
   return (
-    <div className="w-full py-3 px-4">
+    <div className="w-full py-3 px-4 sm:px-6">
       <motion.div
         initial={{ opacity: 0, y: 12, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="mx-auto max-w-lg"
+        className="mx-auto max-w-3xl"
       >
         <div className={cn(
           'relative overflow-hidden rounded-2xl',

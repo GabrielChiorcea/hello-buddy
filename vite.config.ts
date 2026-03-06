@@ -6,7 +6,7 @@ import { componentTagger } from "lovable-tagger";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
-    host: "::",
+    host: true, // ascultă pe toate interfețele – accesibil și pe IP local (ex: http://192.168.x.x:8080)
     port: 8080,
     hmr: {
       overlay: false,

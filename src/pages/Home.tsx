@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Layout } from '@/components/layout/Layout';
+import { TierProgressBar } from '@/components/layout/TierProgressBar';
 import { ProductCard } from '@/components/common/ProductCard';
 import { PageLoader } from '@/components/common/Loader';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -113,6 +114,9 @@ const Home: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Bara de progres nivel – deasupra campaniilor active */}
+      <TierProgressBar />
 
       <StreakCampaignBlock />
 

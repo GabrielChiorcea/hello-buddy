@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Layout } from '@/components/layout/Layout';
+import { TierProgressBar } from '@/components/layout/TierProgressBar';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { removeItem, changeQuantity } from '@/store/slices/cartSlice';
 import { routes } from '@/config/routes';
@@ -77,7 +78,10 @@ const Cart: React.FC = () => {
     <Layout>
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8 text-foreground">{texts.cart.title}</h1>
-
+      </div>
+      {/* Bara de progres nivel – full-width, același spațiu de la margini ca pe Home */}
+      <TierProgressBar />
+      <div className="container mx-auto px-4 py-8">
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4 min-w-0">
