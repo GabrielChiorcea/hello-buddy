@@ -74,9 +74,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLi
       {/* Image */}
       <div className={cn(
         // Mobile: poză cu border-radius, centrată vertical
-        'relative w-28 h-28 shrink-0 overflow-hidden rounded-xl flex items-center justify-center',
+        'relative w-28 h-28 shrink-0 overflow-hidden rounded-2xl flex items-center justify-center shadow-lg',
         // Desktop: full width, aspect ratio
-        'md:w-full md:h-auto md:aspect-[4/3] md:rounded-none',
+        'md:w-full md:h-auto md:aspect-[4/3] md:rounded-none md:shadow-none',
       )}>
         <img
           src={getImageUrl(product.image)}
