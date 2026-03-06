@@ -62,10 +62,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLi
   const cardContent = (
     <div
       className={cn(
-        // Mobile: horizontal row, poză cu spațiu stânga/dreapta (nu lipită de margini)
-        'flex flex-row items-center gap-4 rounded-xl border-2 border-primary/30 bg-card overflow-hidden transition-all hover:shadow-md group py-4 pl-4 pr-0',
-        // Desktop: vertical card, fără padding lateral
-        'md:flex-col md:items-stretch md:gap-0 md:py-0 md:pl-0 md:pr-0',
+        // Mobile: glassmorphism card
+        'flex flex-row items-center gap-4 rounded-2xl overflow-hidden transition-all group py-4 pl-4 pr-0',
+        'bg-card/60 backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_0_rgba(0,0,0,0.08)]',
+        // Desktop: vertical card, solid background
+        'md:flex-col md:items-stretch md:gap-0 md:py-0 md:pl-0 md:pr-0 md:rounded-xl md:bg-card md:backdrop-blur-none md:border-border md:shadow-sm',
         !product.isAvailable && 'opacity-60',
         className,
       )}
@@ -73,9 +74,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLi
       {/* Image */}
       <div className={cn(
         // Mobile: poză cu border-radius, centrată vertical
-        'relative w-28 h-28 shrink-0 overflow-hidden rounded-xl flex items-center justify-center',
+        'relative w-28 h-28 shrink-0 overflow-hidden rounded-2xl flex items-center justify-center shadow-lg',
         // Desktop: full width, aspect ratio
-        'md:w-full md:h-auto md:aspect-[4/3] md:rounded-none',
+        'md:w-full md:h-auto md:aspect-[4/3] md:rounded-none md:shadow-none',
       )}>
         <img
           src={getImageUrl(product.image)}
