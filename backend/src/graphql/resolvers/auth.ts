@@ -154,7 +154,7 @@ export const authResolvers = {
         throw new Error(passwordErrors.join('. '));
       }
       
-      // Creează utilizatorul
+      // Creează utilizatorul (în create() se setează și rank-ul de început Newbe)
       const user = await UserModel.create({ email, password, name, phone: normalizedPhone });
       
       // Cadou puncte la înregistrare (dacă plugin welcome_bonus și puncte sunt active)

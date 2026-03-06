@@ -161,10 +161,26 @@ export async function create(input: CreateUserInput): Promise<User> {
     [uuidv4(), id]
   );
   
+  // Setează rank-ul de început (Newbe) la crearea contului – tier cu xp_threshold = 0
+  const defaultTier = await queryOne<{ id: string }>(
+    `SELECT id FROM loyalty_tiers WHERE xp_threshold = 0 ORDER BY sort_order ASC LIMIT 1`
+  );
+  if (defaultTier) {
+    await query('UPDATE users SET tier_id = ? WHERE id = ?', [defaultTier.id, id]);
+  }
+  
   const user = await findById(id);
   if (!user) throw new Error('Eroare la crearea utilizatorului');
   
   return user;
+}
+
+/**
+ * Setează nivelul de loialitate (tier) pentru un utilizator.
+ * Folosit la crearea contului pentru a atribui rank-ul "Newbe".
+ */
+export async function setTierId(userId: string, tierId: string | null): Promise<void> {
+  await query('UPDATE users SET tier_id = ? WHERE id = ?', [tierId, userId]);
 }
 
 /**

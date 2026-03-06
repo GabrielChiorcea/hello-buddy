@@ -21,6 +21,8 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Loader2, Plus, Edit2, Trash2, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { TIER_BADGE_ICONS, getTierBadgeIcon } from '@/config/tierIcons';
+import { cn } from '@/lib/utils';
 
 interface TiersGlobalSettings {
   tiers_xp_per_ron: string;
@@ -261,7 +263,7 @@ export default function AdminTiers() {
             <>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="tiersXpPerRon">XP per RON</Label>
+                  <Label htmlFor="tiersXpPerRon">1 XP la fiecare X RON</Label>
                   <Input
                     id="tiersXpPerRon"
                     type="number"
@@ -272,7 +274,7 @@ export default function AdminTiers() {
                     }
                   />
                   <p className="text-xs text-muted-foreground">
-                    Câți XP primește utilizatorul pentru fiecare 1 RON cheltuit (0 = dezactivat).
+                    Utilizatorul primește 1 XP la fiecare X RON cheltuiți (ex: 5 = 1 XP la 5 RON). 0 = dezactivat.
                   </p>
                 </div>
                 <div className="space-y-2">
@@ -394,7 +396,7 @@ export default function AdminTiers() {
                     <span className="font-medium">{tier.name}</span>
                     <span>{tier.xpThreshold}</span>
                     <span>x{tier.pointsMultiplier.toFixed(2)}</span>
-                    <span>{tier.badgeIcon || '—'}</span>
+                    <span>{getTierBadgeIcon(tier.badgeIcon)}</span>
                     <span>{tier.sortOrder}</span>
                     <span className="flex justify-end gap-2">
                       <Button
@@ -485,18 +487,42 @@ export default function AdminTiers() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="badgeIcon">Badge / Icon</Label>
-                <Input
-                  id="badgeIcon"
-                  value={formData.badgeIcon ?? ''}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      badgeIcon: e.target.value,
-                    }))
-                  }
-                  placeholder="Ex: 🥇, gourmet, crown-gold"
-                />
+                <Label>Badge / Icon</Label>
+                <div className="grid grid-cols-8 gap-2 max-h-40 overflow-y-auto border rounded-lg p-2">
+                  {TIER_BADGE_ICONS.map((icon) => (
+                    <button
+                      key={icon.id}
+                      type="button"
+                      className={cn(
+                        'flex h-9 w-9 items-center justify-center rounded-lg text-lg transition-colors hover:bg-muted',
+                        (formData.badgeIcon ?? '') === icon.id &&
+                          'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2'
+                      )}
+                      onClick={() => setFormData((prev) => ({ ...prev, badgeIcon: icon.id }))}
+                      title={icon.label}
+                    >
+                      {icon.emoji}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="badgeIconCustom" className="text-xs text-muted-foreground shrink-0">
+                    Sau custom (emoji sau id):
+                  </Label>
+                  <Input
+                    id="badgeIconCustom"
+                    className="h-8 max-w-[8rem]"
+                    value={
+                      formData.badgeIcon && !TIER_BADGE_ICONS.some((i) => i.id === (formData.badgeIcon ?? ''))
+                        ? (formData.badgeIcon ?? '')
+                        : ''
+                    }
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, badgeIcon: e.target.value || undefined }))
+                    }
+                    placeholder="Ex: 🥇 sau crown-gold"
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">

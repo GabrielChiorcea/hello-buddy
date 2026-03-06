@@ -27,6 +27,7 @@ import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { cn } from '@/lib/utils';
 import { GET_LOYALTY_TIERS } from '@/graphql/queries';
 import { TierProgressBar } from '@/components/layout/TierProgressBar';
+import { getTierBadgeIcon } from '@/config/tierIcons';
 import { format, isValid } from 'date-fns';
 import { ro } from 'date-fns/locale';
 
@@ -57,6 +58,13 @@ const Profile: React.FC = () => {
     fetchPolicy: 'cache-first',
   });
   const loyaltyTiers = tiersData?.loyaltyTiers ?? [];
+  const currentXp = user?.totalXp ?? 0;
+  const nextTierFromList = loyaltyTiers
+    .filter((t) => t.xpThreshold > currentXp)
+    .sort((a, b) => a.xpThreshold - b.xpThreshold)[0] ?? null;
+  const nextTier = user?.nextTier ?? nextTierFromList;
+  const xpToNextLevelResolved =
+    nextTier != null ? Math.max(0, nextTier.xpThreshold - currentXp) : (user?.xpToNextLevel ?? null);
 
   const handleLogout = async () => {
     await dispatch(logout());
@@ -155,13 +163,11 @@ const Profile: React.FC = () => {
                           </p>
                           <div className="flex items-center gap-2 mt-1">
                             <Badge variant="secondary">
-                              {user.tier.badgeIcon && (
-                                <span className="mr-1">{user.tier.badgeIcon}</span>
-                              )}
+                              <span className="mr-1">{getTierBadgeIcon(user.tier.badgeIcon)}</span>
                               {user.tier.name}
                             </Badge>
                             <span className="text-xs text-muted-foreground">
-                              x{(user.tier.pointsMultiplier ?? 1).toFixed(2)} puncte
+                              Multiplicator curent: x{(user.tier.pointsMultiplier ?? 1).toFixed(2)} puncte la livrare
                             </span>
                           </div>
                         </div>
@@ -178,8 +184,8 @@ const Profile: React.FC = () => {
                           className="h-full bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-300"
                           style={{
                             width:
-                              user.xpToNextLevel != null &&
-                              user.nextTier &&
+                              xpToNextLevelResolved != null &&
+                              nextTier &&
                               user.tier
                                 ? `${Math.min(
                                     100,
@@ -187,7 +193,7 @@ const Profile: React.FC = () => {
                                       0,
                                       Math.round(
                                         ((user.totalXp ?? 0) - user.tier.xpThreshold) /
-                                          (user.nextTier.xpThreshold -
+                                          (nextTier.xpThreshold -
                                             user.tier.xpThreshold || 1) *
                                           100
                                       )
@@ -197,13 +203,13 @@ const Profile: React.FC = () => {
                           }}
                         />
                       </div>
-                      <div className="mt-2 flex justify-between text-xs text-muted-foreground">
+                      <div className="mt-2 flex flex-wrap justify-between gap-1 text-xs text-muted-foreground">
                         <span>
-                          Nivel curent: {user.tier.name} ({user.totalXp ?? 0} XP)
+                          Nivel curent: {user.tier.name} ({user.totalXp ?? 0} XP) · Puncte x{(user.tier.pointsMultiplier ?? 1).toFixed(2)}
                         </span>
-                        {user.xpToNextLevel != null && user.nextTier ? (
+                        {xpToNextLevelResolved != null && nextTier ? (
                           <span>
-                            Mai ai {user.xpToNextLevel} XP până la {user.nextTier.name}
+                            Mai ai {xpToNextLevelResolved} XP până la {getTierBadgeIcon(nextTier.badgeIcon)} {nextTier.name} (x{(nextTier.pointsMultiplier ?? 1).toFixed(2)} puncte)
                           </span>
                         ) : (
                           <span>Ai atins nivelul maxim disponibil</span>
@@ -239,7 +245,7 @@ const Profile: React.FC = () => {
                             <div className="flex flex-col gap-0.5">
                               <div className="flex items-center gap-2">
                                 <span className="font-medium">
-                                  {tier.badgeIcon && <span className="mr-1">{tier.badgeIcon}</span>}
+                                  <span className="mr-1">{getTierBadgeIcon(tier.badgeIcon)}</span>
                                   {tier.name}
                                 </span>
                                 <Badge variant={unlocked ? 'default' : 'outline'} className="text-[10px]">
@@ -247,11 +253,10 @@ const Profile: React.FC = () => {
                                 </Badge>
                               </div>
                               <span className="text-xs text-muted-foreground">
-                                de la {tier.xpThreshold} XP · Multiplicator puncte x
-                                {tier.pointsMultiplier.toFixed(2)}
+                                de la {tier.xpThreshold} XP · Multiplicator puncte x{tier.pointsMultiplier.toFixed(2)}
                               </span>
                               {tier.benefitDescription && (
-                                <span className="text-xs text-muted-foreground">
+                                <span className="text-xs text-muted-foreground block mt-0.5">
                                   {tier.benefitDescription}
                                 </span>
                               )}

@@ -307,3 +307,13 @@ export const GET_LOYALTY_TIERS = gql`
     }
   }
 `;
+
+/** Setări economie XP + puncte (pentru afișare în TierProgressBar / profil) */
+export const GET_TIERS_ECONOMY_SETTINGS = gql`
+  query GetTiersEconomySettings {
+    tiers_xp_per_ron: appSetting(key: "tiers_xp_per_ron")
+    tiers_xp_per_order: appSetting(key: "tiers_xp_per_order")
+    points_per_order: appSetting(key: "points_per_order")
+    points_per_ron: appSetting(key: "points_per_ron")
+  }
+`;

@@ -145,7 +145,6 @@ export const addonsResolvers = {
       }
 
       // 4. Construiește candidații (produs + regulă) cu un singur query de produse
-      const cartCategoryIdsSet = new Set(categoryIds);
       const candidates: { product: ProductModel.Product; rule: AddonRuleModel.AddonRule }[] = [];
       const addonProductIds = [
         ...new Set(activeRules.map(rule => rule.addonProductId)),
@@ -154,19 +153,13 @@ export const addonsResolvers = {
       const productById = new Map<string, ProductModel.Product>(
         addonProducts.map(p => [p.id, p])
       );
-      const cartProductIdSet = new Set(cartProductIds);
 
       for (const rule of activeRules) {
         const product = productById.get(rule.addonProductId);
         if (!product) continue;
         if (!product.isAvailable || !product.isAddon) continue;
 
-        // Excludere mutuală: nu sugerăm produse din categorii deja în coș
-        if (cartCategoryIdsSet.has(product.categoryId)) continue;
-
-        // Exclude produsele deja în coș (după ID)
-        if (cartProductIdSet.has(product.id)) continue;
-
+        // Nu mai excludem pe categorie — utilizatorul poate adăuga mai multe din aceeași categorie (ex: 2 sucuri)
         candidates.push({ product, rule });
       }
 

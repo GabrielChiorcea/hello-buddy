@@ -67,7 +67,9 @@ export function CartAddonSection() {
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
+    // Nu punem loading = true la refetch — listă veche rămâne vizibilă până vine răspunsul (evită flash skeleton)
+    const isInitialLoad = suggestions.length === 0;
+    if (isInitialLoad) setLoading(true);
 
     const fetchAddons = async () => {
       let list: AddonSuggestion[];
@@ -88,8 +90,6 @@ export function CartAddonSection() {
         seen.add(s.product.id);
         return true;
       });
-      const cartIdSet = new Set(cartProductIds);
-      list = list.filter((s) => !cartIdSet.has(s.product.id));
 
       setSuggestions(list);
       setLoading(false);

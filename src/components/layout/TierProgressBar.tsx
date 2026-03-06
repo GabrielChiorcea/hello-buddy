@@ -1,15 +1,18 @@
 /**
  * Mini-card progres nivel (tiers) — inel XP și următorul nivel.
  * Feature flag: se afișează doar când plugin-ul "tiers" e activ și userul e autentificat.
- * Folosește același spațiu de la margini (px-4 sm:px-6) oriunde e randat.
+ * Afișează multiplicator curent/următor, formula XP și exemplu (ex. 100 RON).
  */
 
 import React from 'react';
+import { useQuery } from '@apollo/client';
 import { useAppSelector } from '@/store';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Sparkles, ChevronRight } from 'lucide-react';
+import { getTierBadgeIcon } from '@/config/tierIcons';
+import { GET_TIERS_ECONOMY_SETTINGS, GET_LOYALTY_TIERS } from '@/graphql/queries';
 
 /* ── Circular progress ring ── */
 const XpRing: React.FC<{ percent: number; size?: number; stroke?: number }> = ({
@@ -47,21 +50,68 @@ const XpRing: React.FC<{ percent: number; size?: number; stroke?: number }> = ({
   );
 };
 
+interface EconomySettings {
+  tiers_xp_per_ron: string | null;
+  tiers_xp_per_order: string | null;
+  points_per_order: string | null;
+  points_per_ron: string | null;
+}
+
 export const TierProgressBar: React.FC = () => {
   const { isAuthenticated, user } = useAppSelector((state) => state.user);
   const { enabled: tiersEnabled } = usePluginEnabled('tiers');
+  const { enabled: pointsEnabled } = usePluginEnabled('points');
+
+  const { data: economyData } = useQuery<{
+    tiers_xp_per_ron: string | null;
+    tiers_xp_per_order: string | null;
+    points_per_order: string | null;
+    points_per_ron: string | null;
+  }>(GET_TIERS_ECONOMY_SETTINGS, {
+    skip: !tiersEnabled,
+    fetchPolicy: 'cache-first',
+  });
+
+  const { data: tiersData } = useQuery<{ loyaltyTiers: Array<{
+    id: string;
+    name: string;
+    xpThreshold: number;
+    pointsMultiplier: number;
+    badgeIcon?: string | null;
+    benefitDescription?: string | null;
+  }> }>(GET_LOYALTY_TIERS, {
+    skip: !tiersEnabled,
+    fetchPolicy: 'cache-first',
+  });
+
+  const loyaltyTiers = tiersData?.loyaltyTiers ?? [];
+  const currentXp = user?.totalXp ?? 0;
+
+  // Următorul nivel: din user.nextTier sau derivat din lista de tier-uri (când admin adaugă un tier nou)
+  const nextTierFromList = loyaltyTiers
+    .filter((t) => t.xpThreshold > currentXp)
+    .sort((a, b) => a.xpThreshold - b.xpThreshold)[0] ?? null;
+  const nextTier = user?.nextTier ?? (nextTierFromList ? {
+    id: nextTierFromList.id,
+    name: nextTierFromList.name,
+    xpThreshold: nextTierFromList.xpThreshold,
+    pointsMultiplier: nextTierFromList.pointsMultiplier,
+    badgeIcon: nextTierFromList.badgeIcon,
+    benefitDescription: nextTierFromList.benefitDescription,
+  } : null);
+  const nextTierThreshold = nextTier?.xpThreshold;
+  const xpToNextLevel = nextTierThreshold != null
+    ? Math.max(0, nextTierThreshold - currentXp)
+    : (user?.xpToNextLevel ?? null);
+  const isMaxLevel = xpToNextLevel == null || xpToNextLevel <= 0;
 
   const hasTier = Boolean(user?.tier);
-  const hasNextTier = user?.nextTier != null;
+  const hasNextTier = nextTier != null;
   const canShowBar = tiersEnabled && isAuthenticated && (hasTier || hasNextTier);
 
   if (!canShowBar) return null;
 
-  const currentXp = user?.totalXp ?? 0;
   const currentTierThreshold = user?.tier?.xpThreshold ?? 0;
-  const nextTierThreshold = user?.nextTier?.xpThreshold;
-  const xpToNextLevel = user?.xpToNextLevel ?? null;
-  const isMaxLevel = xpToNextLevel == null || xpToNextLevel <= 0;
 
   let progressPercent = 100;
   if (!isMaxLevel && nextTierThreshold !== undefined && nextTierThreshold > currentTierThreshold) {
@@ -73,14 +123,39 @@ export const TierProgressBar: React.FC = () => {
   }
 
   const tierName = user?.tier?.name ?? 'Începător';
-  const badgeIcon = user?.tier?.badgeIcon;
+  const currentBadgeIcon = getTierBadgeIcon(user?.tier?.badgeIcon);
   const multiplier = user?.tier?.pointsMultiplier ?? 1;
+  const nextMultiplier = nextTier?.pointsMultiplier ?? 1;
+  const multiplierPercentDelta = multiplier > 0 ? Math.round(((nextMultiplier - multiplier) / multiplier) * 100) : 0;
+
   const currentBenefit =
     user?.tier?.benefitDescription?.trim() ||
-    (user?.tier ? `Câștigi x${multiplier.toFixed(1)} puncte` : 'Comandă pentru a câștiga XP');
+    (user?.tier ? `Puncte la livrare: x${multiplier.toFixed(1)} (multiplicator curent)` : 'Comandă pentru a câștiga XP');
   const nextBenefit =
-    user?.nextTier?.benefitDescription?.trim() ||
-    (user?.nextTier ? `x${(user.nextTier.pointsMultiplier ?? 1).toFixed(1)} puncte` : null);
+    nextTier?.benefitDescription?.trim() ||
+    (nextTier ? `Puncte x${nextMultiplier.toFixed(1)}` : null);
+
+  const settings: EconomySettings = {
+    tiers_xp_per_ron: economyData?.tiers_xp_per_ron ?? null,
+    tiers_xp_per_order: economyData?.tiers_xp_per_order ?? null,
+    points_per_order: economyData?.points_per_order ?? null,
+    points_per_ron: economyData?.points_per_ron ?? null,
+  };
+
+  const xpPerOrder = Math.max(0, parseInt(settings.tiers_xp_per_order ?? '0', 10) || 0);
+  const xpPerRon = Math.max(0, parseInt(settings.tiers_xp_per_ron ?? '0', 10) || 0);
+  const pointsPerOrder = Math.max(0, parseInt(settings.points_per_order ?? '5', 10) || 5);
+  const pointsPerRon = Math.max(0, parseInt(settings.points_per_ron ?? '0', 10) || 0);
+
+  const exampleRon = 100;
+  const exampleXp = xpPerOrder + (xpPerRon > 0 ? Math.floor(exampleRon / xpPerRon) : 0);
+  const basePoints = pointsPerOrder + (pointsPerRon > 0 ? Math.floor(exampleRon / pointsPerRon) : 0);
+  const examplePoints = pointsEnabled ? Math.round(basePoints * multiplier) : null;
+
+  const xpFormulaParts: string[] = [];
+  if (xpPerOrder > 0) xpFormulaParts.push(`${xpPerOrder} XP per comandă`);
+  if (xpPerRon > 0) xpFormulaParts.push(`1 XP la fiecare ${xpPerRon} RON`);
+  const xpFormulaText = xpFormulaParts.length > 0 ? xpFormulaParts.join(' + ') : 'XP setat în Admin → Niveluri';
 
   return (
     <div className="w-full py-3 px-4 sm:px-6">
@@ -96,29 +171,21 @@ export const TierProgressBar: React.FC = () => {
           'px-4 py-3',
         )}>
           <div className="relative flex items-center gap-3">
-            {/* Circular XP ring with badge inside */}
             <div className="relative flex-shrink-0">
               <XpRing percent={progressPercent} />
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-lg leading-none">
-                  {badgeIcon || '⭐'}
-                </span>
+                <span className="text-lg leading-none">{currentBadgeIcon}</span>
               </div>
             </div>
 
-            {/* Info section */}
             <div className="min-w-0 flex-1 space-y-1">
-              {/* Tier name + multiplier */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-foreground">
-                  {tierName}
-                </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-bold text-foreground">{tierName}</span>
                 <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                  x{multiplier.toFixed(1)}
+                  Multiplicator puncte: x{multiplier.toFixed(1)}
                 </span>
               </div>
 
-              {/* XP progress text */}
               <div className="text-[11px] text-muted-foreground">
                 {isMaxLevel ? (
                   <span className="flex items-center gap-1 text-primary font-medium">
@@ -137,26 +204,41 @@ export const TierProgressBar: React.FC = () => {
                 )}
               </div>
 
-              {/* Current benefit */}
-              <p className="text-[10px] text-muted-foreground truncate">
+              <p className="text-[11px] text-muted-foreground line-clamp-2">
                 {currentBenefit}
+              </p>
+
+              <p className="text-[10px] text-muted-foreground/90">
+                Cum se calculează XP: {xpFormulaText}
+              </p>
+
+              <p className="text-[10px] text-muted-foreground/80">
+                Exemplu comandă {exampleRon} RON: <span className="font-medium text-foreground">{exampleXp} XP</span>
+                {examplePoints != null && (
+                  <> · Puncte (cu multiplicatorul tău): <span className="font-medium text-foreground">{examplePoints}</span></>
+                )}
               </p>
             </div>
           </div>
 
-          {/* Next level preview */}
-          {!isMaxLevel && user?.nextTier && (
-            <div className="relative mt-2 flex items-center gap-1.5 rounded-lg bg-secondary px-2.5 py-1.5 text-[10px]">
+          {!isMaxLevel && nextTier && (
+            <div className="relative mt-2 flex flex-wrap items-center gap-1.5 rounded-lg bg-secondary px-2.5 py-1.5 text-[10px]">
               <ChevronRight className="h-3 w-3 text-muted-foreground flex-shrink-0" />
               <span className="text-muted-foreground">Următorul nivel:</span>
               <span className="font-semibold text-foreground">
-                {user.nextTier.badgeIcon && <span className="mr-0.5">{user.nextTier.badgeIcon}</span>}
-                {user.nextTier.name}
+                <span className="mr-0.5">{getTierBadgeIcon(nextTier.badgeIcon)}</span>
+                {nextTier.name}
+              </span>
+              <span className="text-muted-foreground">
+                — Puncte x{nextMultiplier.toFixed(1)}
+                {multiplierPercentDelta !== 0 && (
+                  <span className="text-primary"> (+{multiplierPercentDelta}%)</span>
+                )}
               </span>
               {nextBenefit && (
                 <>
-                  <span className="text-border mx-0.5">—</span>
-                  <span className="text-muted-foreground truncate">{nextBenefit}</span>
+                  <span className="text-border mx-0.5">·</span>
+                  <span className="text-muted-foreground line-clamp-1">{nextBenefit}</span>
                 </>
               )}
             </div>
