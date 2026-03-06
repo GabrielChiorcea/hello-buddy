@@ -208,7 +208,7 @@ export default function AdminTiers() {
         pointsMultiplier: Number(formData.pointsMultiplier) || 1,
         badgeIcon: formData.badgeIcon || null,
         sortOrder:
-          formData.sortOrder && Number(formData.sortOrder) >= 0
+          formData.sortOrder !== undefined && formData.sortOrder !== null && Number(formData.sortOrder) >= 0
             ? Number(formData.sortOrder)
             : Number(formData.xpThreshold) || 0,
         benefitDescription: formData.benefitDescription || null,

@@ -84,26 +84,14 @@ export const TierProgressBar: React.FC = () => {
     fetchPolicy: 'cache-first',
   });
 
-  const loyaltyTiers = tiersData?.loyaltyTiers ?? [];
   const currentXp = user?.totalXp ?? 0;
 
-  // Următorul nivel: din user.nextTier sau derivat din lista de tier-uri (când admin adaugă un tier nou)
-  const nextTierFromList = loyaltyTiers
-    .filter((t) => t.xpThreshold > currentXp)
-    .sort((a, b) => a.xpThreshold - b.xpThreshold)[0] ?? null;
-  const nextTier = user?.nextTier ?? (nextTierFromList ? {
-    id: nextTierFromList.id,
-    name: nextTierFromList.name,
-    xpThreshold: nextTierFromList.xpThreshold,
-    pointsMultiplier: nextTierFromList.pointsMultiplier,
-    badgeIcon: nextTierFromList.badgeIcon,
-    benefitDescription: nextTierFromList.benefitDescription,
-  } : null);
+  // Folosește doar user.nextTier din GraphQL (sursa de adevăr)
+  const nextTier = user?.nextTier ?? null;
   const nextTierThreshold = nextTier?.xpThreshold;
-  const xpToNextLevel = nextTierThreshold != null
-    ? Math.max(0, nextTierThreshold - currentXp)
-    : (user?.xpToNextLevel ?? null);
-  const isMaxLevel = xpToNextLevel == null || xpToNextLevel <= 0;
+  const xpToNextLevel = user?.xpToNextLevel ?? null;
+  // Nivel maxim = nu există next tier (null), NU când xpToNextLevel === 0
+  const isMaxLevel = xpToNextLevel === null || xpToNextLevel === undefined;
 
   const hasTier = Boolean(user?.tier);
   const hasNextTier = nextTier != null;

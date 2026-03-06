@@ -52,6 +52,14 @@ export async function createTier(req: Request, res: Response): Promise<void> {
       return;
     }
 
+    // Validare: xpThreshold trebuie să fie unic
+    const existingTiers = await TiersRepo.getAll();
+    const duplicate = existingTiers.find(t => t.xpThreshold === xpThreshold);
+    if (duplicate) {
+      res.status(400).json({ error: `Există deja un nivel cu pragul XP ${xpThreshold} (${duplicate.name})` });
+      return;
+    }
+
     const tier = await TiersRepo.createTier({
       name: name.trim(),
       xpThreshold,
