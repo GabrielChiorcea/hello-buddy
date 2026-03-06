@@ -112,11 +112,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLi
           </span>
         </div>
 
-        {/* Row 2: Description / category */}
-        <p className="text-xs text-muted-foreground mt-0.5 md:hidden line-clamp-1">
-          {categoryNames[product.category] ?? product.category}
-          {product.preparationTime && ` · ${product.preparationTime} min`}
-        </p>
+        {/* Row 2: Ingredients (mobile) / description (desktop) */}
+        {product.ingredients && product.ingredients.length > 0 && (
+          <p className="text-xs text-muted-foreground mt-0.5 md:hidden line-clamp-1">
+            {product.ingredients.map(i => i.name).join(', ')}
+          </p>
+        )}
         <p className="text-sm text-muted-foreground mt-1 line-clamp-2 hidden md:block">
           {product.description}
         </p>
