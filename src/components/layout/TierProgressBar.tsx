@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Sparkles, ChevronRight } from 'lucide-react';
 import { getTierBadgeIcon } from '@/config/tierIcons';
-import { GET_TIERS_ECONOMY_SETTINGS, GET_LOYALTY_TIERS } from '@/graphql/queries';
+import { GET_TIERS_ECONOMY_SETTINGS } from '@/graphql/queries';
 
 /* ── Circular progress ring ── */
 const XpRing: React.FC<{ percent: number; size?: number; stroke?: number }> = ({
