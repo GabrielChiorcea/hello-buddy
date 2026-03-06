@@ -1,6 +1,6 @@
 /**
  * Gamified Tier Progress Card — visual, compact, mobile-first.
- * Shows current tier badge, XP progress bar with gradient, next tier preview.
+ * Shows current tier badge, XP progress, benefits, next tier unlock, XP formula.
  */
 
 import React from 'react';
@@ -9,7 +9,7 @@ import { useAppSelector } from '@/store';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { Sparkles, ChevronRight, Zap } from 'lucide-react';
+import { Sparkles, ChevronRight, Zap, Gift, Star, TrendingUp } from 'lucide-react';
 import { getTierBadgeIcon } from '@/config/tierIcons';
 import { GET_TIERS_ECONOMY_SETTINGS } from '@/graphql/queries';
 
@@ -25,7 +25,6 @@ const GradientProgressBar: React.FC<{ percent: number }> = ({ percent }) => (
         background: 'linear-gradient(90deg, hsl(var(--primary)), hsl(16 90% 60%), hsl(36 100% 55%))',
       }}
     />
-    {/* Shimmer overlay */}
     <div
       className="absolute inset-y-0 w-1/3 rounded-full opacity-30"
       style={{
@@ -36,12 +35,20 @@ const GradientProgressBar: React.FC<{ percent: number }> = ({ percent }) => (
   </div>
 );
 
-interface EconomySettings {
-  tiers_xp_per_ron: string | null;
-  tiers_xp_per_order: string | null;
-  points_per_order: string | null;
-  points_per_ron: string | null;
-}
+/* ── Info pill ── */
+const InfoPill: React.FC<{ icon: React.ReactNode; children: React.ReactNode; variant?: 'default' | 'highlight' }> = ({
+  icon, children, variant = 'default',
+}) => (
+  <div className={cn(
+    'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px]',
+    variant === 'highlight'
+      ? 'bg-primary/10 text-primary'
+      : 'bg-secondary/80 text-muted-foreground',
+  )}>
+    <span className="flex-shrink-0">{icon}</span>
+    <span className="leading-tight">{children}</span>
+  </div>
+);
 
 export const TierProgressBar: React.FC = () => {
   const { isAuthenticated, user } = useAppSelector((state) => state.user);
@@ -86,22 +93,30 @@ export const TierProgressBar: React.FC = () => {
   const multiplier = user?.tier?.pointsMultiplier ?? 1;
   const nextMultiplier = nextTier?.pointsMultiplier ?? 1;
 
-  const settings: EconomySettings = {
-    tiers_xp_per_ron: economyData?.tiers_xp_per_ron ?? null,
-    tiers_xp_per_order: economyData?.tiers_xp_per_order ?? null,
-    points_per_order: economyData?.points_per_order ?? null,
-    points_per_ron: economyData?.points_per_ron ?? null,
-  };
+  // Current benefit text
+  const currentBenefit =
+    user?.tier?.benefitDescription?.trim() ||
+    (pointsEnabled
+      ? `Primești x${multiplier.toFixed(1)} puncte la fiecare comandă livrată`
+      : 'Comandă pentru a câștiga XP și a avansa');
 
-  const xpPerOrder = Math.max(0, parseInt(settings.tiers_xp_per_order ?? '0', 10) || 0);
-  const xpPerRon = Math.max(0, parseInt(settings.tiers_xp_per_ron ?? '0', 10) || 0);
-  const pointsPerOrder = Math.max(0, parseInt(settings.points_per_order ?? '5', 10) || 5);
-  const pointsPerRon = Math.max(0, parseInt(settings.points_per_ron ?? '0', 10) || 0);
+  // Next tier benefit text
+  const nextBenefitText =
+    nextTier?.benefitDescription?.trim() ||
+    (nextTier && pointsEnabled
+      ? `Puncte x${nextMultiplier.toFixed(1)} la fiecare comandă`
+      : null);
 
-  const exampleRon = 100;
-  const exampleXp = xpPerOrder + (xpPerRon > 0 ? Math.floor(exampleRon / xpPerRon) : 0);
-  const basePoints = pointsPerOrder + (pointsPerRon > 0 ? Math.floor(exampleRon / pointsPerRon) : 0);
-  const examplePoints = pointsEnabled ? Math.round(basePoints * multiplier) : null;
+  // XP formula
+  const xpPerOrder = Math.max(0, parseInt(economyData?.tiers_xp_per_order ?? '0', 10) || 0);
+  const xpPerRon = Math.max(0, parseInt(economyData?.tiers_xp_per_ron ?? '0', 10) || 0);
+
+  const xpFormulaParts: string[] = [];
+  if (xpPerOrder > 0) xpFormulaParts.push(`+${xpPerOrder} XP per comandă`);
+  if (xpPerRon > 0) xpFormulaParts.push(`+1 XP la fiecare ${xpPerRon} RON`);
+  const xpFormulaText = xpFormulaParts.length > 0
+    ? xpFormulaParts.join(', ')
+    : 'XP se acumulează la fiecare comandă';
 
   return (
     <div className="w-full py-2 px-3 sm:px-6">
@@ -117,9 +132,8 @@ export const TierProgressBar: React.FC = () => {
             'bg-gradient-to-br from-card via-card to-accent/30',
           )}
         >
-          {/* ── Top section: Badge + Info ── */}
+          {/* ── Top: Badge + Info ── */}
           <div className="flex items-center gap-3 px-4 pt-3 pb-2">
-            {/* Large badge with glow */}
             <div className="relative flex-shrink-0">
               <div className={cn(
                 'flex h-12 w-12 items-center justify-center rounded-xl',
@@ -128,14 +142,12 @@ export const TierProgressBar: React.FC = () => {
               )}>
                 <span className="text-2xl leading-none">{currentBadgeIcon}</span>
               </div>
-              {/* Multiplier pill overlapping badge */}
               <div className="absolute -bottom-1 -right-1 flex h-5 items-center rounded-full bg-primary px-1.5 shadow-sm">
                 <Zap className="h-2.5 w-2.5 text-primary-foreground" />
                 <span className="text-[9px] font-bold text-primary-foreground">x{multiplier.toFixed(1)}</span>
               </div>
             </div>
 
-            {/* Tier name + XP count */}
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
                 <span className="text-sm font-bold text-foreground truncate">{tierName}</span>
@@ -147,7 +159,7 @@ export const TierProgressBar: React.FC = () => {
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {isMaxLevel ? (
-                  <span className="text-primary font-medium">Nivel maxim atins!</span>
+                  <span className="text-primary font-medium">Nivel maxim atins! 🎉</span>
                 ) : (
                   <>
                     <span className="font-semibold text-foreground tabular-nums">{currentXp}</span>
@@ -156,15 +168,6 @@ export const TierProgressBar: React.FC = () => {
                 )}
               </p>
             </div>
-
-            {/* Example reward — desktop only */}
-            <div className="hidden sm:flex flex-col items-end text-right">
-              <span className="text-[10px] text-muted-foreground">Exemplu {exampleRon} RON:</span>
-              <span className="text-xs font-semibold text-foreground">+{exampleXp} XP</span>
-              {examplePoints != null && (
-                <span className="text-[10px] text-muted-foreground">+{examplePoints} pct</span>
-              )}
-            </div>
           </div>
 
           {/* ── Progress bar ── */}
@@ -172,25 +175,48 @@ export const TierProgressBar: React.FC = () => {
             <GradientProgressBar percent={progressPercent} />
             {!isMaxLevel && xpToNextLevel != null && (
               <p className="mt-1 text-[10px] text-muted-foreground text-right tabular-nums">
-                Încă <span className="font-semibold text-foreground">{xpToNextLevel}</span> XP
+                Încă <span className="font-semibold text-foreground">{xpToNextLevel}</span> XP până la nivelul următor
               </p>
             )}
           </div>
 
-          {/* ── Next tier banner ── */}
+          {/* ── Benefits & Info pills ── */}
+          <div className="px-4 pb-3 space-y-1.5">
+            {/* Current benefit */}
+            <InfoPill icon={<Gift className="h-3 w-3" />} variant="highlight">
+              <span className="font-medium">Acum:</span> {currentBenefit}
+            </InfoPill>
+
+            {/* How XP is earned */}
+            <InfoPill icon={<TrendingUp className="h-3 w-3" />}>
+              <span className="font-medium">Cum câștigi XP:</span> {xpFormulaText}
+            </InfoPill>
+          </div>
+
+          {/* ── Next tier unlock banner ── */}
           {!isMaxLevel && nextTier && (
             <div className={cn(
-              'flex items-center gap-2 px-4 py-2',
+              'flex flex-col gap-1 px-4 py-2.5',
               'bg-secondary/60 border-t border-border/50',
             )}>
-              <ChevronRight className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-              <span className="text-[11px] text-muted-foreground">Următorul:</span>
-              <span className="text-[11px] font-semibold text-foreground">
-                {getTierBadgeIcon(nextTier.badgeIcon)} {nextTier.name}
-              </span>
-              <span className="ml-auto text-[10px] font-medium text-primary">
-                x{nextMultiplier.toFixed(1)}
-              </span>
+              <div className="flex items-center gap-2">
+                <ChevronRight className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                <span className="text-[11px] text-muted-foreground">La nivelul următor:</span>
+                <span className="text-[11px] font-semibold text-foreground">
+                  {getTierBadgeIcon(nextTier.badgeIcon)} {nextTier.name}
+                </span>
+                <span className="ml-auto text-[10px] font-bold text-primary">
+                  x{nextMultiplier.toFixed(1)}
+                </span>
+              </div>
+              {nextBenefitText && (
+                <div className="flex items-center gap-2 pl-5">
+                  <Star className="h-3 w-3 text-primary/60 flex-shrink-0" />
+                  <span className="text-[10px] text-muted-foreground line-clamp-1">
+                    Deblochezi: <span className="font-medium text-foreground">{nextBenefitText}</span>
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </div>
