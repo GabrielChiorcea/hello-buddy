@@ -62,10 +62,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLi
   const cardContent = (
     <div
       className={cn(
-        // Mobile: horizontal row
-        'flex flex-row items-center gap-4 rounded-xl border border-border bg-card overflow-hidden transition-all hover:shadow-md group py-4 pl-4 pr-0',
+        // Mobile: elevated floating card
+        'flex flex-row items-center gap-4 rounded-2xl bg-card overflow-hidden transition-all group p-3',
+        'shadow-[0_4px_20px_-2px_rgba(0,0,0,0.1),0_2px_8px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.15),0_4px_12px_-2px_rgba(0,0,0,0.08)]',
         // Desktop: vertical card
-        'md:flex-col md:items-stretch md:gap-0 md:py-0 md:pl-0 md:pr-0',
+        'md:flex-col md:items-stretch md:gap-0 md:p-0 md:rounded-xl md:shadow-sm md:hover:shadow-md md:border md:border-border',
         !product.isAvailable && 'opacity-60',
         className,
       )}
