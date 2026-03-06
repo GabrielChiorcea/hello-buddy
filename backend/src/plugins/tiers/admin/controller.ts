@@ -110,6 +110,7 @@ export async function updateTier(req: Request, res: Response): Promise<void> {
         return;
       }
       updates.xpThreshold = xpThreshold;
+    }
     if (pointsMultiplier !== undefined) {
       if (
         typeof pointsMultiplier !== 'number' ||
