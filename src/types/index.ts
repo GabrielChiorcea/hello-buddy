@@ -36,6 +36,7 @@ export interface User {
     xpThreshold: number;
     pointsMultiplier: number;
     badgeIcon?: string | null;
+    benefitDescription?: string | null;
   } | null;
   /** Următorul nivel și pragul său de XP */
   nextTier?: {
@@ -44,6 +45,7 @@ export interface User {
     xpThreshold: number;
     pointsMultiplier: number;
     badgeIcon?: string | null;
+    benefitDescription?: string | null;
   } | null;
   /** XP rămas până la următorul nivel */
   xpToNextLevel?: number | null;

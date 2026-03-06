@@ -26,6 +26,7 @@ export const USER_FRAGMENT = gql`
       xpThreshold
       pointsMultiplier
       badgeIcon
+      benefitDescription
     }
     nextTier {
       id
@@ -33,6 +34,7 @@ export const USER_FRAGMENT = gql`
       xpThreshold
       pointsMultiplier
       badgeIcon
+      benefitDescription
     }
     xpToNextLevel
     createdAt

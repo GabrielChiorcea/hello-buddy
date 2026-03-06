@@ -1,9 +1,12 @@
 /**
  * Pagina Admin - Niveluri de loialitate (Tiers)
+ * Include setările generale (XP, notificări) și lista de niveluri.
  */
 
 import { useEffect, useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { useAdminApi } from '@/admin/hooks/useAdminApi';
+import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import {
   Card,
   CardHeader,
@@ -16,8 +19,38 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Loader2, Plus, Edit2, Trash2, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+
+interface TiersGlobalSettings {
+  tiers_xp_per_ron: string;
+  tiers_xp_per_order: string;
+  tiers_secret_addons_enabled: boolean;
+  tiers_notify_on_level_up: boolean;
+  tiers_notify_message: string;
+}
+
+const defaultTiersSettings: TiersGlobalSettings = {
+  tiers_xp_per_ron: '1',
+  tiers_xp_per_order: '0',
+  tiers_secret_addons_enabled: true,
+  tiers_notify_on_level_up: true,
+  tiers_notify_message:
+    'Felicitări! Ai ajuns la nivelul [Nume Nivel]. De acum câștigi cu [X]% mai multe puncte!',
+};
+
+function parseTiersSettings(map: Record<string, { value: string } | undefined>): TiersGlobalSettings {
+  return {
+    tiers_xp_per_ron: map.tiers_xp_per_ron?.value ?? defaultTiersSettings.tiers_xp_per_ron,
+    tiers_xp_per_order: map.tiers_xp_per_order?.value ?? defaultTiersSettings.tiers_xp_per_order,
+    tiers_secret_addons_enabled:
+      (map.tiers_secret_addons_enabled?.value ?? 'true') === 'true',
+    tiers_notify_on_level_up:
+      (map.tiers_notify_on_level_up?.value ?? 'true') === 'true',
+    tiers_notify_message:
+      map.tiers_notify_message?.value ?? defaultTiersSettings.tiers_notify_message,
+  };
+}
 
 interface LoyaltyTier {
   id: string;
@@ -39,7 +72,9 @@ const emptyForm: Omit<LoyaltyTier, 'id'> = {
 };
 
 export default function AdminTiers() {
-  const { getTiers, createTier, updateTier, deleteTier } = useAdminApi();
+  const { enabled: tiersEnabled, loading: flagLoading } = usePluginEnabled('tiers');
+  const { getTiers, createTier, updateTier, deleteTier, getSettings, updateSettings } =
+    useAdminApi();
   const { toast } = useToast();
 
   const [tiers, setTiers] = useState<LoyaltyTier[]>([]);
@@ -48,9 +83,55 @@ export default function AdminTiers() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Omit<LoyaltyTier, 'id'>>(emptyForm);
 
+  const [tiersSettings, setTiersSettings] = useState<TiersGlobalSettings>(defaultTiersSettings);
+  const [settingsLoading, setSettingsLoading] = useState(true);
+  const [settingsSaving, setSettingsSaving] = useState(false);
+
   useEffect(() => {
     loadTiers();
+    loadTiersSettings();
   }, []);
+
+  const loadTiersSettings = async () => {
+    setSettingsLoading(true);
+    try {
+      const data = await getSettings();
+      const map = (data as { settings?: Record<string, { value: string }> })?.settings ?? data;
+      setTiersSettings(parseTiersSettings(map as Record<string, { value: string }>));
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: 'Eroare',
+        description: 'Nu s-au putut încărca setările de niveluri.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSettingsLoading(false);
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    setSettingsSaving(true);
+    try {
+      await updateSettings({
+        tiers_xp_per_ron: tiersSettings.tiers_xp_per_ron,
+        tiers_xp_per_order: tiersSettings.tiers_xp_per_order,
+        tiers_secret_addons_enabled: tiersSettings.tiers_secret_addons_enabled ? 'true' : 'false',
+        tiers_notify_on_level_up: tiersSettings.tiers_notify_on_level_up ? 'true' : 'false',
+        tiers_notify_message: tiersSettings.tiers_notify_message,
+      });
+      toast({ title: 'Setări salvate', description: 'Setările de niveluri au fost actualizate.' });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: 'Eroare',
+        description: 'Nu s-au putut salva setările.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSettingsSaving(false);
+    }
+  };
 
   const loadTiers = async () => {
     setLoading(true);
@@ -103,6 +184,18 @@ export default function AdminTiers() {
     }
   };
 
+  if (flagLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!tiersEnabled) {
+    return <Navigate to="/admin" replace />;
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -146,10 +239,125 @@ export default function AdminTiers() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Niveluri de loialitate</h1>
           <p className="text-muted-foreground">
-            Definește pragurile de XP și multiplicatorii de puncte pentru fiecare nivel.
+            Setări generale, economie XP și lista de niveluri (praguri + multiplicatori).
           </p>
         </div>
       </div>
+
+      {/* Setări generale - economie XP și notificări */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Setări generale</CardTitle>
+          <CardDescription>
+            Cum se câștigă XP la livrare și opțiuni pentru add-on-uri secrete și notificări la level-up.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {settingsLoading ? (
+            <div className="flex justify-center py-6">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="tiersXpPerRon">XP per RON</Label>
+                  <Input
+                    id="tiersXpPerRon"
+                    type="number"
+                    min={0}
+                    value={tiersSettings.tiers_xp_per_ron}
+                    onChange={(e) =>
+                      setTiersSettings((p) => ({ ...p, tiers_xp_per_ron: e.target.value }))
+                    }
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Câți XP primește utilizatorul pentru fiecare 1 RON cheltuit (0 = dezactivat).
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="tiersXpPerOrder">XP fix per comandă</Label>
+                  <Input
+                    id="tiersXpPerOrder"
+                    type="number"
+                    min={0}
+                    value={tiersSettings.tiers_xp_per_order}
+                    onChange={(e) =>
+                      setTiersSettings((p) => ({ ...p, tiers_xp_per_order: e.target.value }))
+                    }
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    XP acordat pentru fiecare comandă livrată, indiferent de valoare.
+                  </p>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Add-on-uri secrete pe nivel</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Anumite produse pot fi vizibile doar de la un anumit nivel (setat la fiecare produs în Admin → Produse).
+                  </p>
+                </div>
+                <Switch
+                  checked={tiersSettings.tiers_secret_addons_enabled}
+                  onCheckedChange={(checked) =>
+                    setTiersSettings((p) => ({ ...p, tiers_secret_addons_enabled: checked }))
+                  }
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Notificare automată la level-up</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Trimite un mesaj (email/log) când utilizatorul crește în nivel.
+                  </p>
+                </div>
+                <Switch
+                  checked={tiersSettings.tiers_notify_on_level_up}
+                  onCheckedChange={(checked) =>
+                    setTiersSettings((p) => ({ ...p, tiers_notify_on_level_up: checked }))
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="tiersNotifyMessage">Mesaj notificare level-up</Label>
+                <Input
+                  id="tiersNotifyMessage"
+                  type="text"
+                  value={tiersSettings.tiers_notify_message}
+                  onChange={(e) =>
+                    setTiersSettings((p) => ({ ...p, tiers_notify_message: e.target.value }))
+                  }
+                />
+                <p className="text-xs text-muted-foreground">
+                  Variabile: [Nume Nivel], [X]%
+                </p>
+              </div>
+
+              <div className="flex justify-end">
+                <Button onClick={handleSaveSettings} disabled={settingsSaving}>
+                  {settingsSaving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Se salvează...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2 h-4 w-4" />
+                      Salvează setările
+                    </>
+                  )}
+                </Button>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 lg:grid-cols-[2fr,1.4fr]">
         <Card>
