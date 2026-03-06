@@ -131,14 +131,8 @@ export const addonsResolvers = {
 
       const now = new Date();
 
-      // 3. Filtrare pe timp și valoare minimă coș
-      const activeRules = allRules.filter(rule => {
-        if (!isRuleActiveNow(rule, now)) return false;
-        if (rule.minCartValue != null && cartSubtotal < rule.minCartValue) {
-          return false;
-        }
-        return true;
-      });
+      // 3. Filtrare pe timp
+      const activeRules = allRules.filter(rule => isRuleActiveNow(rule, now));
 
       if (activeRules.length === 0) {
         // Fallback: add-on-uri globale dacă nu există reguli active

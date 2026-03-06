@@ -26,12 +26,11 @@ export interface AddonRuleDto {
   priority: number;
   timeStart: string | null;
   timeEnd: string | null;
-  minCartValue: number | null;
 }
 
 /**
  * GET /admin/addon-rules/full
- * Returnează toate regulile cu metadate complete (priority, time_start, time_end, min_cart_value).
+ * Returnează toate regulile cu metadate complete (priority, time_start, time_end).
  */
 export async function getAddonRulesFull(_req: Request, res: Response) {
   try {
@@ -43,7 +42,6 @@ export async function getAddonRulesFull(_req: Request, res: Response) {
       priority: r.priority,
       timeStart: r.timeStart,
       timeEnd: r.timeEnd,
-      minCartValue: r.minCartValue,
     }));
     res.json({ success: true, data });
   } catch (error) {
@@ -56,20 +54,19 @@ export async function getAddonRulesFull(_req: Request, res: Response) {
  * PUT /admin/addon-rules
  * Body: { rules?: { [categoryId]: string[] }, rulesFull?: AddonRuleInput[] }
  * - rules: format vechi, actualizează doar regulile pentru categoriile trimise.
- * - rulesFull: listă completă de reguli (cu priority, time_start, time_end, min_cart_value); înlocuiește toate regulile.
+ * - rulesFull: listă completă de reguli (cu priority, time_start, time_end); înlocuiește toate regulile.
  */
 export async function updateAddonRules(req: Request, res: Response) {
   try {
     const { rules, rulesFull } = req.body;
 
     if (rulesFull && Array.isArray(rulesFull)) {
-      const input = rulesFull.map((r: { categoryId: string; addonProductId: string; priority?: number; timeStart?: string | null; timeEnd?: string | null; minCartValue?: number | null }) => ({
+      const input = rulesFull.map((r: { categoryId: string; addonProductId: string; priority?: number; timeStart?: string | null; timeEnd?: string | null }) => ({
         categoryId: r.categoryId,
         addonProductId: r.addonProductId,
         priority: r.priority ?? 0,
         timeStart: r.timeStart ?? null,
         timeEnd: r.timeEnd ?? null,
-        minCartValue: r.minCartValue != null ? Number(r.minCartValue) : null,
       }));
       await AddonRuleModel.replaceRulesBatchFull(input);
       const full = await AddonRuleModel.findAll();
@@ -80,7 +77,6 @@ export async function updateAddonRules(req: Request, res: Response) {
         priority: r.priority,
         timeStart: r.timeStart,
         timeEnd: r.timeEnd,
-        minCartValue: r.minCartValue,
       }));
       return res.json({ success: true, data, dataFull: data });
     }

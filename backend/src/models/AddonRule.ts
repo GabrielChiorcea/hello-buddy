@@ -11,7 +11,6 @@ export interface AddonRule {
   priority: number;
   timeStart: string | null;
   timeEnd: string | null;
-  minCartValue: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,7 +22,6 @@ interface AddonRuleRow {
   priority?: number;
   time_start?: string | null;
   time_end?: string | null;
-  min_cart_value?: string | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -47,7 +45,6 @@ export async function findAll(categoryId?: string): Promise<AddonRule[]> {
     priority: r.priority ?? 0,
     timeStart: r.time_start ?? null,
     timeEnd: r.time_end ?? null,
-    minCartValue: r.min_cart_value != null ? parseFloat(r.min_cart_value) : null,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   }));
@@ -110,7 +107,6 @@ export async function findRulesForCategories(
     priority: r.priority ?? 0,
     timeStart: r.time_start ?? null,
     timeEnd: r.time_end ?? null,
-    minCartValue: r.min_cart_value != null ? parseFloat(r.min_cart_value) : null,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   }));
@@ -122,7 +118,6 @@ export interface AddonRuleInput {
   priority?: number;
   timeStart?: string | null;
   timeEnd?: string | null;
-  minCartValue?: number | null;
 }
 
 /**
@@ -135,7 +130,7 @@ export async function replaceRulesForCategory(
   await query('DELETE FROM category_addon_rules WHERE category_id = ?', [categoryId]);
   for (const pid of addonProductIds) {
     await query(
-      'INSERT INTO category_addon_rules (category_id, addon_product_id, priority, time_start, time_end, min_cart_value) VALUES (?, ?, 0, NULL, NULL, NULL)',
+      'INSERT INTO category_addon_rules (category_id, addon_product_id, priority, time_start, time_end) VALUES (?, ?, 0, NULL, NULL)',
       [categoryId, pid]
     );
   }
@@ -159,7 +154,7 @@ export async function replaceRulesBatch(
   for (const [categoryId, productIds] of Object.entries(mapping)) {
     for (const pid of productIds) {
       await query(
-        'INSERT INTO category_addon_rules (category_id, addon_product_id, priority, time_start, time_end, min_cart_value) VALUES (?, ?, 0, NULL, NULL, NULL)',
+        'INSERT INTO category_addon_rules (category_id, addon_product_id, priority, time_start, time_end) VALUES (?, ?, 0, NULL, NULL)',
         [categoryId, pid]
       );
     }
@@ -167,21 +162,20 @@ export async function replaceRulesBatch(
 }
 
 /**
- * Înlocuiește toate regulile cu lista completă (inclusiv priority, time_start, time_end, min_cart_value).
+ * Înlocuiește toate regulile cu lista completă (inclusiv priority, time_start, time_end).
  */
 export async function replaceRulesBatchFull(rules: AddonRuleInput[]): Promise<void> {
   await query('DELETE FROM category_addon_rules', []);
   for (const r of rules) {
     await query(
-      `INSERT INTO category_addon_rules (category_id, addon_product_id, priority, time_start, time_end, min_cart_value)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO category_addon_rules (category_id, addon_product_id, priority, time_start, time_end)
+       VALUES (?, ?, ?, ?, ?)`,
       [
         r.categoryId,
         r.addonProductId,
         r.priority ?? 0,
         r.timeStart ?? null,
         r.timeEnd ?? null,
-        r.minCartValue ?? null,
       ]
     );
   }

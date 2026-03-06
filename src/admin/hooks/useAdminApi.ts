@@ -421,7 +421,6 @@ export const useAdminApi = () => {
           priority: number;
           timeStart: string | null;
           timeEnd: string | null;
-          minCartValue: number | null;
         }>;
       }>('/admin/addon-rules/full'),
     [fetchWithAuth]
@@ -443,7 +442,6 @@ export const useAdminApi = () => {
       priority?: number;
       timeStart?: string | null;
       timeEnd?: string | null;
-      minCartValue?: number | null;
     }>) =>
       fetchWithAuth<{ success: boolean; dataFull?: unknown[] }>('/admin/addon-rules', {
         method: 'PUT',

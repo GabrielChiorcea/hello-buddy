@@ -3,7 +3,7 @@
  * PAGINA ADMIN – Add-ons (Basic + Avansat)
  * =============================================================================
  * Tab Basic: afișează produsele marcate isAddon (lista globală).
- * Tab Avansat: reguli „rețete” – trigger categorii, produse sugerate, interval orar, valoare minimă coș, prioritate (drag/ordine).
+ * Tab Avansat: reguli „rețete” – trigger categorii, produse sugerate, interval orar, prioritate (drag/ordine).
  */
 
 import { useEffect, useState, useCallback } from 'react';
@@ -131,7 +131,6 @@ interface AdvancedRuleRow {
   priority: number;
   timeStart: string | null;
   timeEnd: string | null;
-  minCartValue: number | null;
 }
 
 // ─── Advanced Tab (Rule Builder) ───────────────────────────────────────────
@@ -178,7 +177,6 @@ function AdvancedTab({
         priority: prev.length,
         timeStart: null,
         timeEnd: null,
-        minCartValue: null,
       },
     ]);
     setHasChanges(true);
@@ -245,7 +243,7 @@ function AdvancedTab({
         <CardHeader>
           <CardTitle className="text-base">Rețete add-on</CardTitle>
           <CardDescription className="text-xs">
-            Trigger: dacă coșul conține produse din categoria X, condiții opționale (interval orar, valoare minimă coș),
+            Trigger: dacă coșul conține produse din categoria X, condiții opționale (interval orar),
             acțiune: sugerează produsul ales. Ordinea determină prioritatea (primul = cel mai important).
           </CardDescription>
         </CardHeader>
@@ -333,23 +331,6 @@ function AdvancedTab({
                     onChange={(e) => updateRow(index, { timeEnd: e.target.value || null })}
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Valoare min. coș (RON)</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    step={0.01}
-                    className="h-9"
-                    placeholder="—"
-                    value={row.minCartValue ?? ''}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      updateRow(index, {
-                        minCartValue: v === '' ? null : parseFloat(v) || null,
-                      });
-                    }}
-                  />
-                </div>
               </div>
 
               <Button
@@ -378,7 +359,7 @@ function AdvancedTab({
             <span>
               <strong>Fallback:</strong> Dacă o categorie din coș nu are reguli aici, se afișează add-on-urile globale.
               Pentru a dezactiva sugestiile pentru o categorie, nu adăuga nici o regulă cu acea categorie trigger (sau șterge regulile existente).
-              Interval orar și valoare minimă coș sunt opționale; lăsate goale, regula se aplică mereu.
+              Interval orar este opțional; lăsat gol, regula se aplică mereu.
             </span>
           </p>
         </CardContent>
@@ -433,7 +414,6 @@ export default function AdminAddonRules() {
             priority: r.priority ?? 0,
             timeStart: r.timeStart ?? null,
             timeEnd: r.timeEnd ?? null,
-            minCartValue: r.minCartValue != null ? r.minCartValue : null,
           }));
         setRulesFull(sorted);
       } catch (error) {
@@ -456,7 +436,6 @@ export default function AdminAddonRules() {
         priority: rulesFull.length - 1 - index,
         timeStart: row.timeStart ?? null,
         timeEnd: row.timeEnd ?? null,
-        minCartValue: row.minCartValue ?? null,
       }));
       const result = await updateAddonRulesFull(payload);
       const dataFull = (result as any)?.dataFull;
@@ -470,7 +449,6 @@ export default function AdminAddonRules() {
             priority: r.priority ?? 0,
             timeStart: r.timeStart ?? null,
             timeEnd: r.timeEnd ?? null,
-            minCartValue: r.minCartValue != null ? r.minCartValue : null,
           }));
         setRulesFull(sorted);
       }
