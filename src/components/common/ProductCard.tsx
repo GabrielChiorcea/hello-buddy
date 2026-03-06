@@ -62,8 +62,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLi
   const cardContent = (
     <div
       className={cn(
-        // Mobile: horizontal row
-        'flex flex-row items-stretch gap-0 rounded-xl border border-border bg-card overflow-hidden transition-all hover:shadow-md group',
+        // Mobile: horizontal row with fixed height
+        'flex flex-row rounded-xl border border-border bg-card overflow-hidden transition-all hover:shadow-md group',
         // Desktop: vertical card
         'md:flex-col',
         !product.isAvailable && 'opacity-60',
@@ -72,10 +72,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLi
     >
       {/* Image */}
       <div className={cn(
-        // Mobile: small square on left
-        'relative w-28 shrink-0 overflow-hidden',
+        // Mobile: fixed square image
+        'relative w-24 h-24 shrink-0 overflow-hidden',
         // Desktop: full width, aspect ratio
-        'md:w-full md:aspect-[4/3]',
+        'md:w-full md:h-auto md:aspect-[4/3]',
       )}>
         <img
           src={getImageUrl(product.image)}
@@ -97,64 +97,67 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLi
         </Badge>
       </div>
 
-      {/* Info */}
+      {/* Info – Mobile layout */}
       <div className={cn(
-        'flex flex-1 min-w-0 p-3 gap-2',
-        // Mobile: row layout with info left, action right
-        'flex-row items-center justify-between',
-        // Desktop: column layout
-        'md:flex-col md:items-stretch md:p-4',
+        'flex flex-1 min-w-0 p-3 flex-col justify-between',
+        'md:p-4',
       )}>
-        {/* Text block */}
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-foreground text-sm md:text-base truncate md:line-clamp-1">
+        {/* Row 1: Title + Price */}
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-semibold text-foreground text-sm md:text-base truncate md:line-clamp-1 flex-1 min-w-0">
             {product.name}
           </h3>
-          {/* Mobile: category inline, Desktop: description */}
-          <p className="text-xs text-muted-foreground mt-0.5 md:hidden">
-            {categoryNames[product.category] ?? product.category}
-            {product.preparationTime && ` · ${product.preparationTime} min`}
-          </p>
-          <p className="text-sm text-muted-foreground mt-1 line-clamp-2 hidden md:block">
-            {product.description}
-          </p>
-          {/* Desktop prep time */}
-          {product.preparationTime && (
-            <div className="items-center gap-1 text-xs text-muted-foreground mt-2 hidden md:flex">
-              <Clock className="h-3 w-3" />
-              <span>{product.preparationTime} min</span>
-            </div>
-          )}
+          <span className="text-sm md:text-lg font-bold text-primary whitespace-nowrap shrink-0">
+            {product.price} {texts.common.currency}
+          </span>
         </div>
 
-        {/* Price + action */}
-        <div className={cn(
-          'flex items-center gap-2 shrink-0',
-          'md:flex-row md:justify-between md:mt-3',
-        )}>
-          <div className="flex flex-col items-end md:items-start">
-            <span className="text-sm md:text-lg font-bold text-primary whitespace-nowrap">
-              {product.price} {texts.common.currency}
-            </span>
-            {pointsInfo && (
-              <span className="text-[10px] text-muted-foreground hidden md:block">
-                {pointsInfo}
-              </span>
-            )}
+        {/* Row 2: Description / category */}
+        <p className="text-xs text-muted-foreground mt-0.5 md:hidden line-clamp-1">
+          {categoryNames[product.category] ?? product.category}
+          {product.preparationTime && ` · ${product.preparationTime} min`}
+        </p>
+        <p className="text-sm text-muted-foreground mt-1 line-clamp-2 hidden md:block">
+          {product.description}
+        </p>
+        {/* Desktop prep time */}
+        {product.preparationTime && (
+          <div className="items-center gap-1 text-xs text-muted-foreground mt-2 hidden md:flex">
+            <Clock className="h-3 w-3" />
+            <span>{product.preparationTime} min</span>
           </div>
+        )}
 
-          {/* Mobile: compact round button; Desktop: full button */}
+        {/* Row 3: Add to cart button */}
+        <div className="flex items-center justify-between mt-1.5 md:mt-3">
+          {pointsInfo && (
+            <span className="text-[10px] text-muted-foreground">
+              {pointsInfo}
+            </span>
+          )}
+          {/* Mobile: full-width cart button with icon */}
           <Button
-            size="icon"
+            size="sm"
             onClick={handleAddToCart}
             disabled={!product.isAvailable || isAdded}
             className={cn(
-              'h-8 w-8 rounded-full shrink-0 md:hidden transition-all',
+              'ml-auto md:hidden h-9 px-3 rounded-lg transition-all text-xs',
               isAdded && 'bg-success hover:bg-success',
             )}
           >
-            {isAdded ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+            {isAdded ? (
+              <>
+                <Check className="mr-1 h-3.5 w-3.5" />
+                {texts.catalog.added}
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="mr-1 h-3.5 w-3.5" />
+                {texts.catalog.addToCart}
+              </>
+            )}
           </Button>
+          {/* Desktop button */}
           <Button
             size="sm"
             onClick={handleAddToCart}
