@@ -72,11 +72,7 @@ export async function createCampaign(req: Request, res: Response): Promise<void>
       return;
     }
 
-    // Validate recurrence
-    if (body.recurrenceType === 'calendar_weekly' && body.ordersRequired > 7) {
-      res.status(400).json({ error: 'Pentru "săptămânal calendaristic", maximum este 7 zile.' });
-      return;
-    }
+
 
     const campaign = await CampaignsRepo.createCampaign({
       name: body.name,
