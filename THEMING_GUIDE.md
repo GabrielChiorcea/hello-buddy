@@ -5,12 +5,26 @@ Pentru a re-branda aplicația, trebuie să modifici **un singur fișier**: `src/
 
 ---
 
-## Pași rapizi (5 minute)
+## Metoda 1 — Schimbare rapidă cu preseturi (30 secunde)
 
-### 1. Deschide `src/index.css`
+### Deschide `src/config/themes/index.ts`
 
-Găsește secțiunea `:root { ... }` — aici sunt toate culorile pentru tema light.
-Secțiunea `.dark { ... }` conține variantele dark mode.
+Schimbă o singură linie:
+
+```ts
+// Teme disponibile: 'orange' | 'blue' | 'green' | 'purple'
+export const DEFAULT_THEME: ThemeName = 'blue';  // ← schimbă aici
+```
+
+Gata! Toată aplicația se re-colorează automat.
+
+---
+
+## Metoda 2 — Personalizare avansată
+
+### 1. Editează un fișier de temă (ex: `src/config/themes/orange.ts`)
+
+Sau creează unul nou copiind un preset existent.
 
 ### 2. Schimbă culorile principale
 
@@ -91,9 +105,13 @@ const gold = ['#f59e0b', '#fbbf24', '#d97706', '#fcd34d', '#ffffff'];
 
 | Fișier | Ce conține |
 |--------|-----------|
-| `src/index.css` | **Toate tokenurile de culoare** — singurul fișier de modificat |
+| `src/config/themes/index.ts` | **Selectorul de temă** — schimbă `DEFAULT_THEME` |
+| `src/config/themes/orange.ts` | Preset portocaliu (default) |
+| `src/config/themes/blue.ts` | Preset albastru |
+| `src/config/themes/green.ts` | Preset verde |
+| `src/config/themes/purple.ts` | Preset violet |
+| `src/index.css` | Valorile fallback + animații |
 | `tailwind.config.ts` | Maparea tokens → clase Tailwind (nu trebuie modificat) |
-| `src/config/colors.ts` | Export JS al culorilor (nu trebuie modificat) |
 | `src/config/texts.ts` | Toate textele UI — pentru traducere/rebranding |
 
 ---
