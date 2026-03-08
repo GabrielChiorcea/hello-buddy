@@ -180,13 +180,30 @@ export async function findByUserId(userId: string): Promise<Order[]> {
     [userId]
   );
   
-  const orders: Order[] = [];
-  for (const row of rows) {
-    const items = await getOrderItems(row.id);
-    orders.push(mapRowToOrder(row, items));
+  if (rows.length === 0) return [];
+
+  // Batch: încarcă toate order_items într-o singură interogare
+  const orderIds = rows.map(r => r.id);
+  const placeholders = orderIds.map(() => '?').join(',');
+  const allItems = await query<OrderItemRow[]>(
+    `SELECT * FROM order_items WHERE order_id IN (${placeholders})`,
+    orderIds
+  );
+
+  const itemsMap = new Map<string, OrderItem[]>();
+  for (const r of allItems) {
+    if (!itemsMap.has(r.order_id)) itemsMap.set(r.order_id, []);
+    itemsMap.get(r.order_id)!.push({
+      id: r.id,
+      productId: r.product_id,
+      productName: r.product_name,
+      productImage: r.product_image,
+      quantity: r.quantity,
+      priceAtOrder: parseFloat(r.price_at_order),
+    });
   }
-  
-  return orders;
+
+  return rows.map(row => mapRowToOrder(row, itemsMap.get(row.id) || []));
 }
 
 /**
@@ -235,11 +252,30 @@ export async function findAll(options: {
     [...params, limit, (page - 1) * limit]
   );
   
-  const orders: Order[] = [];
-  for (const row of rows) {
-    const items = await getOrderItems(row.id);
-    orders.push(mapRowToOrder(row, items));
+  if (rows.length === 0) return { orders: [], total };
+
+  // Batch: încarcă toate order_items într-o singură interogare
+  const orderIds = rows.map(r => r.id);
+  const ph = orderIds.map(() => '?').join(',');
+  const allItems = await query<OrderItemRow[]>(
+    `SELECT * FROM order_items WHERE order_id IN (${ph})`,
+    orderIds
+  );
+
+  const itemsMap = new Map<string, OrderItem[]>();
+  for (const r of allItems) {
+    if (!itemsMap.has(r.order_id)) itemsMap.set(r.order_id, []);
+    itemsMap.get(r.order_id)!.push({
+      id: r.id,
+      productId: r.product_id,
+      productName: r.product_name,
+      productImage: r.product_image,
+      quantity: r.quantity,
+      priceAtOrder: parseFloat(r.price_at_order),
+    });
   }
+
+  const orders = rows.map(row => mapRowToOrder(row, itemsMap.get(row.id) || []));
   
   return { orders, total };
 }

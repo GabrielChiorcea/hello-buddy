@@ -14,8 +14,8 @@ export const pool = mysql.createPool({
   password: env.DB_PASSWORD,
   database: env.DB_NAME,
   waitForConnections: true,
-  connectionLimit: 10,
-  maxIdle: 10,
+  connectionLimit: 25,
+  maxIdle: 15,
   idleTimeout: 30000, // 30s - sub wait_timeout MariaDB (default 28800)
   queueLimit: 0,
   enableKeepAlive: true,
