@@ -299,15 +299,17 @@ export async function findAll(options: {
  * Găsește produse după categorie
  */
 export async function findByCategory(categoryName: string): Promise<Product[]> {
-  const { products } = await findAll({ isAvailable: true });
-  // Filtrăm după numele categoriei
   const category = await queryOne<{ id: string }>(
     'SELECT id FROM categories WHERE name = ?',
     [categoryName]
   );
-  if (!category) return products;
+  if (!category) return [];
   
-  return products.filter(p => p.categoryId === category.id);
+  const { products } = await findAll({
+    categoryId: category.id,
+    isAvailable: true,
+  });
+  return products;
 }
 
 /**
