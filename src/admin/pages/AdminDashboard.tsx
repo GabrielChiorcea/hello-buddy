@@ -39,14 +39,16 @@ import { ro } from 'date-fns/locale';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
-const statusLabels: Record<keyof OrdersByStatus, { label: string; color: string }> = {
-  pending: { label: 'În așteptare', color: 'bg-status-pending' },
-  confirmed: { label: 'Confirmate', color: 'bg-status-confirmed' },
-  preparing: { label: 'În preparare', color: 'bg-status-preparing' },
-  delivering: { label: 'În livrare', color: 'bg-status-delivering' },
-  delivered: { label: 'Livrate', color: 'bg-status-delivered' },
-  cancelled: { label: 'Anulate', color: 'bg-destructive' },
+const statusConfig: Record<string, { label: string; color: string; bg: string; dot: string }> = {
+  pending: { label: 'În așteptare', color: 'bg-status-pending', bg: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500' },
+  confirmed: { label: 'Confirmată', color: 'bg-status-confirmed', bg: 'bg-blue-50 text-blue-700 border-blue-200', dot: 'bg-blue-500' },
+  preparing: { label: 'Se prepară', color: 'bg-status-preparing', bg: 'bg-violet-50 text-violet-700 border-violet-200', dot: 'bg-violet-500' },
+  delivering: { label: 'În livrare', color: 'bg-status-delivering', bg: 'bg-cyan-50 text-cyan-700 border-cyan-200', dot: 'bg-cyan-500' },
+  delivered: { label: 'Livrată', color: 'bg-status-delivered', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
+  cancelled: { label: 'Anulată', color: 'bg-destructive', bg: 'bg-red-50 text-red-700 border-red-200', dot: 'bg-red-500' },
 };
+
+const statusLabels = statusConfig;
 
 const EMPTY_DASHBOARD_DATA: DashboardData = {
   stats: {
