@@ -163,8 +163,8 @@ export async function createCampaign(data: {
       id, name, streak_type, rolling_window_days, orders_required, bonus_points,
       reward_type, base_multiplier, multiplier_increment,
       custom_text, start_date, end_date,
-      reset_type, min_order_value, cooldown_hours
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      reset_type, min_order_value
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       id,
       data.name,
