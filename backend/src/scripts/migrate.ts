@@ -74,9 +74,10 @@ async function runMigrations() {
       const statements = parseSqlStatements(sql);
 
       for (const statement of statements) {
-        if (statement.trim()) {
-          await connection.query(statement);
-        }
+        const s = statement.trim();
+        if (!s) continue;
+        if (s.toUpperCase().startsWith("DELIMITER ")) continue;
+        await connection.query(statement);
       }
 
       console.log(`   ✅ Completat\n`);
