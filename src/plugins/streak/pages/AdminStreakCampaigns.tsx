@@ -33,7 +33,6 @@ import type { StreakCampaign, RecurrenceType, RewardType, ResetType, RewardStep 
 
 const RECURRENCE_LABELS: Record<RecurrenceType, string> = {
   consecutive: 'Zile consecutive (Streak clasic)',
-  calendar_weekly: 'Săptămânal calendaristic (Luni-Duminică)',
   rolling: 'Fereastră mobilă (Rolling)',
 };
 
@@ -199,10 +198,8 @@ export default function AdminStreakCampaigns() {
       toast({ title: 'Eroare', description: 'Numărul de zile trebuie să fie >= 1', variant: 'destructive' });
       return;
     }
-    if (formData.recurrenceType === 'calendar_weekly' && formData.ordersRequired > 7) {
-      toast({ title: 'Eroare', description: 'Pentru "săptămânal", maximum este 7', variant: 'destructive' });
-      return;
-    }
+
+
     if (formData.startDate > formData.endDate) {
       toast({ title: 'Eroare', description: 'Data de start trebuie să fie înainte de data de sfârșit', variant: 'destructive' });
       return;
@@ -471,7 +468,7 @@ export default function AdminStreakCampaigns() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {(['consecutive', 'calendar_weekly', 'rolling'] as const).map((t) => (
+                    {(['consecutive', 'rolling'] as const).map((t) => (
                       <SelectItem key={t} value={t}>
                         {RECURRENCE_LABELS[t]}
                       </SelectItem>

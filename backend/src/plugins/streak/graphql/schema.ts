@@ -5,7 +5,6 @@
 
 export const streakSchemaExtension = `#graphql
   enum RecurrenceType {
-    calendar_weekly
     rolling
     consecutive
   }

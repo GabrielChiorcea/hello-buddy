@@ -54,17 +54,8 @@ export async function getEnrollmentByUserAndActive(userId: string) {
 
 /* ─── Date helpers ─────────────────────────────────────────── */
 
-function getISOWeekRange(dateStr: string): [string, string] {
-  const d = new Date(dateStr + 'T12:00:00Z');
-  const day = d.getUTCDay();
-  const daysFromMonday = day === 0 ? 6 : day - 1;
-  const monday = new Date(d);
-  monday.setUTCDate(d.getUTCDate() - daysFromMonday);
-  const sunday = new Date(monday);
-  sunday.setUTCDate(monday.getUTCDate() + 6);
-  const fmt = (x: Date) => x.toISOString().slice(0, 10);
-  return [fmt(monday), fmt(sunday)];
-}
+
+
 
 function getRollingRange(dateStr: string, windowDays: number): [string, string] {
   const d = new Date(dateStr + 'T12:00:00Z');
@@ -185,10 +176,8 @@ export async function recordOrderDelivered(
       if (campaign.recurrenceType === 'consecutive') {
         const allDates = await StreakLogsRepo.getOrderDatesForEnrollment(enrollment.id);
         currentCount = consecutiveRunLength(allDates, orderDateStr);
-      } else if (campaign.recurrenceType === 'calendar_weekly') {
-        const [weekStart, weekEnd] = getISOWeekRange(orderDateStr);
-        const weekDates = await StreakLogsRepo.getOrderDatesInRange(enrollment.id, weekStart, weekEnd);
-        currentCount = weekDates.length;
+
+
       } else if (campaign.recurrenceType === 'rolling') {
         const [rangeStart, rangeEnd] = getRollingRange(orderDateStr, campaign.rollingWindowDays);
         const rangeDates = await StreakLogsRepo.getOrderDatesInRange(enrollment.id, rangeStart, rangeEnd);

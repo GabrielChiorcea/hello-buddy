@@ -17,7 +17,6 @@ import { motion } from 'framer-motion';
 
 const RECURRENCE_LABELS: Record<string, string> = {
   consecutive: 'Zile consecutive',
-  calendar_weekly: 'Săptămânal',
   rolling: 'Fereastră mobilă',
 };
 
@@ -26,9 +25,8 @@ function buildRuleDescription(campaign: StreakCampaign): string {
   if (recurrenceType === 'consecutive') {
     return `Comandă ${ordersRequired} zile la rând pentru a completa streak-ul.`;
   }
-  if (recurrenceType === 'calendar_weekly') {
-    return `Plasează ${ordersRequired} comenzi într-o săptămână (Luni–Duminică).`;
-  }
+
+
   if (recurrenceType === 'rolling') {
     return `Plasează ${ordersRequired} comenzi în orice fereastră de ${rollingWindowDays} zile.`;
   }
