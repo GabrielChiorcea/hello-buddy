@@ -56,8 +56,23 @@ export async function getCampaign(req: Request, res: Response): Promise<void> {
 export async function createCampaign(req: Request, res: Response): Promise<void> {
   try {
     const body = req.body;
+    const today = new Date().toISOString().slice(0, 10);
 
-    // Validate
+    // Validate dates
+    if (!body.startDate || !body.endDate) {
+      res.status(400).json({ error: 'Datele de start și sfârșit sunt obligatorii.' });
+      return;
+    }
+    if (body.startDate < today) {
+      res.status(400).json({ error: 'Data de start nu poate fi în trecut.' });
+      return;
+    }
+    if (body.endDate < body.startDate) {
+      res.status(400).json({ error: 'Data de sfârșit trebuie să fie după data de start.' });
+      return;
+    }
+
+    // Validate recurrence
     if (body.recurrenceType === 'calendar_weekly' && body.ordersRequired > 7) {
       res.status(400).json({ error: 'Pentru "săptămânal calendaristic", maximum este 7 zile.' });
       return;
