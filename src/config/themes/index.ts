@@ -9,9 +9,9 @@
  */
 
 import orange from './orange';
-import tomato from './blue';
-import freshGreen from './green';
-import mustard from './purple';
+import tomato from './tomato';
+import freshGreen from './freshGreen';
+import mustard from './mustard';
 import type { ThemePreset } from './types';
 
 export type ThemeName = 'orange' | 'tomato' | 'freshGreen' | 'mustard';
@@ -19,7 +19,7 @@ export type ThemeName = 'orange' | 'tomato' | 'freshGreen' | 'mustard';
 // ╔═══════════════════════════════════════════╗
 // ║  👇 SCHIMBĂ TEMA AICI (change theme here) ║
 // ╚═══════════════════════════════════════════╝
-export const DEFAULT_THEME: ThemeName = 'orange';
+export const DEFAULT_THEME: ThemeName = 'mustard';
 
 export const themes: Record<ThemeName, ThemePreset> = {
   orange,
