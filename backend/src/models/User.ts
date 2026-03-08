@@ -34,7 +34,7 @@ export interface User {
 interface UserRow {
   id: string;
   email: string;
-  password_hash: string;
+  password_hash?: string; // only present in verifyCredentials
   name: string;
   phone: string | null;
   is_blocked: boolean;
@@ -45,6 +45,9 @@ interface UserRow {
   created_at: Date;
   updated_at: Date;
 }
+
+/** Coloane standard selectate din users (fără password_hash) */
+const USER_COLUMNS = `id, email, name, phone, is_blocked, points_balance, welcome_bonus_seen, total_xp, tier_id, created_at, updated_at`;
 
 export interface CreateUserInput {
   email: string;
