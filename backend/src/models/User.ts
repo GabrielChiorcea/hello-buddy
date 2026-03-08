@@ -265,7 +265,7 @@ export async function findAll(
   search?: string
 ): Promise<{ users: User[]; total: number }> {
   let countQuery = 'SELECT COUNT(*) as total FROM users';
-  let selectQuery = 'SELECT * FROM users';
+  let selectQuery = `SELECT ${USER_COLUMNS} FROM users`;
   const params: unknown[] = [];
   
   if (search) {
