@@ -17,7 +17,6 @@ import { motion } from 'framer-motion';
 
 const RECURRENCE_LABELS: Record<string, string> = {
   consecutive: 'Zile consecutive',
-  calendar_weekly: 'Săptămânal',
   rolling: 'Fereastră mobilă',
 };
 
