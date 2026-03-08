@@ -33,7 +33,6 @@ import type { StreakCampaign, RecurrenceType, RewardType, ResetType, RewardStep 
 
 const RECURRENCE_LABELS: Record<RecurrenceType, string> = {
   consecutive: 'Zile consecutive (Streak clasic)',
-  calendar_weekly: 'Săptămânal calendaristic (Luni-Duminică)',
   rolling: 'Fereastră mobilă (Rolling)',
 };
 
