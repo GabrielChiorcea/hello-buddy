@@ -93,6 +93,18 @@ export async function updateCampaign(req: Request, res: Response): Promise<void>
       return;
     }
     const body = req.body;
+    // Validate ordersRequired vs streak type if being changed
+    const streakType = body.streakType ?? campaign.streakType;
+    const ordersRequired = body.ordersRequired ?? campaign.ordersRequired;
+    if (streakType === 'days_per_week' && ordersRequired > 7) {
+      res.status(400).json({ error: 'Pentru "zile pe săptămână", maximum este 7 zile.' });
+      return;
+    }
+    if (streakType === 'working_days' && ordersRequired > 5) {
+      res.status(400).json({ error: 'Pentru "zile lucrătoare", maximum este 5 zile.' });
+      return;
+    }
+
     const updates: Parameters<typeof CampaignsRepo.updateCampaign>[1] = {};
     if (body.name !== undefined) updates.name = body.name;
     if (body.streakType !== undefined) updates.streakType = body.streakType;

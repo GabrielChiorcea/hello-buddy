@@ -281,6 +281,8 @@ export default function AdminStreakCampaigns() {
                       variant="outline"
                       size="sm"
                       onClick={() => setDeleteConfirm(c)}
+                      disabled={isCampaignActive(c)}
+                      title={isCampaignActive(c) ? 'Campania activă nu poate fi ștearsă' : 'Șterge'}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
