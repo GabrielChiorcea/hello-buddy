@@ -117,7 +117,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLi
         </p>
 
         {/* Desktop description */}
-        <p className="text-[13px] text-muted-foreground/80 line-clamp-2 hidden md:block mt-1.5 leading-relaxed min-h-[2.6em]">
+        <p className="text-[13px] text-muted-foreground/80 line-clamp-1 hidden md:block mt-1.5 leading-relaxed">
           {product.description}
         </p>
 
