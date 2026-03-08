@@ -9,6 +9,7 @@ import { useLocation } from 'react-router-dom';
 import { NavLink } from '@/components/NavLink';
 import {
   LayoutDashboard,
+  BarChart3,
   Package,
   FolderOpen,
   ShoppingCart,
