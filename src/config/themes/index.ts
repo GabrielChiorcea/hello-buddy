@@ -19,7 +19,7 @@ export type ThemeName = 'orange' | 'tomato' | 'freshGreen' | 'mustard';
 // ╔═══════════════════════════════════════════╗
 // ║  👇 SCHIMBĂ TEMA AICI (change theme here) ║
 // ╚═══════════════════════════════════════════╝
-export const DEFAULT_THEME: ThemeName = 'mustard';
+export const DEFAULT_THEME: ThemeName = 'orange';
 
 export const themes: Record<ThemeName, ThemePreset> = {
   orange,
