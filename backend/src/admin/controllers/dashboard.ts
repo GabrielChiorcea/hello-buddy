@@ -135,13 +135,10 @@ export async function getDashboard(req: Request, res: Response): Promise<void> {
         customer: {
           id: o.user_id,
           name: o.customer_name,
-          email: o.customer_email,
         },
         total: parseFloat(o.total),
         status: o.status,
         paymentMethod: o.payment_method,
-        deliveryAddress: o.delivery_address,
-        deliveryCity: o.delivery_city,
         createdAt: o.created_at,
       })),
       topProducts: topProducts.map(p => ({

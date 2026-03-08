@@ -193,7 +193,7 @@ export async function toggleBlockUser(req: Request, res: Response): Promise<void
       return;
     }
     
-    res.json(user);
+    res.json(sanitizeUserForAdmin(user));
   } catch (error) {
     logError('blocare utilizator', error);
     res.status(500).json({ error: 'Eroare internă server' });
