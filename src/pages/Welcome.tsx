@@ -1,9 +1,18 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Download, ChevronRight, UtensilsCrossed } from "lucide-react";
+import { Download, ChevronRight, UtensilsCrossed, Share2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { texts } from "@/config/texts";
 import { motion } from "framer-motion";
+import { isIOS, isAndroid, isStandalone } from "@/utils/device";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -14,6 +23,9 @@ const Welcome = () => {
   const navigate = useNavigate();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [iosSheetOpen, setIosSheetOpen] = useState(false);
+  const [showIosHint, setShowIosHint] = useState(false);
+  const [showAndroidChromeHint, setShowAndroidChromeHint] = useState(false);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -22,13 +34,18 @@ const Welcome = () => {
     };
     window.addEventListener("beforeinstallprompt", handler);
 
-    // Check if already installed
-    if (window.matchMedia("(display-mode: standalone)").matches) {
+    if (isStandalone()) {
       setIsInstalled(true);
     }
 
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
+
+  useEffect(() => {
+    if (!showIosHint) return;
+    const t = setTimeout(() => setShowIosHint(false), 8000);
+    return () => clearTimeout(t);
+  }, [showIosHint]);
 
   const handleInstall = async () => {
     if (!deferredPrompt) return;
@@ -38,6 +55,20 @@ const Welcome = () => {
       setIsInstalled(true);
     }
     setDeferredPrompt(null);
+  };
+
+  const handleIosInstall = () => {
+    setIosSheetOpen(true);
+  };
+
+  const handleTakeMeThere = () => {
+    setIosSheetOpen(false);
+    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" });
+    setShowIosHint(true);
+  };
+
+  const handleAndroidNoPrompt = () => {
+    setShowAndroidChromeHint(true);
   };
 
   return (
@@ -81,7 +112,7 @@ const Welcome = () => {
           transition={{ delay: 0.5 }}
           className="flex flex-col gap-3 w-full mt-4"
         >
-          {/* Install button - only shows if prompt is available and not installed */}
+          {/* Install button: Android with prompt = direct install; iOS = sheet + "Du-mă acolo"; Android without prompt = show Chrome hint */}
           {!isInstalled && deferredPrompt && (
             <Button
               onClick={handleInstall}
@@ -90,18 +121,74 @@ const Welcome = () => {
               className="w-full bg-primary-foreground/15 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/25 hover:text-primary-foreground backdrop-blur-sm h-14 text-base gap-2"
             >
               <Download className="w-5 h-5" />
-              Instalează aplicația
+              {texts.pwa.installButton}
             </Button>
           )}
+          {!isInstalled && !deferredPrompt && isIOS() && (
+            <Button
+              onClick={handleIosInstall}
+              variant="outline"
+              size="lg"
+              className="w-full bg-primary-foreground/15 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/25 hover:text-primary-foreground backdrop-blur-sm h-14 text-base gap-2"
+            >
+              <Download className="w-5 h-5" />
+              {texts.pwa.installButtonIos}
+            </Button>
+          )}
+          {!isInstalled && !deferredPrompt && isAndroid() && (
+            <>
+              <Button
+                onClick={handleAndroidNoPrompt}
+                variant="outline"
+                size="lg"
+                className="w-full bg-primary-foreground/15 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/25 hover:text-primary-foreground backdrop-blur-sm h-14 text-base gap-2"
+              >
+                <Download className="w-5 h-5" />
+                {texts.pwa.installButton}
+              </Button>
+              {showAndroidChromeHint && (
+                <p className="text-primary-foreground/70 text-sm text-center">
+                  {texts.pwa.androidChromeHint}
+                </p>
+              )}
+            </>
+          )}
 
-          {/* iOS install hint */}
-          {!isInstalled && !deferredPrompt && /iPhone|iPad/.test(navigator.userAgent) && (
-            <p className="text-primary-foreground/60 text-sm">
-              Pentru a instala, apasă{" "}
-              <span className="inline-block">
-                ⎙ Share → „Add to Home Screen"
-              </span>
-            </p>
+          {/* iOS install sheet: steps + "Du-mă acolo" */}
+          <Sheet open={iosSheetOpen} onOpenChange={setIosSheetOpen}>
+            <SheetContent side="bottom" className="rounded-t-2xl">
+              <SheetHeader>
+                <SheetTitle>{texts.pwa.iosSheetTitle}</SheetTitle>
+                <SheetDescription className="text-left space-y-3 pt-2">
+                  <p>1. {texts.pwa.iosStep1}</p>
+                  <p>2. {texts.pwa.iosStep2}</p>
+                  <p>3. {texts.pwa.iosStep3}</p>
+                </SheetDescription>
+              </SheetHeader>
+              <SheetFooter className="flex-col gap-2 pt-4">
+                <Button onClick={handleTakeMeThere} className="w-full gap-2">
+                  <Share2 className="w-4 h-4" />
+                  {texts.pwa.takeMeThere}
+                </Button>
+                <Button variant="ghost" onClick={() => setIosSheetOpen(false)} className="w-full">
+                  {texts.pwa.gotIt}
+                </Button>
+              </SheetFooter>
+            </SheetContent>
+          </Sheet>
+
+          {/* iOS hint at bottom after "Du-mă acolo" */}
+          {showIosHint && (
+            <button
+              type="button"
+              onClick={() => setShowIosHint(false)}
+              className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center gap-2 bg-primary-foreground/95 text-primary py-4 px-4 shadow-lg safe-area-bottom"
+              aria-label="Închide"
+            >
+              <Share2 className="w-5 h-5 shrink-0" />
+              <span className="text-sm font-medium">{texts.pwa.hintMessage}</span>
+              <ChevronDown className="w-5 h-5 shrink-0 opacity-70" />
+            </button>
           )}
 
           {/* Enter shop */}
