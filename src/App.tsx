@@ -76,6 +76,7 @@ import { AdminPoints } from "./plugins/points";
 import { AdminStreakCampaigns } from "./plugins/streak";
 import { AdminTiers } from "./plugins/tiers";
 import AdminSettings from "./admin/pages/AdminSettings";
+import AdminAnalytics from "./admin/pages/AdminAnalytics";
 import AdminAddonRules from "./admin/pages/AdminAddonRules";
 
 // ============================================================================
