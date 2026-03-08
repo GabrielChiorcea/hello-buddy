@@ -17,30 +17,33 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { Bell } from 'lucide-react';
+import { Bell, Sun, Moon } from 'lucide-react';
+import { useAdminDarkModeCtx } from './AdminLayout';
 
 const routeTitles: Record<string, string> = {
   '/admin': 'Dashboard',
+  '/admin/analytics': 'Analitice',
   '/admin/products': 'Produse',
   '/admin/categories': 'Categorii',
   '/admin/orders': 'Comenzi',
   '/admin/users': 'Utilizatori',
   '/admin/points': 'Puncte',
+  '/admin/streak': 'Streak',
+  '/admin/tiers': 'Niveluri',
   '/admin/settings': 'Setări',
+  '/admin/addon-rules': 'Reguli Add-on',
 };
 
 export function AdminHeader() {
   const location = useLocation();
   const newOrdersCount = useAppSelector((state) => state.admin.newOrdersCount);
+  const { isDark, toggle } = useAdminDarkModeCtx();
   const currentPath = location.pathname;
-  
-  // Determină titlul paginii curente
+
   const getPageTitle = () => {
-    // Verificăm mai întâi căile exacte
     if (routeTitles[currentPath]) {
       return routeTitles[currentPath];
     }
-    // Verificăm căile cu parametri (ex: /admin/products/123)
     for (const [path, title] of Object.entries(routeTitles)) {
       if (currentPath.startsWith(path) && path !== '/admin') {
         return title;
@@ -88,6 +91,17 @@ export function AdminHeader() {
         </BreadcrumbList>
       </Breadcrumb>
 
+      {/* Dark mode toggle */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={toggle}
+        className="h-9 w-9 rounded-md text-muted-foreground hover:text-foreground"
+        aria-label={isDark ? 'Comută la modul luminos' : 'Comută la modul întunecat'}
+      >
+        {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      </Button>
+
       <Button variant="ghost" size="sm" asChild>
         <Link
           to="/admin/orders"
@@ -103,9 +117,7 @@ export function AdminHeader() {
               <span className="font-medium">{newOrdersCount} Comenzi</span>
             </>
           ) : (
-            <>
-              <span className="text-sm font-medium">Comenzi</span>
-            </>
+            <span className="text-sm font-medium">Comenzi</span>
           )}
         </Link>
       </Button>
