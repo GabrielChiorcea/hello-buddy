@@ -3,18 +3,18 @@
  *
  * To change the app's color scheme, change the value below:
  *
- *   export const DEFAULT_THEME = 'blue';
+ *   export const DEFAULT_THEME = 'tomato';
  *
- * Available themes: 'orange' | 'blue' | 'green' | 'purple'
+ * Available themes: 'orange' | 'tomato' | 'freshGreen' | 'mustard'
  */
 
 import orange from './orange';
-import blue from './blue';
-import green from './green';
-import purple from './purple';
+import tomato from './blue';
+import freshGreen from './green';
+import mustard from './purple';
 import type { ThemePreset } from './types';
 
-export type ThemeName = 'orange' | 'blue' | 'green' | 'purple';
+export type ThemeName = 'orange' | 'tomato' | 'freshGreen' | 'mustard';
 
 // ╔═══════════════════════════════════════════╗
 // ║  👇 SCHIMBĂ TEMA AICI (change theme here) ║
@@ -23,9 +23,9 @@ export const DEFAULT_THEME: ThemeName = 'orange';
 
 export const themes: Record<ThemeName, ThemePreset> = {
   orange,
-  blue,
-  green,
-  purple,
+  tomato,
+  freshGreen,
+  mustard,
 };
 
 /**
@@ -44,7 +44,6 @@ export function applyTheme(name: ThemeName = DEFAULT_THEME): void {
   }
 
   // Store dark tokens as data attribute for dark-mode override
-  // We create a <style> block that targets .dark
   const darkStyleId = 'theme-dark-overrides';
   let darkStyle = document.getElementById(darkStyleId) as HTMLStyleElement | null;
   if (!darkStyle) {
