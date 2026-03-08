@@ -45,6 +45,7 @@ import { apolloClient } from "@/graphql/client";
 // IMPORTURI PAGINI
 // ============================================================================
 
+import Welcome from "./pages/Welcome";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
