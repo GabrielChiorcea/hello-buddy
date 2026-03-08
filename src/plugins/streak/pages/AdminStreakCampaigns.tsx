@@ -87,7 +87,6 @@ const defaultForm: FormData = {
   endDate: '',
   resetType: 'hard',
   minOrderValue: 0,
-  cooldownHours: 0,
   rewardSteps: [],
 };
 
