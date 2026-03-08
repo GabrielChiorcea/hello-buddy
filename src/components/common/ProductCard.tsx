@@ -65,11 +65,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLi
         // Mobile: compact horizontal card
         'flex flex-row items-center gap-3 rounded-xl bg-card overflow-hidden transition-all group p-3',
         'shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.12)]',
-        // Desktop: vertical card with hover elevation
+        // Desktop: premium vertical card
         'md:flex-col md:items-stretch md:gap-0 md:p-0 md:rounded-2xl',
-        'md:shadow-[0_2px_16px_-4px_rgba(0,0,0,0.08)]',
-        'md:hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.15)] md:hover:-translate-y-1',
-        'md:transition-all md:duration-300',
+        'md:border md:border-border/40',
+        'md:shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_14px_-2px_rgba(0,0,0,0.06)]',
+        'md:hover:shadow-[0_4px_6px_rgba(0,0,0,0.04),0_12px_28px_-4px_rgba(0,0,0,0.12)]',
+        'md:hover:-translate-y-0.5',
+        'md:transition-all md:duration-300 md:ease-out',
         !product.isAvailable && 'opacity-60',
         className,
       )}
@@ -77,22 +79,22 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLi
       {/* Image */}
       <div className={cn(
         'relative w-[72px] h-[72px] shrink-0 overflow-hidden rounded-xl flex items-center justify-center',
-        'md:w-full md:h-[180px] md:rounded-none md:rounded-t-2xl',
+        'md:w-full md:aspect-[4/3] md:h-auto md:rounded-none md:rounded-t-2xl',
       )}>
         <img
           src={getImageUrl(product.image)}
           alt={product.name}
-          className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+          className="h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.03]"
           loading="lazy"
         />
         {!product.isAvailable && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/70">
+          <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-[2px]">
             <span className="text-xs font-semibold text-muted-foreground">Indisponibil</span>
           </div>
         )}
         <Badge
           variant="secondary"
-          className="absolute left-2.5 top-2.5 text-[10px] hidden md:inline-flex bg-background/80 backdrop-blur-sm border-0"
+          className="absolute left-3 top-3 text-[10px] font-medium hidden md:inline-flex bg-card/90 backdrop-blur-md border-0 shadow-sm px-2.5 py-0.5"
         >
           {categoryNames[product.category] ?? product.category}
         </Badge>
@@ -101,9 +103,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLi
       {/* Info */}
       <div className={cn(
         'flex flex-1 min-w-0 flex-col justify-between gap-0.5',
-        'md:p-4 md:gap-0',
+        'md:px-4 md:pt-3.5 md:pb-4 md:gap-0 md:flex-1',
       )}>
-        <h3 className="font-semibold text-foreground text-sm md:text-[15px] md:leading-snug truncate md:truncate-none flex-1 min-w-0">
+        <h3 className="font-semibold text-foreground text-sm md:text-[15px] md:leading-snug truncate md:whitespace-normal md:line-clamp-1 flex-1 min-w-0">
           {product.name}
         </h3>
 
@@ -115,42 +117,44 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLi
         </p>
 
         {/* Desktop description */}
-        <p className="text-[13px] text-muted-foreground line-clamp-2 hidden md:block mt-1 leading-relaxed">
+        <p className="text-[13px] text-muted-foreground/80 line-clamp-2 hidden md:block mt-1.5 leading-relaxed min-h-[2.6em]">
           {product.description}
         </p>
 
-        {/* Desktop: prep time + price row */}
-        <div className="hidden md:flex items-center justify-between mt-3">
-          <div className="flex items-center gap-3">
-            {product.preparationTime && (
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Clock className="h-3.5 w-3.5" />
-                <span>{product.preparationTime} min</span>
-              </div>
-            )}
-            {pointsInfo && (
-              <span className="text-[11px] text-muted-foreground">
-                {pointsInfo}
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-lg font-bold text-primary">
-              {product.price} {texts.common.currency}
-            </span>
-            <button
-              onClick={handleAddToCart}
-              disabled={!product.isAvailable || isAdded}
-              className={cn(
-                'flex items-center justify-center w-9 h-9 rounded-full transition-all shrink-0',
-                isAdded
-                  ? 'bg-success text-success-foreground scale-95'
-                  : 'bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-110',
-                (!product.isAvailable || isAdded) && 'opacity-70',
+        {/* Desktop: bottom row with divider */}
+        <div className="hidden md:block mt-auto pt-3">
+          <div className="border-t border-border/50 pt-3 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              {product.preparationTime && (
+                <div className="flex items-center gap-1 text-xs text-muted-foreground/70">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span>{product.preparationTime} min</span>
+                </div>
               )}
-            >
-              {isAdded ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-            </button>
+              {pointsInfo && (
+                <span className="text-[11px] text-muted-foreground/70">
+                  {pointsInfo}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2.5">
+              <span className="text-base font-bold text-primary tracking-tight">
+                {product.price} {texts.common.currency}
+              </span>
+              <button
+                onClick={handleAddToCart}
+                disabled={!product.isAvailable || isAdded}
+                className={cn(
+                  'flex items-center justify-center w-8 h-8 rounded-lg transition-all shrink-0',
+                  isAdded
+                    ? 'bg-success text-success-foreground scale-95'
+                    : 'bg-primary text-primary-foreground hover:bg-primary/85 active:scale-95',
+                  (!product.isAvailable || isAdded) && 'opacity-70',
+                )}
+              >
+                {isAdded ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+              </button>
+            </div>
           </div>
         </div>
 
