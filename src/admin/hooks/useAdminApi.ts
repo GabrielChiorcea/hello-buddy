@@ -457,9 +457,10 @@ export const useAdminApi = () => {
   );
 
   return {
-    // Dashboard
+    // Dashboard & Analytics
     getDashboard,
     getDashboardStats,
+    getAnalytics,
     // Produse
     getProducts,
     getProduct,

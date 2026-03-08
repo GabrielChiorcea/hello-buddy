@@ -45,6 +45,9 @@ router.use(requireAdmin);
 router.get('/dashboard', dashboardController.getDashboard);
 router.get('/dashboard/stats', dashboardController.getStats);
 
+// Analitice
+router.get('/analytics', analyticsController.getAnalytics);
+
 // Produse
 router.get('/products', productsController.getProducts);
 router.get('/products/:id', productsController.getProduct);
