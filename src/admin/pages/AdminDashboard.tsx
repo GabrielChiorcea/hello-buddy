@@ -258,42 +258,102 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      {/* Comenzi recente */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Comenzi recente</CardTitle>
+      {/* Comenzi recente — redesign premium */}
+      <Card className="overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between pb-4">
+          <div>
+            <CardTitle className="text-lg">Comenzi recente</CardTitle>
+            <p className="text-sm text-muted-foreground mt-0.5">Ultimele 10 comenzi plasate</p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-primary gap-1"
+            onClick={() => navigate('/admin/orders')}
+          >
+            Vezi toate
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {data.recentOrders.length > 0 ? (
-            <div className="space-y-4">
-              {data.recentOrders.map((order) => (
-                <div
-                  key={order.id}
-                  className="flex items-center justify-between rounded-lg border border-border p-4"
-                >
-                  <div className="space-y-1">
-                    <p className="font-medium text-foreground">
-                      Comanda #{order.id.slice(0, 8)}...
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {order.deliveryAddress}, {order.deliveryCity}
-                    </p>
+            <div className="divide-y divide-border">
+              {data.recentOrders.map((order, idx) => {
+                const status = statusConfig[order.status] || statusConfig.pending;
+                const timeAgo = (() => {
+                  try {
+                    return formatDistanceToNow(new Date(order.createdAt), { addSuffix: true, locale: ro });
+                  } catch {
+                    return '';
+                  }
+                })();
+                const customerName = (order as any).customer?.name || `Client`;
+
+                return (
+                  <div
+                    key={order.id}
+                    className={cn(
+                      'flex items-center gap-4 px-6 py-4 transition-colors hover:bg-muted/40 cursor-pointer',
+                      idx === 0 && order.status === 'pending' && 'bg-amber-50/50 dark:bg-amber-950/10',
+                    )}
+                    onClick={() => navigate('/admin/orders')}
+                  >
+                    {/* Avatar / icon client */}
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
+                      <UserIcon className="h-4.5 w-4.5 text-muted-foreground" />
+                    </div>
+
+                    {/* Info principal */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-sm text-foreground truncate">
+                          {customerName}
+                        </span>
+                        <span className="text-xs text-muted-foreground font-mono">
+                          #{order.id.slice(0, 6)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <Clock className="h-3 w-3 text-muted-foreground/60" />
+                        <span className="text-xs text-muted-foreground">{timeAgo}</span>
+                        {(order as any).itemsCount && (
+                          <>
+                            <span className="text-muted-foreground/40">·</span>
+                            <Package className="h-3 w-3 text-muted-foreground/60" />
+                            <span className="text-xs text-muted-foreground">
+                              {(order as any).itemsCount} {(order as any).itemsCount === 1 ? 'produs' : 'produse'}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Status badge */}
+                    <div className={cn(
+                      'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium',
+                      status.bg,
+                    )}>
+                      <span className={cn('h-1.5 w-1.5 rounded-full', status.dot)} />
+                      {status.label}
+                    </div>
+
+                    {/* Preț */}
+                    <div className="text-right shrink-0 min-w-[80px]">
+                      <span className="text-sm font-semibold text-foreground">
+                        {order.total?.toLocaleString('ro-RO')} RON
+                      </span>
+                      <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">
+                        {order.paymentMethod === 'card' ? 'Card' : 'Cash'}
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-foreground">{order.total} RON</p>
-                    <Badge
-                      variant="secondary"
-                      className={`${statusLabels[order.status as keyof OrdersByStatus]?.color} text-white`}
-                    >
-                      {statusLabels[order.status as keyof OrdersByStatus]?.label || order.status}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              Nu există comenzi recente
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+              <Package className="h-10 w-10 mb-3 opacity-40" />
+              <p className="text-sm">Nu există comenzi recente</p>
             </div>
           )}
         </CardContent>
