@@ -8,6 +8,7 @@ import { requireAdmin } from '../middleware/adminAuth.js';
 
 // Importă controllere
 import * as dashboardController from './controllers/dashboard.js';
+import * as pushController from './controllers/pushNotifications.js';
 import * as analyticsController from './controllers/analytics.js';
 import * as productsController from './controllers/products.js';
 import * as categoriesController from './controllers/categories.js';
@@ -91,6 +92,9 @@ streakPlugin.registerAdminRoutes(router);
 router.get('/addon-rules/full', addonsController.getAddonRulesFull);
 router.get('/addon-rules', addonsController.getAddonRules);
 router.put('/addon-rules', addonsController.updateAddonRules);
+
+// Push notifications admin (trimite promoții)
+router.post('/push/send-promotion', pushController.sendPromotion);
 
   return router;
 }
