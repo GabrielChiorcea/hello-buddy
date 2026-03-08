@@ -140,6 +140,14 @@ async function startServer() {
     }
   });
 
+  // Push Notifications API (autentificat)
+  const { requireAuth } = await import('./middleware/auth.js');
+  const pushController = await import('./admin/controllers/pushNotifications.js');
+  app.post('/push/subscribe', requireAuth, pushController.subscribe);
+  app.post('/push/unsubscribe', requireAuth, pushController.unsubscribe);
+  app.get('/push/preferences', requireAuth, pushController.getPreferences);
+  app.put('/push/preferences', requireAuth, pushController.updatePreferences);
+
   // Admin API
   app.use('/admin', createAdminRouter({
     adminAuthLimiter,
