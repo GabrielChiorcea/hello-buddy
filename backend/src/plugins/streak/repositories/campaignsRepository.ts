@@ -180,7 +180,6 @@ export async function createCampaign(data: {
       data.endDate,
       data.resetType ?? 'hard',
       data.minOrderValue ?? 0,
-      data.cooldownHours ?? 0,
     ]
   );
   const campaign = await getCampaignById(id);
