@@ -181,7 +181,6 @@ export default function AdminStreakCampaigns() {
       endDate: c.endDate,
       resetType: c.resetType,
       minOrderValue: c.minOrderValue,
-      cooldownHours: c.cooldownHours,
       rewardSteps: c.rewardSteps ?? [],
     });
     setShowDialog(true);
