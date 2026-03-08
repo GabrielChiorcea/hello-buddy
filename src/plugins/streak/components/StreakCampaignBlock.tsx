@@ -54,7 +54,7 @@ export const StreakCampaignBlock: React.FC = () => {
 
         {/* Cards scroll — bg-background ca zona vizibilă la scroll să nu fie gri */}
         <div className="overflow-x-auto overflow-y-hidden -mx-4 px-4 sm:-mx-6 sm:px-6 md:mx-0 md:px-0 bg-background scrollbar-none">
-          <div className="flex gap-5 pb-2 min-w-0 scroll-smooth">
+          <div className="flex gap-5 pb-2 min-w-0 scroll-smooth after:content-[''] after:flex-shrink-0 after:w-4 sm:after:w-6 md:after:w-0">
             {campaigns.map((campaign, index) => {
               const enrollment =
                 myActiveEnrollment?.campaignId === campaign.id ? myActiveEnrollment : null;
