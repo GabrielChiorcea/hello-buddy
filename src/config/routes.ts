@@ -4,7 +4,8 @@
  */
 
 export const routes = {
-  home: '/',
+  welcome: '/',
+  home: '/home',
   catalog: '/catalog',
   product: '/product/:id',
   cart: '/cart',

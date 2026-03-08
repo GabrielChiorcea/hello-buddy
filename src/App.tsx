@@ -45,6 +45,7 @@ import { apolloClient } from "@/graphql/client";
 // IMPORTURI PAGINI
 // ============================================================================
 
+import Welcome from "./pages/Welcome";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -141,6 +142,7 @@ const App = () => (
               <ErrorBoundary>
                 <Routes>
                 {/* Pagini publice */}
+                <Route path={routes.welcome} element={<Welcome />} />
                 <Route path={routes.home} element={<Home />} />
                 <Route path={routes.login} element={<Login />} />
                 <Route path={routes.signup} element={<Signup />} />
