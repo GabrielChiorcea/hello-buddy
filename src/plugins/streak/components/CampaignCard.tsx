@@ -11,7 +11,7 @@ import { ACTIVE_STREAK_CAMPAIGN, MY_STREAK_ENROLLMENT } from '../queries';
 import { StreakProgressBar } from './StreakProgressBar';
 import { CampaignJoinButton } from './CampaignJoinButton';
 import type { StreakCampaign, StreakEnrollment, RewardStep } from '../types';
-import { Flame, Gift, Sparkles, Shield, Clock, Calendar, Target, TrendingUp, Star, Award } from 'lucide-react';
+import { Flame, Gift, Sparkles, Shield, Calendar, Target, TrendingUp, Star, Award } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
 
