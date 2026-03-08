@@ -1,5 +1,5 @@
 /**
- * GraphQL resolvers for streak campaigns
+ * GraphQL resolvers for streak campaigns V2
  * Plugin: plugins/streak
  */
 
@@ -11,17 +11,34 @@ function formatDate(d: Date): string {
   return d.toISOString();
 }
 
+async function enrichCampaign(campaign: CampaignsRepo.StreakCampaign) {
+  const rewardSteps = await CampaignsRepo.getRewardSteps(campaign.id);
+  return { ...campaign, rewardSteps };
+}
+
+function formatEnrollment(enrollment: any, campaign: any) {
+  return {
+    ...enrollment,
+    joinedAt: formatDate(enrollment.joinedAt),
+    completedAt: enrollment.completedAt ? formatDate(enrollment.completedAt) : null,
+    bonusAwardedAt: enrollment.bonusAwardedAt ? formatDate(enrollment.bonusAwardedAt) : null,
+    campaign: campaign ?? null,
+  };
+}
+
 export const streakResolvers = {
   Query: {
-    async activeStreakCampaign(_: unknown, __: unknown, context: { userId?: string }) {
+    async activeStreakCampaign() {
       const enabled = await isPluginEnabled('streak');
       if (!enabled) return null;
-      return StreakService.getActiveCampaign();
+      const campaign = await StreakService.getActiveCampaign();
+      return campaign ? enrichCampaign(campaign) : null;
     },
-    async activeStreakCampaigns(_: unknown, __: unknown) {
+    async activeStreakCampaigns() {
       const enabled = await isPluginEnabled('streak');
       if (!enabled) return [];
-      return StreakService.getActiveCampaigns();
+      const campaigns = await StreakService.getActiveCampaigns();
+      return Promise.all(campaigns.map(enrichCampaign));
     },
     async myStreakEnrollment(
       _: unknown,
@@ -32,28 +49,15 @@ export const streakResolvers = {
       if (!enabled) return null;
       const userId = context.user?.id;
       if (!userId) return null;
-      if (args.campaignId) {
-        const enrollment = await StreakService.getEnrollment(userId, args.campaignId);
-        if (!enrollment) return null;
-        const campaign = await CampaignsRepo.getCampaignById(enrollment.campaignId);
-        return {
-          ...enrollment,
-          joinedAt: formatDate(enrollment.joinedAt),
-          completedAt: enrollment.completedAt ? formatDate(enrollment.completedAt) : null,
-          bonusAwardedAt: enrollment.bonusAwardedAt ? formatDate(enrollment.bonusAwardedAt) : null,
-          campaign: campaign ?? null,
-        };
-      }
-      const enrollment = await StreakService.getEnrollmentByUserAndActive(userId);
+
+      const enrollment = args.campaignId
+        ? await StreakService.getEnrollment(userId, args.campaignId)
+        : await StreakService.getEnrollmentByUserAndActive(userId);
+
       if (!enrollment) return null;
       const campaign = await CampaignsRepo.getCampaignById(enrollment.campaignId);
-      return {
-        ...enrollment,
-        joinedAt: formatDate(enrollment.joinedAt),
-        completedAt: enrollment.completedAt ? formatDate(enrollment.completedAt) : null,
-        bonusAwardedAt: enrollment.bonusAwardedAt ? formatDate(enrollment.bonusAwardedAt) : null,
-        campaign: campaign ?? null,
-      };
+      const enriched = campaign ? await enrichCampaign(campaign) : null;
+      return formatEnrollment(enrollment, enriched);
     },
   },
   Mutation: {
@@ -68,13 +72,8 @@ export const streakResolvers = {
       if (!userId) throw new Error('Trebuie să fii autentificat');
       const enrollment = await StreakService.enrollUser(userId, args.campaignId);
       const campaign = await CampaignsRepo.getCampaignById(enrollment.campaignId);
-      return {
-        ...enrollment,
-        joinedAt: formatDate(enrollment.joinedAt),
-        completedAt: enrollment.completedAt ? formatDate(enrollment.completedAt) : null,
-        bonusAwardedAt: enrollment.bonusAwardedAt ? formatDate(enrollment.bonusAwardedAt) : null,
-        campaign: campaign ?? null,
-      };
+      const enriched = campaign ? await enrichCampaign(campaign) : null;
+      return formatEnrollment(enrollment, enriched);
     },
   },
 };

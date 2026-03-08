@@ -1,5 +1,6 @@
 /**
  * Repository for user_streak_campaigns (enrollment + progress)
+ * V2: supports current_level for soft decay
  * Plugin: plugins/streak
  */
 
@@ -12,6 +13,7 @@ export interface UserStreakCampaignRow {
   campaign_id: string;
   joined_at: Date;
   current_streak_count: number;
+  current_level: number;
   completed_at: Date | null;
   bonus_awarded_at: Date | null;
 }
@@ -22,6 +24,7 @@ export interface UserStreakCampaign {
   campaignId: string;
   joinedAt: Date;
   currentStreakCount: number;
+  currentLevel: number;
   completedAt: Date | null;
   bonusAwardedAt: Date | null;
 }
@@ -33,9 +36,15 @@ function mapRow(r: UserStreakCampaignRow): UserStreakCampaign {
     campaignId: r.campaign_id,
     joinedAt: r.joined_at,
     currentStreakCount: r.current_streak_count,
+    currentLevel: r.current_level ?? 0,
     completedAt: r.completed_at,
     bonusAwardedAt: r.bonus_awarded_at,
   };
+}
+
+function getTodayLocal(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 export async function getEnrollment(userId: string, campaignId: string): Promise<UserStreakCampaign | null> {
@@ -46,14 +55,9 @@ export async function getEnrollment(userId: string, campaignId: string): Promise
   return row ? mapRow(row) : null;
 }
 
-function getTodayLocal(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
 export async function getEnrollmentByUserAndActive(userId: string): Promise<UserStreakCampaign | null> {
   const today = getTodayLocal();
-  const row = await queryOne<UserStreakCampaignRow & { start_date: string; end_date: string }>(
+  const row = await queryOne<UserStreakCampaignRow>(
     `SELECT usc.* FROM user_streak_campaigns usc
      JOIN streak_campaigns sc ON sc.id = usc.campaign_id
      WHERE usc.user_id = ? AND sc.start_date <= ? AND sc.end_date >= ?
@@ -61,8 +65,7 @@ export async function getEnrollmentByUserAndActive(userId: string): Promise<User
      LIMIT 1`,
     [userId, today, today]
   );
-  if (!row) return null;
-  return mapRow(row);
+  return row ? mapRow(row) : null;
 }
 
 export async function enrollUser(userId: string, campaignId: string): Promise<UserStreakCampaign> {
@@ -71,8 +74,8 @@ export async function enrollUser(userId: string, campaignId: string): Promise<Us
 
   const id = uuidv4();
   await query(
-    `INSERT INTO user_streak_campaigns (id, user_id, campaign_id, current_streak_count)
-     VALUES (?, ?, ?, 0)`,
+    `INSERT INTO user_streak_campaigns (id, user_id, campaign_id, current_streak_count, current_level)
+     VALUES (?, ?, ?, 0, 0)`,
     [id, userId, campaignId]
   );
   const enrollment = await getEnrollment(userId, campaignId);
@@ -83,14 +86,15 @@ export async function enrollUser(userId: string, campaignId: string): Promise<Us
 export async function updateEnrollmentProgress(
   enrollmentId: string,
   currentStreakCount: number,
+  currentLevel: number,
   completedAt: Date | null,
   bonusAwardedAt: Date | null
 ): Promise<void> {
   await query(
     `UPDATE user_streak_campaigns
-     SET current_streak_count = ?, completed_at = ?, bonus_awarded_at = ?
+     SET current_streak_count = ?, current_level = ?, completed_at = ?, bonus_awarded_at = ?
      WHERE id = ?`,
-    [currentStreakCount, completedAt, bonusAwardedAt, enrollmentId]
+    [currentStreakCount, currentLevel, completedAt, bonusAwardedAt, enrollmentId]
   );
 }
 

@@ -1,26 +1,49 @@
 /**
- * GraphQL schema extension for streak campaigns
+ * GraphQL schema extension for streak campaigns V2
  * Plugin: plugins/streak
  */
 
 export const streakSchemaExtension = `#graphql
-  enum StreakType {
-    consecutive_days
-    days_per_week
-    working_days
+  enum RecurrenceType {
+    calendar_weekly
+    rolling
+    consecutive
+  }
+
+  enum RewardType {
+    single
+    steps
+    multiplier
+  }
+
+  enum ResetType {
+    hard
+    soft_decay
+  }
+
+  type RewardStep {
+    stepNumber: Int!
+    pointsAwarded: Int!
+    label: String
   }
 
   type StreakCampaign {
     id: ID!
     name: String!
-    streakType: StreakType!
+    recurrenceType: RecurrenceType!
+    rollingWindowDays: Int!
     ordersRequired: Int!
     bonusPoints: Int!
+    rewardType: RewardType!
+    baseMultiplier: Float!
+    multiplierIncrement: Float!
     customText: String
     startDate: String!
     endDate: String!
-    resetOnMiss: Boolean!
-    pointsExpireAfterCampaign: Boolean!
+    resetType: ResetType!
+    minOrderValue: Float!
+    cooldownHours: Int!
+    rewardSteps: [RewardStep!]!
     createdAt: String!
     updatedAt: String!
   }
@@ -31,6 +54,7 @@ export const streakSchemaExtension = `#graphql
     campaignId: ID!
     joinedAt: String!
     currentStreakCount: Int!
+    currentLevel: Int!
     completedAt: String
     bonusAwardedAt: String
     campaign: StreakCampaign

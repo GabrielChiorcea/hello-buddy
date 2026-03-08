@@ -1,5 +1,5 @@
 /**
- * Admin controller for streak campaigns
+ * Admin controller for streak campaigns V2
  * Plugin: plugins/streak
  */
 
@@ -15,7 +15,15 @@ import { query } from '../../../config/database.js';
 export async function getCampaigns(req: Request, res: Response): Promise<void> {
   try {
     const campaigns = await CampaignsRepo.listCampaigns();
-    res.json(campaigns);
+    // Enrich with reward steps
+    const enriched = await Promise.all(
+      campaigns.map(async (c) => ({
+        ...c,
+        rewardSteps: await CampaignsRepo.getRewardSteps(c.id),
+        excludedProducts: await CampaignsRepo.getExcludedProducts(c.id),
+      }))
+    );
+    res.json(enriched);
   } catch (error) {
     logError('listare campanii streak', error);
     res.status(500).json({ error: 'Eroare internă server' });
@@ -33,7 +41,9 @@ export async function getCampaign(req: Request, res: Response): Promise<void> {
       res.status(404).json({ error: 'Campania nu a fost găsită' });
       return;
     }
-    res.json(campaign);
+    const rewardSteps = await CampaignsRepo.getRewardSteps(id);
+    const excludedProducts = await CampaignsRepo.getExcludedProducts(id);
+    res.json({ ...campaign, rewardSteps, excludedProducts });
   } catch (error) {
     logError('citire campanie streak', error);
     res.status(500).json({ error: 'Eroare internă server' });
@@ -46,31 +56,43 @@ export async function getCampaign(req: Request, res: Response): Promise<void> {
 export async function createCampaign(req: Request, res: Response): Promise<void> {
   try {
     const body = req.body;
-    const ordersRequired = body.ordersRequired;
-    const streakType = body.streakType;
 
-    // Validate ordersRequired vs streak type
-    if (streakType === 'days_per_week' && ordersRequired > 7) {
-      res.status(400).json({ error: 'Pentru "zile pe săptămână", maximum este 7 zile.' });
-      return;
-    }
-    if (streakType === 'working_days' && ordersRequired > 5) {
-      res.status(400).json({ error: 'Pentru "zile lucrătoare", maximum este 5 zile.' });
+    // Validate
+    if (body.recurrenceType === 'calendar_weekly' && body.ordersRequired > 7) {
+      res.status(400).json({ error: 'Pentru "săptămânal calendaristic", maximum este 7 zile.' });
       return;
     }
 
     const campaign = await CampaignsRepo.createCampaign({
       name: body.name,
-      streakType,
-      ordersRequired,
+      recurrenceType: body.recurrenceType ?? 'consecutive',
+      rollingWindowDays: body.rollingWindowDays ?? 7,
+      ordersRequired: body.ordersRequired,
       bonusPoints: body.bonusPoints ?? 0,
+      rewardType: body.rewardType ?? 'single',
+      baseMultiplier: body.baseMultiplier ?? 1,
+      multiplierIncrement: body.multiplierIncrement ?? 0,
       customText: body.customText ?? null,
       startDate: body.startDate,
       endDate: body.endDate,
-      resetOnMiss: body.resetOnMiss !== false,
-      pointsExpireAfterCampaign: body.pointsExpireAfterCampaign === true,
+      resetType: body.resetType ?? 'hard',
+      minOrderValue: body.minOrderValue ?? 0,
+      cooldownHours: body.cooldownHours ?? 0,
     });
-    res.status(201).json(campaign);
+
+    // Set reward steps if provided
+    if (body.rewardSteps && Array.isArray(body.rewardSteps)) {
+      await CampaignsRepo.setRewardSteps(campaign.id, body.rewardSteps);
+    }
+
+    // Set excluded products if provided
+    if (body.excludedProducts && Array.isArray(body.excludedProducts)) {
+      await CampaignsRepo.setExcludedProducts(campaign.id, body.excludedProducts);
+    }
+
+    const rewardSteps = await CampaignsRepo.getRewardSteps(campaign.id);
+    const excludedProducts = await CampaignsRepo.getExcludedProducts(campaign.id);
+    res.status(201).json({ ...campaign, rewardSteps, excludedProducts });
   } catch (error) {
     logError('creare campanie streak', error);
     res.status(500).json({ error: 'Eroare internă server' });
@@ -92,32 +114,40 @@ export async function updateCampaign(req: Request, res: Response): Promise<void>
       res.status(400).json({ error: 'Nu poți edita o campanie activă' });
       return;
     }
+
     const body = req.body;
-    // Validate ordersRequired vs streak type if being changed
-    const streakType = body.streakType ?? campaign.streakType;
+    const recurrenceType = body.recurrenceType ?? campaign.recurrenceType;
     const ordersRequired = body.ordersRequired ?? campaign.ordersRequired;
-    if (streakType === 'days_per_week' && ordersRequired > 7) {
-      res.status(400).json({ error: 'Pentru "zile pe săptămână", maximum este 7 zile.' });
-      return;
-    }
-    if (streakType === 'working_days' && ordersRequired > 5) {
-      res.status(400).json({ error: 'Pentru "zile lucrătoare", maximum este 5 zile.' });
+    if (recurrenceType === 'calendar_weekly' && ordersRequired > 7) {
+      res.status(400).json({ error: 'Pentru "săptămânal calendaristic", maximum este 7 zile.' });
       return;
     }
 
     const updates: Parameters<typeof CampaignsRepo.updateCampaign>[1] = {};
-    if (body.name !== undefined) updates.name = body.name;
-    if (body.streakType !== undefined) updates.streakType = body.streakType;
-    if (body.ordersRequired !== undefined) updates.ordersRequired = body.ordersRequired;
-    if (body.bonusPoints !== undefined) updates.bonusPoints = body.bonusPoints;
-    if (body.customText !== undefined) updates.customText = body.customText;
-    if (body.startDate !== undefined) updates.startDate = body.startDate;
-    if (body.endDate !== undefined) updates.endDate = body.endDate;
-    if (body.resetOnMiss !== undefined) updates.resetOnMiss = body.resetOnMiss;
-    if (body.pointsExpireAfterCampaign !== undefined) updates.pointsExpireAfterCampaign = body.pointsExpireAfterCampaign;
+    const fields = [
+      'name', 'recurrenceType', 'rollingWindowDays', 'ordersRequired', 'bonusPoints',
+      'rewardType', 'baseMultiplier', 'multiplierIncrement', 'customText',
+      'startDate', 'endDate', 'resetType', 'minOrderValue', 'cooldownHours',
+    ] as const;
+    for (const f of fields) {
+      if (body[f] !== undefined) (updates as any)[f] = body[f];
+    }
 
     const updated = await CampaignsRepo.updateCampaign(id, updates);
-    res.json(updated);
+
+    // Update reward steps if provided
+    if (body.rewardSteps && Array.isArray(body.rewardSteps)) {
+      await CampaignsRepo.setRewardSteps(id, body.rewardSteps);
+    }
+
+    // Update excluded products if provided
+    if (body.excludedProducts && Array.isArray(body.excludedProducts)) {
+      await CampaignsRepo.setExcludedProducts(id, body.excludedProducts);
+    }
+
+    const rewardSteps = await CampaignsRepo.getRewardSteps(id);
+    const excludedProducts = await CampaignsRepo.getExcludedProducts(id);
+    res.json({ ...updated, rewardSteps, excludedProducts });
   } catch (error) {
     logError('actualizare campanie streak', error);
     res.status(500).json({ error: 'Eroare internă server' });
@@ -160,7 +190,7 @@ export async function getCampaignEnrollments(req: Request, res: Response): Promi
     }
     const enrollments = await EnrollmentsRepo.listEnrollmentsByCampaign(id);
     const userIds = [...new Set(enrollments.map((e) => e.userId))];
-    let usersMap: Map<string, { name: string; email: string }> = new Map();
+    let usersMap = new Map<string, { name: string; email: string }>();
     if (userIds.length > 0) {
       const users = await query<{ id: string; name: string; email: string }[]>(
         `SELECT id, name, email FROM users WHERE id IN (${userIds.map(() => '?').join(',')})`,

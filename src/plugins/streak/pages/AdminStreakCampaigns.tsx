@@ -1,5 +1,5 @@
 /**
- * Admin page for streak campaigns - CRUD + enrollments
+ * Admin page for streak campaigns V2 — motor de reguli complet
  * Plugin: plugins/streak
  */
 
@@ -12,7 +12,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
   DialogContent,
@@ -28,14 +27,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Flame, Plus, Pencil, Trash2, Loader2, Users } from 'lucide-react';
+import { Flame, Plus, Pencil, Trash2, Loader2, Users, Gift, Clock, Shield } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import type { StreakCampaign, StreakType } from '../types';
+import type { StreakCampaign, RecurrenceType, RewardType, ResetType, RewardStep } from '../types';
 
-const STREAK_TYPE_LABELS: Record<StreakType, string> = {
-  consecutive_days: 'Zile consecutive',
-  days_per_week: 'Zile pe săptămână',
-  working_days: 'Zile lucrătoare',
+const RECURRENCE_LABELS: Record<RecurrenceType, string> = {
+  consecutive: 'Zile consecutive (Streak clasic)',
+  calendar_weekly: 'Săptămânal calendaristic (Luni-Duminică)',
+  rolling: 'Fereastră mobilă (Rolling)',
+};
+
+const REWARD_LABELS: Record<RewardType, string> = {
+  single: 'Prag unic (All or Nothing)',
+  steps: 'Praguri incrementale (Scăriță)',
+  multiplier: 'Multiplicator de streak',
+};
+
+const RESET_LABELS: Record<ResetType, string> = {
+  hard: 'Hard Reset (la 0)',
+  soft_decay: 'Soft Decay (pierde 1 nivel)',
 };
 
 function isCampaignActive(c: StreakCampaign): boolean {
@@ -46,16 +56,40 @@ function isCampaignActive(c: StreakCampaign): boolean {
   return start <= today && end >= today;
 }
 
-const defaultForm = {
+interface FormData {
+  name: string;
+  recurrenceType: RecurrenceType;
+  rollingWindowDays: number;
+  ordersRequired: number;
+  bonusPoints: number;
+  rewardType: RewardType;
+  baseMultiplier: number;
+  multiplierIncrement: number;
+  customText: string;
+  startDate: string;
+  endDate: string;
+  resetType: ResetType;
+  minOrderValue: number;
+  cooldownHours: number;
+  rewardSteps: RewardStep[];
+}
+
+const defaultForm: FormData = {
   name: '',
-  streakType: 'consecutive_days' as StreakType,
+  recurrenceType: 'consecutive',
+  rollingWindowDays: 7,
   ordersRequired: 3,
   bonusPoints: 50,
+  rewardType: 'single',
+  baseMultiplier: 1,
+  multiplierIncrement: 0.5,
   customText: '',
   startDate: '',
   endDate: '',
-  resetOnMiss: true,
-  pointsExpireAfterCampaign: false,
+  resetType: 'hard',
+  minOrderValue: 0,
+  cooldownHours: 0,
+  rewardSteps: [],
 };
 
 export default function AdminStreakCampaigns() {
@@ -75,7 +109,7 @@ export default function AdminStreakCampaigns() {
   const [editingCampaign, setEditingCampaign] = useState<StreakCampaign | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<StreakCampaign | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [formData, setFormData] = useState(defaultForm);
+  const [formData, setFormData] = useState<FormData>(defaultForm);
 
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const [enrollments, setEnrollments] = useState<Array<{
@@ -84,6 +118,7 @@ export default function AdminStreakCampaigns() {
     campaignId: string;
     joinedAt: string;
     currentStreakCount: number;
+    currentLevel: number;
     completedAt: string | null;
     userName: string;
     userEmail: string;
@@ -96,12 +131,7 @@ export default function AdminStreakCampaigns() {
       const data = await getStreakCampaigns();
       setCampaigns(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error('Eroare la încărcarea campaniilor:', error);
-      toast({
-        title: 'Eroare',
-        description: 'Nu s-au putut încărca campaniile',
-        variant: 'destructive',
-      });
+      toast({ title: 'Eroare', description: 'Nu s-au putut încărca campaniile', variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
@@ -117,12 +147,8 @@ export default function AdminStreakCampaigns() {
       try {
         const data = await getStreakCampaignEnrollments(campaignId);
         setEnrollments(Array.isArray(data) ? data : []);
-      } catch (error) {
-        toast({
-          title: 'Eroare',
-          description: 'Nu s-au putut încărca înscrierile',
-          variant: 'destructive',
-        });
+      } catch {
+        toast({ title: 'Eroare', description: 'Nu s-au putut încărca înscrierile', variant: 'destructive' });
       } finally {
         setEnrollmentsLoading(false);
       }
@@ -145,14 +171,20 @@ export default function AdminStreakCampaigns() {
     setEditingCampaign(c);
     setFormData({
       name: c.name,
-      streakType: c.streakType,
+      recurrenceType: c.recurrenceType,
+      rollingWindowDays: c.rollingWindowDays,
       ordersRequired: c.ordersRequired,
       bonusPoints: c.bonusPoints,
+      rewardType: c.rewardType,
+      baseMultiplier: c.baseMultiplier,
+      multiplierIncrement: c.multiplierIncrement,
       customText: c.customText ?? '',
       startDate: c.startDate,
       endDate: c.endDate,
-      resetOnMiss: c.resetOnMiss,
-      pointsExpireAfterCampaign: c.pointsExpireAfterCampaign,
+      resetType: c.resetType,
+      minOrderValue: c.minOrderValue,
+      cooldownHours: c.cooldownHours,
+      rewardSteps: c.rewardSteps ?? [],
     });
     setShowDialog(true);
   };
@@ -170,12 +202,8 @@ export default function AdminStreakCampaigns() {
       toast({ title: 'Eroare', description: 'Numărul de zile trebuie să fie >= 1', variant: 'destructive' });
       return;
     }
-    if (formData.streakType === 'days_per_week' && formData.ordersRequired > 7) {
-      toast({ title: 'Eroare', description: 'Pentru "zile pe săptămână", maximum este 7', variant: 'destructive' });
-      return;
-    }
-    if (formData.streakType === 'working_days' && formData.ordersRequired > 5) {
-      toast({ title: 'Eroare', description: 'Pentru "zile lucrătoare", maximum este 5', variant: 'destructive' });
+    if (formData.recurrenceType === 'calendar_weekly' && formData.ordersRequired > 7) {
+      toast({ title: 'Eroare', description: 'Pentru "săptămânal", maximum este 7', variant: 'destructive' });
       return;
     }
     if (formData.startDate > formData.endDate) {
@@ -224,8 +252,33 @@ export default function AdminStreakCampaigns() {
     }
   };
 
+  // Reward steps helpers
+  const addRewardStep = () => {
+    const nextStep = formData.rewardSteps.length + 1;
+    setFormData((p) => ({
+      ...p,
+      rewardSteps: [...p.rewardSteps, { stepNumber: nextStep, pointsAwarded: 10, label: null }],
+    }));
+  };
+
+  const updateRewardStep = (index: number, field: keyof RewardStep, value: any) => {
+    setFormData((p) => ({
+      ...p,
+      rewardSteps: p.rewardSteps.map((s, i) => (i === index ? { ...s, [field]: value } : s)),
+    }));
+  };
+
+  const removeRewardStep = (index: number) => {
+    setFormData((p) => ({
+      ...p,
+      rewardSteps: p.rewardSteps.filter((_, i) => i !== index).map((s, i) => ({ ...s, stepNumber: i + 1 })),
+    }));
+  };
+
   if (flagLoading) return null;
   if (!streakEnabled) return <Navigate to="/admin" replace />;
+
+  const isActive = !!editingCampaign && isCampaignActive(editingCampaign);
 
   return (
     <div className="space-y-6">
@@ -233,9 +286,9 @@ export default function AdminStreakCampaigns() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Flame className="h-7 w-7 text-primary" />
-            Campanii Streak
+            Campanii Streak V2
           </h1>
-          <p className="text-muted-foreground">Creează și gestionează campaniile de tip streak</p>
+          <p className="text-muted-foreground">Motor de gamificare complet: recurență, praguri, validare, resetare</p>
         </div>
         <Button onClick={openCreate}>
           <Plus className="h-4 w-4 mr-2" />
@@ -243,10 +296,11 @@ export default function AdminStreakCampaigns() {
         </Button>
       </div>
 
+      {/* Campaign list */}
       <Card>
         <CardHeader>
           <CardTitle>Campanii</CardTitle>
-          <CardDescription>Lista campaniilor. Campaniile active nu pot fi editate.</CardDescription>
+          <CardDescription>Campaniile active nu pot fi editate sau șterse.</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -267,21 +321,26 @@ export default function AdminStreakCampaigns() {
                     onClick={() => setSelectedCampaignId(selectedCampaignId === c.id ? null : c.id)}
                   >
                     <div className="font-medium">{c.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {STREAK_TYPE_LABELS[c.streakType]} · {c.ordersRequired} zile · {c.bonusPoints} puncte ·{' '}
-                      {c.startDate} – {c.endDate}
+                    <div className="text-sm text-muted-foreground flex flex-wrap gap-x-2 gap-y-1">
+                      <span>{RECURRENCE_LABELS[c.recurrenceType]}</span>
+                      <span>· {c.ordersRequired} comenzi</span>
+                      <span>· {c.bonusPoints} puncte</span>
+                      <span>· {REWARD_LABELS[c.rewardType]}</span>
+                      <span>· {c.startDate} – {c.endDate}</span>
+                      {c.minOrderValue > 0 && <span>· Min. {c.minOrderValue} RON</span>}
+                      {c.cooldownHours > 0 && <span>· Cooldown {c.cooldownHours}h</span>}
+                      {c.resetType === 'soft_decay' && <span className="text-blue-500">· Soft Decay</span>}
                       {isCampaignActive(c) && (
-                        <span className="ml-2 text-primary font-medium">Activă</span>
+                        <span className="text-primary font-medium">· Activă</span>
                       )}
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-shrink-0">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => openEdit(c)}
                       disabled={isCampaignActive(c)}
-                      title={isCampaignActive(c) ? 'Campania activă nu poate fi editată' : 'Editează'}
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
@@ -290,7 +349,6 @@ export default function AdminStreakCampaigns() {
                       size="sm"
                       onClick={() => setDeleteConfirm(c)}
                       disabled={isCampaignActive(c)}
-                      title={isCampaignActive(c) ? 'Campania activă nu poate fi ștearsă' : 'Șterge'}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -302,6 +360,7 @@ export default function AdminStreakCampaigns() {
         </CardContent>
       </Card>
 
+      {/* Enrollments */}
       {selectedCampaignId && (
         <Card>
           <CardHeader>
@@ -309,9 +368,6 @@ export default function AdminStreakCampaigns() {
               <Users className="h-5 w-5" />
               Înscrieri
             </CardTitle>
-            <CardDescription>
-              Utilizatori înscriși la campania selectată și progresul lor
-            </CardDescription>
           </CardHeader>
           <CardContent>
             {enrollmentsLoading ? (
@@ -326,6 +382,7 @@ export default function AdminStreakCampaigns() {
                       <th className="text-left py-2">Utilizator</th>
                       <th className="text-left py-2">Email</th>
                       <th className="text-right py-2">Progres</th>
+                      <th className="text-right py-2">Nivel</th>
                       <th className="text-left py-2">Completat</th>
                     </tr>
                   </thead>
@@ -335,6 +392,7 @@ export default function AdminStreakCampaigns() {
                         <td className="py-2">{e.userName || '—'}</td>
                         <td className="py-2">{e.userEmail || '—'}</td>
                         <td className="text-right py-2">{e.currentStreakCount}</td>
+                        <td className="text-right py-2">{e.currentLevel}</td>
                         <td className="py-2">{e.completedAt ? new Date(e.completedAt).toLocaleDateString() : '—'}</td>
                       </tr>
                     ))}
@@ -346,63 +404,24 @@ export default function AdminStreakCampaigns() {
         </Card>
       )}
 
+      {/* Create/Edit Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingCampaign ? 'Editează campania' : 'Campanie nouă'}</DialogTitle>
             <DialogDescription>
-              {editingCampaign && isCampaignActive(editingCampaign)
-                ? 'Campania activă nu poate fi editată.'
-                : 'Completează setările campaniei.'}
+              Configurează motorul de reguli: recurență, praguri, validare și resetare.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-5 py-4">
+            {/* ─── Basic info ─── */}
             <div>
               <Label>Nume</Label>
               <Input
                 value={formData.name}
                 onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
-                placeholder="ex: Streak săptămâna asta"
-                disabled={!!editingCampaign && isCampaignActive(editingCampaign!)}
-              />
-            </div>
-            <div>
-              <Label>Tip streak</Label>
-              <Select
-                value={formData.streakType}
-                onValueChange={(v) => setFormData((p) => ({ ...p, streakType: v as StreakType }))}
-                disabled={!!editingCampaign && isCampaignActive(editingCampaign!)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {(['consecutive_days', 'days_per_week', 'working_days'] as const).map((t) => (
-                    <SelectItem key={t} value={t}>
-                      {STREAK_TYPE_LABELS[t]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Număr zile necesare</Label>
-              <Input
-                type="number"
-                min={1}
-                value={formData.ordersRequired}
-                onChange={(e) => setFormData((p) => ({ ...p, ordersRequired: parseInt(e.target.value, 10) || 1 }))}
-                disabled={!!editingCampaign && isCampaignActive(editingCampaign!)}
-              />
-            </div>
-            <div>
-              <Label>Puncte bonus la completare</Label>
-              <Input
-                type="number"
-                min={0}
-                value={formData.bonusPoints}
-                onChange={(e) => setFormData((p) => ({ ...p, bonusPoints: parseInt(e.target.value, 10) || 0 }))}
-                disabled={!!editingCampaign && isCampaignActive(editingCampaign!)}
+                placeholder="ex: Streak Marathon Martie"
+                disabled={isActive}
               />
             </div>
             <div>
@@ -412,7 +431,7 @@ export default function AdminStreakCampaigns() {
                 onChange={(e) => setFormData((p) => ({ ...p, customText: e.target.value }))}
                 placeholder="ex: Comandă de 3 ori la rând și primești 50 puncte bonus"
                 rows={2}
-                disabled={!!editingCampaign && isCampaignActive(editingCampaign!)}
+                disabled={isActive}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -422,7 +441,7 @@ export default function AdminStreakCampaigns() {
                   type="date"
                   value={formData.startDate}
                   onChange={(e) => setFormData((p) => ({ ...p, startDate: e.target.value }))}
-                  disabled={!!editingCampaign && isCampaignActive(editingCampaign!)}
+                  disabled={isActive}
                 />
               </div>
               <div>
@@ -431,32 +450,242 @@ export default function AdminStreakCampaigns() {
                   type="date"
                   value={formData.endDate}
                   onChange={(e) => setFormData((p) => ({ ...p, endDate: e.target.value }))}
-                  disabled={!!editingCampaign && isCampaignActive(editingCampaign!)}
+                  disabled={isActive}
                 />
               </div>
             </div>
-            <div className="flex items-center justify-between">
-              <Label>Resetează la o zi ratată</Label>
-              <Switch
-                checked={formData.resetOnMiss}
-                onCheckedChange={(v) => setFormData((p) => ({ ...p, resetOnMiss: v }))}
-                disabled={!!editingCampaign && isCampaignActive(editingCampaign!)}
-              />
+
+            {/* ─── 1. Recurență ─── */}
+            <div className="border rounded-lg p-4 space-y-3 bg-muted/30">
+              <h3 className="font-semibold text-sm flex items-center gap-2">
+                <Clock className="h-4 w-4 text-primary" />
+                1. Recurență — Când se întâmplă?
+              </h3>
+              <div>
+                <Label>Tip recurență</Label>
+                <Select
+                  value={formData.recurrenceType}
+                  onValueChange={(v) => setFormData((p) => ({ ...p, recurrenceType: v as RecurrenceType }))}
+                  disabled={isActive}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(['consecutive', 'calendar_weekly', 'rolling'] as const).map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {RECURRENCE_LABELS[t]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {formData.recurrenceType === 'rolling' && (
+                <div>
+                  <Label>Fereastră (zile)</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={formData.rollingWindowDays}
+                    onChange={(e) => setFormData((p) => ({ ...p, rollingWindowDays: parseInt(e.target.value, 10) || 7 }))}
+                    disabled={isActive}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Sistemul se uită în ultimele N zile de la data curentă
+                  </p>
+                </div>
+              )}
+              <div>
+                <Label>Comenzi necesare</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={formData.ordersRequired}
+                  onChange={(e) => setFormData((p) => ({ ...p, ordersRequired: parseInt(e.target.value, 10) || 1 }))}
+                  disabled={isActive}
+                />
+              </div>
             </div>
-            <div className="flex items-center justify-between">
-              <Label>Puncte expiră după campanie (viitor)</Label>
-              <Switch
-                checked={formData.pointsExpireAfterCampaign}
-                onCheckedChange={(v) => setFormData((p) => ({ ...p, pointsExpireAfterCampaign: v }))}
-                disabled={!!editingCampaign && isCampaignActive(editingCampaign!)}
-              />
+
+            {/* ─── 2. Praguri / Recompense ─── */}
+            <div className="border rounded-lg p-4 space-y-3 bg-muted/30">
+              <h3 className="font-semibold text-sm flex items-center gap-2">
+                <Gift className="h-4 w-4 text-primary" />
+                2. Praguri — Cât primește?
+              </h3>
+              <div>
+                <Label>Tip recompensă</Label>
+                <Select
+                  value={formData.rewardType}
+                  onValueChange={(v) => setFormData((p) => ({ ...p, rewardType: v as RewardType }))}
+                  disabled={isActive}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(['single', 'steps', 'multiplier'] as const).map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {REWARD_LABELS[t]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Puncte bonus la completare</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={formData.bonusPoints}
+                  onChange={(e) => setFormData((p) => ({ ...p, bonusPoints: parseInt(e.target.value, 10) || 0 }))}
+                  disabled={isActive}
+                />
+              </div>
+
+              {/* Steps */}
+              {formData.rewardType === 'steps' && (
+                <div className="space-y-2">
+                  <Label>Pași intermediari</Label>
+                  {formData.rewardSteps.map((step, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground w-10">#{step.stepNumber}</span>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={step.pointsAwarded}
+                        onChange={(e) => updateRewardStep(i, 'pointsAwarded', parseInt(e.target.value, 10) || 0)}
+                        placeholder="Puncte"
+                        className="w-24"
+                        disabled={isActive}
+                      />
+                      <Input
+                        value={step.label ?? ''}
+                        onChange={(e) => updateRewardStep(i, 'label', e.target.value || null)}
+                        placeholder="Label (opțional)"
+                        className="flex-1"
+                        disabled={isActive}
+                      />
+                      <Button variant="ghost" size="sm" onClick={() => removeRewardStep(i)} disabled={isActive}>
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button variant="outline" size="sm" onClick={addRewardStep} disabled={isActive}>
+                    <Plus className="h-3 w-3 mr-1" /> Adaugă pas
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    La completare se acordă și punctele bonus de mai sus. Pașii sunt recompense intermediare.
+                  </p>
+                </div>
+              )}
+
+              {/* Multiplier */}
+              {formData.rewardType === 'multiplier' && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Multiplicator bază</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min={0.1}
+                      value={formData.baseMultiplier}
+                      onChange={(e) => setFormData((p) => ({ ...p, baseMultiplier: parseFloat(e.target.value) || 1 }))}
+                      disabled={isActive}
+                    />
+                  </div>
+                  <div>
+                    <Label>Increment per pas</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min={0}
+                      value={formData.multiplierIncrement}
+                      onChange={(e) => setFormData((p) => ({ ...p, multiplierIncrement: parseFloat(e.target.value) || 0 }))}
+                      disabled={isActive}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground col-span-2">
+                    Punctele per pas = bonusPoints × (bază + (pas-1) × increment).
+                    Ex: bază 1×, increment 0.5×, pas 3 → 1+1=2× puncte
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* ─── 3. Validare ─── */}
+            <div className="border rounded-lg p-4 space-y-3 bg-muted/30">
+              <h3 className="font-semibold text-sm flex items-center gap-2">
+                <Shield className="h-4 w-4 text-primary" />
+                3. Validare — Ce contează ca comandă?
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Valoare minimă comandă (RON)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={formData.minOrderValue}
+                    onChange={(e) => setFormData((p) => ({ ...p, minOrderValue: parseFloat(e.target.value) || 0 }))}
+                    disabled={isActive}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">0 = fără limită</p>
+                </div>
+                <div>
+                  <Label>Cooldown între comenzi (ore)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={formData.cooldownHours}
+                    onChange={(e) => setFormData((p) => ({ ...p, cooldownHours: parseInt(e.target.value, 10) || 0 }))}
+                    disabled={isActive}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">0 = fără cooldown</p>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Produsele excluse se pot configura prin endpoint-ul API (excludedProducts).
+              </p>
+            </div>
+
+            {/* ─── 4. Resetare ─── */}
+            <div className="border rounded-lg p-4 space-y-3 bg-muted/30">
+              <h3 className="font-semibold text-sm flex items-center gap-2">
+                <Flame className="h-4 w-4 text-primary" />
+                4. Resetare — Ce se întâmplă la eșec?
+              </h3>
+              <div>
+                <Label>Tip resetare</Label>
+                <Select
+                  value={formData.resetType}
+                  onValueChange={(v) => setFormData((p) => ({ ...p, resetType: v as ResetType }))}
+                  disabled={isActive}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(['hard', 'soft_decay'] as const).map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {RESET_LABELS[t]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {formData.resetType === 'hard'
+                    ? 'Userul pierde tot progresul dacă ratează o zi/săptămână.'
+                    : 'Userul pierde doar un nivel (pas) — mai blând, menține engagement-ul.'}
+                </p>
+              </div>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDialog(false)}>
               Anulare
             </Button>
-            <Button onClick={handleSave} disabled={isSaving || (!!editingCampaign && isCampaignActive(editingCampaign!))}>
+            <Button onClick={handleSave} disabled={isSaving || isActive}>
               {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Salvează
             </Button>
@@ -464,12 +693,13 @@ export default function AdminStreakCampaigns() {
         </DialogContent>
       </Dialog>
 
+      {/* Delete confirm */}
       <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Șterge campania?</DialogTitle>
             <DialogDescription>
-              Campania &quot;{deleteConfirm?.name}&quot; va fi ștearsă definitiv. Înscrierile și logurile vor fi șterse.
+              Campania „{deleteConfirm?.name}" va fi ștearsă permanent.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
