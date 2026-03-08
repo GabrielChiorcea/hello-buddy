@@ -94,7 +94,7 @@ export async function findById(id: string): Promise<User | null> {
  */
 export async function findByEmail(email: string): Promise<User | null> {
   const row = await queryOne<UserRow>(
-    'SELECT * FROM users WHERE email = ?',
+    `SELECT ${USER_COLUMNS} FROM users WHERE email = ?`,
     [email.toLowerCase()]
   );
   return row ? mapRowToUser(row) : null;
