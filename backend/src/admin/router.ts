@@ -48,6 +48,7 @@ router.get('/dashboard/stats', dashboardController.getStats);
 
 // Analitice
 router.get('/analytics', analyticsController.getAnalytics);
+router.get('/analytics/backfill', analyticsController.backfillAnalytics);
 
 // Produse
 router.get('/products', productsController.getProducts);
