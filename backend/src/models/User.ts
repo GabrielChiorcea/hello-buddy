@@ -117,8 +117,9 @@ export async function findByPhone(phone: string): Promise<User | null> {
  * Verifică credențialele și returnează utilizatorul
  */
 export async function verifyCredentials(email: string, password: string): Promise<User | null> {
-  const row = await queryOne<UserRow>(
-    'SELECT * FROM users WHERE email = ? AND is_blocked = FALSE',
+  // Aici avem nevoie de password_hash pentru verificare
+  const row = await queryOne<UserRow & { password_hash: string }>(
+    `SELECT ${USER_COLUMNS}, password_hash FROM users WHERE email = ? AND is_blocked = FALSE`,
     [email.toLowerCase()]
   );
   
