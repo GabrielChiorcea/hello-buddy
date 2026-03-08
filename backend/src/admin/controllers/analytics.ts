@@ -22,6 +22,42 @@ export async function getAnalytics(req: Request, res: Response): Promise<void> {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - daysBack);
 
+    // Previous period for growth rate
+    const prevStart = new Date(startDate);
+    prevStart.setDate(prevStart.getDate() - daysBack);
+
+    // 0) Sales KPIs
+    const salesKpis = await query<any[]>(
+      `SELECT
+         COALESCE(SUM(o.total), 0) AS gross_revenue,
+         COUNT(o.id) AS total_orders,
+         COALESCE(AVG(o.total), 0) AS aov,
+         COALESCE(SUM(o.delivery_fee), 0) AS total_delivery_fees
+       FROM orders o
+       WHERE o.status != 'cancelled' AND o.created_at >= ?`,
+      [startDate]
+    );
+
+    const prevRevenue = await query<any[]>(
+      `SELECT COALESCE(SUM(o.total), 0) AS gross_revenue
+       FROM orders o
+       WHERE o.status != 'cancelled' AND o.created_at >= ? AND o.created_at < ?`,
+      [prevStart, startDate]
+    );
+
+    const currentGross = parseFloat(salesKpis[0]?.gross_revenue || '0');
+    const previousGross = parseFloat(prevRevenue[0]?.gross_revenue || '0');
+    const revenueGrowthRate = previousGross > 0
+      ? ((currentGross - previousGross) / previousGross) * 100
+      : currentGross > 0 ? 100 : 0;
+
+    const totalOrders = parseInt(salesKpis[0]?.total_orders || '0', 10);
+    const totalDeliveryFees = parseFloat(salesKpis[0]?.total_delivery_fees || '0');
+    const aov = parseFloat(salesKpis[0]?.aov || '0');
+    const netProfitPerOrder = totalOrders > 0
+      ? (currentGross - totalDeliveryFees) / totalOrders
+      : 0;
+
     // 1) Top clienți fideli
     const topCustomers = await query<any[]>(
       `SELECT
@@ -102,6 +138,14 @@ export async function getAnalytics(req: Request, res: Response): Promise<void> {
 
     res.json({
       period: `${daysBack}d`,
+      salesKpis: {
+        grossRevenue: currentGross,
+        totalOrders,
+        aov,
+        netProfitPerOrder,
+        revenueGrowthRate: parseFloat(revenueGrowthRate.toFixed(1)),
+        totalDeliveryFees,
+      },
       topCustomers: topCustomers.map(c => ({
         id: c.id,
         name: c.name,
