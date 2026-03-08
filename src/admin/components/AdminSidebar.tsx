@@ -9,6 +9,7 @@ import { useLocation } from 'react-router-dom';
 import { NavLink } from '@/components/NavLink';
 import {
   LayoutDashboard,
+  BarChart3,
   Package,
   FolderOpen,
   ShoppingCart,
@@ -42,6 +43,7 @@ import { Separator } from '@/components/ui/separator';
 
 const baseNavItems = [
   { title: 'Dashboard', url: '/admin', icon: LayoutDashboard },
+  { title: 'Analitice', url: '/admin/analytics', icon: BarChart3 },
   { title: 'Produse', url: '/admin/products', icon: Package },
   { title: 'Categorii', url: '/admin/categories', icon: FolderOpen },
   { title: 'Comenzi', url: '/admin/orders', icon: ShoppingCart },

@@ -76,6 +76,7 @@ import { AdminPoints } from "./plugins/points";
 import { AdminStreakCampaigns } from "./plugins/streak";
 import { AdminTiers } from "./plugins/tiers";
 import AdminSettings from "./admin/pages/AdminSettings";
+import AdminAnalytics from "./admin/pages/AdminAnalytics";
 import AdminAddonRules from "./admin/pages/AdminAddonRules";
 
 // ============================================================================
@@ -169,6 +170,7 @@ const App = () => (
                   }
                 >
                   <Route index element={<AdminDashboard />} />
+                  <Route path="analytics" element={<AdminAnalytics />} />
                   <Route path="products" element={<AdminProducts />} />
                   <Route path="categories" element={<AdminCategories />} />
                   <Route path="points" element={<AdminPoints />} />

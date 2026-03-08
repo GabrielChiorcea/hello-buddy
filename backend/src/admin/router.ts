@@ -8,6 +8,7 @@ import { requireAdmin } from '../middleware/adminAuth.js';
 
 // Importă controllere
 import * as dashboardController from './controllers/dashboard.js';
+import * as analyticsController from './controllers/analytics.js';
 import * as productsController from './controllers/products.js';
 import * as categoriesController from './controllers/categories.js';
 import * as ordersController from './controllers/orders.js';
@@ -43,6 +44,9 @@ router.use(requireAdmin);
 // Dashboard
 router.get('/dashboard', dashboardController.getDashboard);
 router.get('/dashboard/stats', dashboardController.getStats);
+
+// Analitice
+router.get('/analytics', analyticsController.getAnalytics);
 
 // Produse
 router.get('/products', productsController.getProducts);
