@@ -110,7 +110,7 @@ export async function getUser(req: Request, res: Response): Promise<void> {
     };
     
     res.json({
-      ...user,
+      ...sanitizeUserForAdmin(user),
       roles,
       stats,
       recentOrders: orders.slice(0, 10),
