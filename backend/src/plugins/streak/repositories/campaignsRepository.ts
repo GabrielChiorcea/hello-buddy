@@ -100,7 +100,6 @@ function mapRow(r: StreakCampaignRow): StreakCampaign {
     endDate: toDateString(r.end_date),
     resetType: (r.reset_type || 'hard') as ResetType,
     minOrderValue: Number(r.min_order_value) || 0,
-    cooldownHours: r.cooldown_hours || 0,
     createdAt: toISOString(r.created_at),
     updatedAt: toISOString(r.updated_at),
   };
