@@ -353,7 +353,8 @@ const Profile: React.FC = () => {
             </TabsContent>
 
             {/* Settings Tab */}
-            <TabsContent value="settings">
+            <TabsContent value="settings" className="space-y-6">
+              <NotificationSettings />
               <AccountSettings userId={user.id} userEmail={user.email} />
             </TabsContent>
           </Tabs>
