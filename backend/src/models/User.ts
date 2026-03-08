@@ -107,7 +107,7 @@ export async function findByPhone(phone: string): Promise<User | null> {
   const normalized = phone.trim();
   if (!normalized) return null;
   const row = await queryOne<UserRow>(
-    'SELECT * FROM users WHERE phone = ?',
+    `SELECT ${USER_COLUMNS} FROM users WHERE phone = ?`,
     [normalized]
   );
   return row ? mapRowToUser(row) : null;
