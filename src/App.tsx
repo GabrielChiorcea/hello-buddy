@@ -170,6 +170,7 @@ const App = () => (
                   }
                 >
                   <Route index element={<AdminDashboard />} />
+                  <Route path="analytics" element={<AdminAnalytics />} />
                   <Route path="products" element={<AdminProducts />} />
                   <Route path="categories" element={<AdminCategories />} />
                   <Route path="points" element={<AdminPoints />} />
