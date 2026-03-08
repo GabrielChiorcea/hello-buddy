@@ -156,7 +156,6 @@ export async function createCampaign(data: {
   endDate: string;
   resetType?: ResetType;
   minOrderValue?: number;
-  cooldownHours?: number;
 }): Promise<StreakCampaign> {
   const id = uuidv4();
   await query(
