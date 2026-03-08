@@ -27,7 +27,6 @@ export interface StreakCampaignRow {
   end_date: Date | string;
   reset_type: string;
   min_order_value: number;
-  cooldown_hours: number;
   created_at: Date | string;
   updated_at: Date | string;
 }
