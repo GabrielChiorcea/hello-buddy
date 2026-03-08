@@ -94,6 +94,12 @@ export const useAdminApi = () => {
     [fetchWithAuth]
   );
 
+  // Analitice
+  const getAnalytics = useCallback(
+    (period?: string) => fetchWithAuth(`/admin/analytics${period ? `?period=${period}` : ''}`),
+    [fetchWithAuth]
+  );
+
   // Produse
   const getProducts = useCallback(
     (params?: string) => fetchWithAuth<{
