@@ -34,7 +34,7 @@ export interface User {
 interface UserRow {
   id: string;
   email: string;
-  password_hash: string;
+  password_hash?: string; // only present in verifyCredentials
   name: string;
   phone: string | null;
   is_blocked: boolean;
@@ -45,6 +45,9 @@ interface UserRow {
   created_at: Date;
   updated_at: Date;
 }
+
+/** Coloane standard selectate din users (fără password_hash) */
+const USER_COLUMNS = `id, email, name, phone, is_blocked, points_balance, welcome_bonus_seen, total_xp, tier_id, created_at, updated_at`;
 
 export interface CreateUserInput {
   email: string;
@@ -80,7 +83,7 @@ function mapRowToUser(row: UserRow): User {
  */
 export async function findById(id: string): Promise<User | null> {
   const row = await queryOne<UserRow>(
-    'SELECT * FROM users WHERE id = ?',
+    `SELECT ${USER_COLUMNS} FROM users WHERE id = ?`,
     [id]
   );
   return row ? mapRowToUser(row) : null;
@@ -91,7 +94,7 @@ export async function findById(id: string): Promise<User | null> {
  */
 export async function findByEmail(email: string): Promise<User | null> {
   const row = await queryOne<UserRow>(
-    'SELECT * FROM users WHERE email = ?',
+    `SELECT ${USER_COLUMNS} FROM users WHERE email = ?`,
     [email.toLowerCase()]
   );
   return row ? mapRowToUser(row) : null;
@@ -104,7 +107,7 @@ export async function findByPhone(phone: string): Promise<User | null> {
   const normalized = phone.trim();
   if (!normalized) return null;
   const row = await queryOne<UserRow>(
-    'SELECT * FROM users WHERE phone = ?',
+    `SELECT ${USER_COLUMNS} FROM users WHERE phone = ?`,
     [normalized]
   );
   return row ? mapRowToUser(row) : null;
@@ -114,8 +117,9 @@ export async function findByPhone(phone: string): Promise<User | null> {
  * Verifică credențialele și returnează utilizatorul
  */
 export async function verifyCredentials(email: string, password: string): Promise<User | null> {
-  const row = await queryOne<UserRow>(
-    'SELECT * FROM users WHERE email = ? AND is_blocked = FALSE',
+  // Aici avem nevoie de password_hash pentru verificare
+  const row = await queryOne<UserRow & { password_hash: string }>(
+    `SELECT ${USER_COLUMNS}, password_hash FROM users WHERE email = ? AND is_blocked = FALSE`,
     [email.toLowerCase()]
   );
   
@@ -261,7 +265,7 @@ export async function findAll(
   search?: string
 ): Promise<{ users: User[]; total: number }> {
   let countQuery = 'SELECT COUNT(*) as total FROM users';
-  let selectQuery = 'SELECT * FROM users';
+  let selectQuery = `SELECT ${USER_COLUMNS} FROM users`;
   const params: unknown[] = [];
   
   if (search) {

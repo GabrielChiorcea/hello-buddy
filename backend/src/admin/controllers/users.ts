@@ -9,6 +9,12 @@ import * as UserRoleModel from '../../models/UserRole.js';
 import * as OrderModel from '../../models/Order.js';
 import { query } from '../../config/database.js';
 
+/** Sanitizează un obiect User pentru response-urile admin (exclude câmpuri interne sensibile) */
+function sanitizeUserForAdmin(user: UserModel.User) {
+  const { isBlocked, welcomeBonusSeen, ...safe } = user;
+  return { ...safe, isBlocked };
+}
+
 /**
  * GET /admin/users
  * Listează utilizatorii
@@ -104,7 +110,7 @@ export async function getUser(req: Request, res: Response): Promise<void> {
     };
     
     res.json({
-      ...user,
+      ...sanitizeUserForAdmin(user),
       roles,
       stats,
       recentOrders: orders.slice(0, 10),
@@ -150,7 +156,7 @@ export async function updateUserRole(req: Request, res: Response): Promise<void>
     const updatedRoles = await UserRoleModel.getUserRoles(id);
     
     res.json({
-      ...user,
+      ...sanitizeUserForAdmin(user!),
       roles: updatedRoles,
     });
   } catch (error) {
@@ -187,7 +193,7 @@ export async function toggleBlockUser(req: Request, res: Response): Promise<void
       return;
     }
     
-    res.json(user);
+    res.json(sanitizeUserForAdmin(user));
   } catch (error) {
     logError('blocare utilizator', error);
     res.status(500).json({ error: 'Eroare internă server' });
