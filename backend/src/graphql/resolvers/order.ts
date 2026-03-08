@@ -144,6 +144,11 @@ export const orderResolvers = {
       if (!input.phone || input.phone.length < 9) {
         throw new Error('Numărul de telefon este invalid');
       }
+
+      // Validare lungime notes pentru a preveni payload-uri mari
+      if (input.notes && input.notes.length > 500) {
+        throw new Error('Notele nu pot depăși 500 de caractere');
+      }
       
       const order = await OrderModel.create({
         userId: user.id,
