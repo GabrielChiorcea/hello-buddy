@@ -2,7 +2,7 @@
  * Types for streak campaign plugin V2
  */
 
-export type RecurrenceType = 'calendar_weekly' | 'rolling' | 'consecutive';
+export type RecurrenceType = 'rolling' | 'consecutive';
 export type RewardType = 'single' | 'steps' | 'multiplier';
 export type ResetType = 'hard' | 'soft_decay';
 

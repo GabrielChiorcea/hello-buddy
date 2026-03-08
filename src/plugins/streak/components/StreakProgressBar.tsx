@@ -21,7 +21,6 @@ export interface StreakProgressBarProps {
 function getProgressLabel(recurrenceType: RecurrenceType | undefined): string {
   switch (recurrenceType) {
     case 'consecutive': return 'zile consecutive';
-    case 'calendar_weekly': return 'zile / săptămână';
     case 'rolling': return 'zile';
     default: return 'zile';
   }

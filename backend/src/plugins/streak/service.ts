@@ -185,10 +185,8 @@ export async function recordOrderDelivered(
       if (campaign.recurrenceType === 'consecutive') {
         const allDates = await StreakLogsRepo.getOrderDatesForEnrollment(enrollment.id);
         currentCount = consecutiveRunLength(allDates, orderDateStr);
-      } else if (campaign.recurrenceType === 'calendar_weekly') {
-        const [weekStart, weekEnd] = getISOWeekRange(orderDateStr);
-        const weekDates = await StreakLogsRepo.getOrderDatesInRange(enrollment.id, weekStart, weekEnd);
-        currentCount = weekDates.length;
+
+
       } else if (campaign.recurrenceType === 'rolling') {
         const [rangeStart, rangeEnd] = getRollingRange(orderDateStr, campaign.rollingWindowDays);
         const rangeDates = await StreakLogsRepo.getOrderDatesInRange(enrollment.id, rangeStart, rangeEnd);

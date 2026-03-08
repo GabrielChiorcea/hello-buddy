@@ -127,12 +127,8 @@ export async function updateCampaign(req: Request, res: Response): Promise<void>
     }
 
     const body = req.body;
-    const recurrenceType = body.recurrenceType ?? campaign.recurrenceType;
-    const ordersRequired = body.ordersRequired ?? campaign.ordersRequired;
-    if (recurrenceType === 'calendar_weekly' && ordersRequired > 7) {
-      res.status(400).json({ error: 'Pentru "săptămânal calendaristic", maximum este 7 zile.' });
-      return;
-    }
+
+
 
     const updates: Parameters<typeof CampaignsRepo.updateCampaign>[1] = {};
     const fields = [

@@ -468,7 +468,7 @@ export default function AdminStreakCampaigns() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {(['consecutive', 'calendar_weekly', 'rolling'] as const).map((t) => (
+                    {(['consecutive', 'rolling'] as const).map((t) => (
                       <SelectItem key={t} value={t}>
                         {RECURRENCE_LABELS[t]}
                       </SelectItem>
