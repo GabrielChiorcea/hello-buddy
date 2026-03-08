@@ -33,11 +33,11 @@ import { ro } from 'date-fns/locale';
 import { toast } from '@/hooks/use-toast';
 
 const statusLabels: Record<keyof OrdersByStatus, { label: string; color: string }> = {
-  pending: { label: 'În așteptare', color: 'bg-yellow-500' },
-  confirmed: { label: 'Confirmate', color: 'bg-blue-500' },
-  preparing: { label: 'În preparare', color: 'bg-orange-500' },
-  delivering: { label: 'În livrare', color: 'bg-purple-500' },
-  delivered: { label: 'Livrate', color: 'bg-emerald-500' },
+  pending: { label: 'În așteptare', color: 'bg-status-pending' },
+  confirmed: { label: 'Confirmate', color: 'bg-status-confirmed' },
+  preparing: { label: 'În preparare', color: 'bg-status-preparing' },
+  delivering: { label: 'În livrare', color: 'bg-status-delivering' },
+  delivered: { label: 'Livrate', color: 'bg-status-delivered' },
   cancelled: { label: 'Anulate', color: 'bg-destructive' },
 };
 

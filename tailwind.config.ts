@@ -55,6 +55,21 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        reward: {
+          DEFAULT: "hsl(var(--reward))",
+          foreground: "hsl(var(--reward-foreground))",
+          light: "hsl(var(--reward-light))",
+          accent: "hsl(var(--reward-accent))",
+          surface: "hsl(var(--reward-surface))",
+          "surface-foreground": "hsl(var(--reward-surface-foreground))",
+        },
+        status: {
+          pending: "hsl(var(--status-pending))",
+          confirmed: "hsl(var(--status-confirmed))",
+          preparing: "hsl(var(--status-preparing))",
+          delivering: "hsl(var(--status-delivering))",
+          delivered: "hsl(var(--status-delivered))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

@@ -1,6 +1,7 @@
 /**
  * Casino-style segmented progress bar with step rewards V2
  * Plugin: plugins/streak
+ * All colors use semantic reward-* tokens.
  */
 
 import React from 'react';
@@ -37,7 +38,6 @@ export const StreakProgressBar: React.FC<StreakProgressBarProps> = ({
   const label = getProgressLabel(recurrenceType);
   const segments = Array.from({ length: required }, (_, i) => i < current);
 
-  // Build step reward markers
   const stepSet = new Map(rewardSteps.map((s) => [s.stepNumber, s]));
 
   return (
@@ -48,14 +48,14 @@ export const StreakProgressBar: React.FC<StreakProgressBarProps> = ({
           <span className="text-3xl font-black streak-shimmer streak-bonus-enter">
             {current}
           </span>
-          <span className="text-lg text-amber-400/70 font-medium">/ {required}</span>
-          <span className="text-xs text-amber-400/50 ml-1">{label}</span>
+          <span className="text-lg text-reward/70 font-medium">/ {required}</span>
+          <span className="text-xs text-reward/50 ml-1">{label}</span>
         </div>
         {completed && (
           <motion.div
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
-            className="flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-yellow-400 text-black px-3 py-1 rounded-full text-xs font-bold shadow-lg shadow-amber-500/30"
+            className="flex items-center gap-1.5 bg-gradient-to-r from-reward to-reward-light text-reward-foreground px-3 py-1 rounded-full text-xs font-bold shadow-lg shadow-reward/30"
           >
             <Trophy className="h-3.5 w-3.5" />
             COMPLET!
@@ -75,15 +75,15 @@ export const StreakProgressBar: React.FC<StreakProgressBarProps> = ({
                 transition={{ delay: i * 0.08, duration: 0.3, ease: 'easeOut' }}
                 className="relative flex-1 h-3 rounded-full overflow-hidden"
               >
-                <div className="absolute inset-0 bg-white/10 rounded-full" />
+                <div className="absolute inset-0 bg-reward-surface-foreground/10 rounded-full" />
                 {filled && (
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: '100%' }}
                     transition={{ delay: i * 0.08 + 0.1, duration: 0.4, ease: 'easeOut' }}
-                    className="absolute inset-0 rounded-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500"
+                    className="absolute inset-0 rounded-full bg-gradient-to-r from-reward via-reward-light to-reward"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent rounded-full" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-reward-surface-foreground/30 to-transparent rounded-full" />
                   </motion.div>
                 )}
               </motion.div>
@@ -97,14 +97,14 @@ export const StreakProgressBar: React.FC<StreakProgressBarProps> = ({
                   className={cn(
                     'w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center border',
                     filled
-                      ? 'bg-amber-400 border-amber-300 shadow-lg shadow-amber-500/50'
-                      : 'bg-white/10 border-white/20'
+                      ? 'bg-reward border-reward-light shadow-lg shadow-reward/50'
+                      : 'bg-reward-surface-foreground/10 border-reward-surface-foreground/20'
                   )}
                 >
-                  <Gift className="h-2.5 w-2.5 text-black" />
+                  <Gift className="h-2.5 w-2.5 text-reward-foreground" />
                 </motion.div>
               )}
-              {/* Regular checkpoint at milestones (only if no step reward) */}
+              {/* Regular checkpoint at milestones */}
               {!stepReward && i < required - 1 && (i + 1) % Math.max(1, Math.floor(required / 3)) === 0 && (
                 <motion.div
                   initial={{ scale: 0 }}
@@ -113,8 +113,8 @@ export const StreakProgressBar: React.FC<StreakProgressBarProps> = ({
                   className={cn(
                     'w-4 h-4 rotate-45 rounded-sm flex-shrink-0 border',
                     filled
-                      ? 'bg-amber-400 border-amber-300 shadow-lg shadow-amber-500/50 streak-checkpoint-active'
-                      : 'bg-white/10 border-white/20'
+                      ? 'bg-reward border-reward-light shadow-lg shadow-reward/50 streak-checkpoint-active'
+                      : 'bg-reward-surface-foreground/10 border-reward-surface-foreground/20'
                   )}
                 />
               )}
@@ -129,11 +129,11 @@ export const StreakProgressBar: React.FC<StreakProgressBarProps> = ({
           className={cn(
             'flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center border-2',
             completed
-              ? 'bg-gradient-to-br from-amber-400 to-yellow-500 border-amber-300 shadow-lg shadow-amber-500/50 streak-glow'
-              : 'bg-white/5 border-white/20'
+              ? 'bg-gradient-to-br from-reward to-reward-light border-reward-light shadow-lg shadow-reward/50 streak-glow'
+              : 'bg-reward-surface-foreground/5 border-reward-surface-foreground/20'
           )}
         >
-          <Star className={cn('h-4 w-4', completed ? 'text-black fill-black' : 'text-white/30')} />
+          <Star className={cn('h-4 w-4', completed ? 'text-reward-foreground fill-reward-foreground' : 'text-reward-surface-foreground/30')} />
         </motion.div>
       </div>
 
@@ -142,7 +142,7 @@ export const StreakProgressBar: React.FC<StreakProgressBarProps> = ({
         <motion.div
           initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-1.5 text-xs text-amber-400/60"
+          className="flex items-center gap-1.5 text-xs text-reward/60"
         >
           <Zap className="h-3 w-3" />
           {current >= required - 1

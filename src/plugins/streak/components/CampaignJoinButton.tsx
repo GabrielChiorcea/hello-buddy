@@ -1,6 +1,7 @@
 /**
  * Casino-style join button with glow and shine effects
  * Plugin: plugins/streak
+ * All colors use semantic reward-* tokens.
  */
 
 import React, { useState } from 'react';
@@ -63,7 +64,7 @@ export const CampaignJoinButton: React.FC<CampaignJoinButtonProps> = ({
 
   if (enrollment && !completed) {
     return (
-      <div className={cn(baseClasses, 'bg-gradient-to-r from-amber-900/40 to-amber-800/30 text-amber-400 border border-amber-500/30 cursor-default flex items-center justify-center gap-2')}>
+      <div className={cn(baseClasses, 'bg-gradient-to-r from-reward-accent/40 to-reward-accent/30 text-reward border border-reward/30 cursor-default flex items-center justify-center gap-2')}>
         <Sparkles className="h-4 w-4 streak-sparkle" />
         Înscris — Continuă seria!
         <Sparkles className="h-4 w-4 streak-sparkle" style={{ animationDelay: '0.5s' }} />
@@ -76,7 +77,7 @@ export const CampaignJoinButton: React.FC<CampaignJoinButtonProps> = ({
       <motion.div
         initial={{ scale: 0.95 }}
         animate={{ scale: 1 }}
-        className={cn(baseClasses, 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-black flex items-center justify-center gap-2 shadow-lg shadow-amber-500/30')}
+        className={cn(baseClasses, 'bg-gradient-to-r from-reward via-reward-light to-reward text-reward-foreground flex items-center justify-center gap-2 shadow-lg shadow-reward/30')}
       >
         <Trophy className="h-4 w-4" />
         Streak Complet — Premiu câștigat!
@@ -86,7 +87,7 @@ export const CampaignJoinButton: React.FC<CampaignJoinButtonProps> = ({
 
   if (enrolledInOtherCampaign) {
     return (
-      <div className={cn(baseClasses, 'bg-white/5 text-white/30 border border-white/10 cursor-not-allowed flex items-center justify-center gap-2')}>
+      <div className={cn(baseClasses, 'bg-reward-surface-foreground/5 text-reward-surface-foreground/30 border border-reward-surface-foreground/10 cursor-not-allowed flex items-center justify-center gap-2')}>
         <Lock className="h-4 w-4" />
         Înscris la altă campanie
       </div>
@@ -101,16 +102,16 @@ export const CampaignJoinButton: React.FC<CampaignJoinButtonProps> = ({
       whileTap={{ scale: 0.98 }}
       className={cn(
         baseClasses,
-        'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-black',
-        'hover:from-amber-400 hover:via-yellow-300 hover:to-amber-400',
-        'shadow-lg shadow-amber-500/30 hover:shadow-xl hover:shadow-amber-500/40',
+        'bg-gradient-to-r from-reward via-reward-light to-reward text-reward-foreground',
+        'hover:from-reward-light hover:via-reward hover:to-reward-light',
+        'shadow-lg shadow-reward/30 hover:shadow-xl hover:shadow-reward/40',
         'streak-glow flex items-center justify-center gap-2',
         'disabled:opacity-50 disabled:cursor-not-allowed'
       )}
     >
       {/* Shine sweep overlay */}
       <div className="absolute inset-0 overflow-hidden rounded-xl">
-        <div className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-streak-shine" />
+        <div className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-reward-surface-foreground/30 to-transparent animate-streak-shine" />
       </div>
       <span className="relative z-10 flex items-center gap-2">
         {loading ? (
