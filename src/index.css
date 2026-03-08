@@ -6,6 +6,10 @@
  * FoodOrder Design System
  * Modern food ordering app with warm, appetizing colors
  * All colors MUST be HSL.
+ *
+ * ═══ THEMING GUIDE ═══
+ * To re-brand this app, change the HSL values below.
+ * See THEMING_GUIDE.md for detailed instructions.
  */
 
 @layer base {
@@ -49,6 +53,21 @@
     /* Warning - warm amber */
     --warning: 45 93% 47%;
     --warning-foreground: 20 14.3% 4.1%;
+
+    /* ═══ Reward / Gamification theme ═══ */
+    --reward: 43 96% 56%;
+    --reward-foreground: 0 0% 0%;
+    --reward-light: 48 97% 63%;
+    --reward-accent: 25 95% 53%;
+    --reward-surface: 220 15% 10%;
+    --reward-surface-foreground: 40 30% 95%;
+
+    /* ═══ Status colors (admin) ═══ */
+    --status-pending: 45 93% 47%;
+    --status-confirmed: 217 91% 60%;
+    --status-preparing: 25 95% 53%;
+    --status-delivering: 271 91% 65%;
+    --status-delivered: 142 76% 36%;
 
     /* Border and input */
     --border: 20 15% 90%;
@@ -99,6 +118,21 @@
     --warning: 45 93% 47%;
     --warning-foreground: 20 14.3% 4.1%;
 
+    /* ═══ Reward / Gamification theme (dark) ═══ */
+    --reward: 43 96% 56%;
+    --reward-foreground: 0 0% 0%;
+    --reward-light: 48 97% 63%;
+    --reward-accent: 25 95% 53%;
+    --reward-surface: 220 20% 8%;
+    --reward-surface-foreground: 40 30% 95%;
+
+    /* ═══ Status colors (dark) ═══ */
+    --status-pending: 45 93% 47%;
+    --status-confirmed: 217 91% 60%;
+    --status-preparing: 25 95% 53%;
+    --status-delivering: 271 91% 65%;
+    --status-delivered: 142 70% 45%;
+
     --border: 20 14.3% 15%;
     --input: 20 14.3% 15%;
     --ring: 16 90% 55%;
@@ -141,10 +175,10 @@
   .streak-shimmer {
     background: linear-gradient(
       110deg,
-      hsl(43 96% 56%) 0%,
-      hsl(48 100% 78%) 40%,
-      hsl(43 96% 56%) 60%,
-      hsl(36 100% 50%) 100%
+      hsl(var(--reward)) 0%,
+      hsl(var(--reward-light)) 40%,
+      hsl(var(--reward)) 60%,
+      hsl(var(--reward-accent)) 100%
     );
     background-size: 200% 100%;
     animation: shimmer-sweep 3s ease-in-out infinite;
@@ -155,8 +189,8 @@
 
   /* Pulsating glow ring */
   @keyframes streak-glow-pulse {
-    0%, 100% { box-shadow: 0 0 15px 2px hsla(43, 96%, 56%, 0.3), 0 0 30px 4px hsla(43, 96%, 56%, 0.1); }
-    50% { box-shadow: 0 0 25px 6px hsla(43, 96%, 56%, 0.5), 0 0 50px 10px hsla(43, 96%, 56%, 0.2); }
+    0%, 100% { box-shadow: 0 0 15px 2px hsl(var(--reward) / 0.3), 0 0 30px 4px hsl(var(--reward) / 0.1); }
+    50% { box-shadow: 0 0 25px 6px hsl(var(--reward) / 0.5), 0 0 50px 10px hsl(var(--reward) / 0.2); }
   }
   .streak-glow {
     animation: streak-glow-pulse 2.5s ease-in-out infinite;

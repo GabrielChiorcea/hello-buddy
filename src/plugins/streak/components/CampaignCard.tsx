@@ -2,6 +2,8 @@
  * Casino / Rewards style campaign card V2
  * Shows full campaign details before and after enrollment
  * Plugin: plugins/streak
+ *
+ * All colors use semantic reward-* tokens from the design system.
  */
 
 import React, { useEffect, useRef } from 'react';
@@ -25,7 +27,6 @@ function buildRuleDescription(campaign: StreakCampaign): string {
   if (recurrenceType === 'consecutive') {
     return `Comandă ${ordersRequired} zile la rând pentru a completa streak-ul.`;
   }
-
 
   if (recurrenceType === 'rolling') {
     return `Plasează ${ordersRequired} comenzi în orice fereastră de ${rollingWindowDays} zile.`;
@@ -51,7 +52,6 @@ function buildRewardDescription(campaign: StreakCampaign): string {
   if (campaign.rewardType === 'multiplier') {
     return `Puncte × multiplicator (baza ${campaign.baseMultiplier}x, +${campaign.multiplierIncrement}x/pas).`;
   }
-  // steps
   return `Câștigi puncte la fiecare prag + ${campaign.bonusPoints} bonus la final.`;
 }
 
@@ -90,6 +90,7 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
   useEffect(() => {
     if (completed && !confettiFired.current) {
       confettiFired.current = true;
+      /* Confetti uses hex — update these if you change --reward in index.css */
       const gold = ['#f59e0b', '#fbbf24', '#d97706', '#fcd34d', '#ffffff'];
       confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: gold, scalar: 1.2 });
       setTimeout(() => {
@@ -112,30 +113,30 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
       className="streak-card-enter"
     >
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border border-amber-500/20 h-full flex flex-col shadow-2xl shadow-amber-900/20">
+      <div className="relative overflow-hidden rounded-2xl bg-reward-surface border border-reward/20 h-full flex flex-col shadow-2xl shadow-reward-accent/20">
         {/* Ambient glow */}
-        <div className="absolute -top-20 -right-20 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-amber-600/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-20 -right-20 w-40 h-40 bg-reward/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-reward-accent/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Floating sparkles */}
         <div className="absolute top-4 right-6 pointer-events-none">
-          <Sparkles className="h-4 w-4 text-amber-400/40 streak-sparkle" />
+          <Sparkles className="h-4 w-4 text-reward/40 streak-sparkle" />
         </div>
         <div className="absolute top-12 right-12 pointer-events-none">
-          <Sparkles className="h-3 w-3 text-yellow-400/30 streak-sparkle" style={{ animationDelay: '0.7s' }} />
+          <Sparkles className="h-3 w-3 text-reward-light/30 streak-sparkle" style={{ animationDelay: '0.7s' }} />
         </div>
 
         {/* Header */}
         <div className="p-5 pb-3">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/30 ${!completed ? 'streak-glow' : ''}`}>
-                <Flame className="h-5 w-5 text-white" />
+              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br from-reward to-reward-accent flex items-center justify-center shadow-lg shadow-reward/30 ${!completed ? 'streak-glow' : ''}`}>
+                <Flame className="h-5 w-5 text-reward-surface-foreground" />
               </div>
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-bold text-white truncate">{campaign.name}</h3>
-              <p className="text-xs text-amber-400/60 mt-0.5">
+              <h3 className="text-lg font-bold text-reward-surface-foreground truncate">{campaign.name}</h3>
+              <p className="text-xs text-reward/60 mt-0.5">
                 {RECURRENCE_LABELS[campaign.recurrenceType] || campaign.recurrenceType}
                 {campaign.recurrenceType === 'rolling' && ` (${campaign.rollingWindowDays} zile)`}
               </p>
@@ -145,19 +146,19 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
 
         {/* Rule description — always visible */}
         <div className="px-5 pb-2">
-          <p className="text-sm text-amber-100/70 leading-relaxed">
+          <p className="text-sm text-reward-surface-foreground/70 leading-relaxed">
             {campaign.customText || buildRuleDescription(campaign)}
           </p>
         </div>
 
         {/* Period info */}
         <div className="px-5 pb-2 flex items-center gap-2">
-          <Calendar className="h-3.5 w-3.5 text-amber-400/50 flex-shrink-0" />
-          <span className="text-xs text-amber-400/50">
+          <Calendar className="h-3.5 w-3.5 text-reward/50 flex-shrink-0" />
+          <span className="text-xs text-reward/50">
             {formatDate(campaign.startDate)} — {formatDate(campaign.endDate)}
           </span>
           {remaining > 0 && remaining <= 14 && (
-            <span className="text-[10px] bg-amber-500/15 text-amber-400 rounded-full px-2 py-0.5 font-medium">
+            <span className="text-[10px] bg-reward/15 text-reward rounded-full px-2 py-0.5 font-medium">
               {remaining} {remaining === 1 ? 'zi' : 'zile'} rămase
             </span>
           )}
@@ -165,21 +166,21 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
 
         {/* Reward info badges */}
         <div className="px-5 pb-2 flex flex-wrap gap-2">
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/15 to-yellow-500/10 border border-amber-500/20 rounded-full px-3.5 py-1.5">
-            <Gift className="h-3.5 w-3.5 text-amber-400" />
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-reward/15 to-reward-light/10 border border-reward/20 rounded-full px-3.5 py-1.5">
+            <Gift className="h-3.5 w-3.5 text-reward" />
             <span className="text-sm font-bold streak-shimmer">{campaign.bonusPoints} puncte</span>
-            <span className="text-xs text-amber-400/50">
+            <span className="text-xs text-reward/50">
               {campaign.rewardType === 'single' ? 'la completare' : 'bonus final'}
             </span>
           </div>
-          <div className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-full px-2.5 py-1">
-            <Target className="h-3 w-3 text-amber-400/60" />
-            <span className="text-xs text-amber-400/60">{campaign.ordersRequired} comenzi necesare</span>
+          <div className="inline-flex items-center gap-1.5 bg-reward-surface-foreground/5 border border-reward-surface-foreground/10 rounded-full px-2.5 py-1">
+            <Target className="h-3 w-3 text-reward/60" />
+            <span className="text-xs text-reward/60">{campaign.ordersRequired} comenzi necesare</span>
           </div>
           {campaign.resetType === 'soft_decay' && (
-            <div className="inline-flex items-center gap-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full px-2.5 py-1">
-              <Shield className="h-3 w-3 text-blue-400" />
-              <span className="text-xs text-blue-400">Soft Decay</span>
+            <div className="inline-flex items-center gap-1.5 bg-status-confirmed/10 border border-status-confirmed/20 rounded-full px-2.5 py-1">
+              <Shield className="h-3 w-3 text-status-confirmed" />
+              <span className="text-xs text-status-confirmed">Soft Decay</span>
             </div>
           )}
         </div>
@@ -187,10 +188,10 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
         {/* Reward steps ladder — visible for 'steps' type */}
         {hasSteps && (
           <div className="px-5 pb-3">
-            <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+            <div className="bg-reward-surface-foreground/5 rounded-xl p-3 border border-reward-surface-foreground/5">
               <div className="flex items-center gap-1.5 mb-2">
-                <TrendingUp className="h-3.5 w-3.5 text-amber-400/70" />
-                <span className="text-xs font-semibold text-amber-400/70 uppercase tracking-wider">Praguri recompensă</span>
+                <TrendingUp className="h-3.5 w-3.5 text-reward/70" />
+                <span className="text-xs font-semibold text-reward/70 uppercase tracking-wider">Praguri recompensă</span>
               </div>
               <div className="space-y-1.5">
                 {campaign.rewardSteps
@@ -203,15 +204,15 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
                         key={step.stepNumber}
                         className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs transition-colors ${
                           reached
-                            ? 'bg-amber-500/15 border border-amber-500/25'
-                            : 'bg-white/[0.03] border border-transparent'
+                            ? 'bg-reward/15 border border-reward/25'
+                            : 'bg-reward-surface-foreground/[0.03] border border-transparent'
                         }`}
                       >
-                        <span className={`flex items-center gap-2 ${reached ? 'text-amber-300' : 'text-white/50'}`}>
-                          <Star className={`h-3 w-3 ${reached ? 'text-amber-400 fill-amber-400' : 'text-white/20'}`} />
+                        <span className={`flex items-center gap-2 ${reached ? 'text-reward' : 'text-reward-surface-foreground/50'}`}>
+                          <Star className={`h-3 w-3 ${reached ? 'text-reward fill-reward' : 'text-reward-surface-foreground/20'}`} />
                           {step.label || `Pasul ${step.stepNumber}`}
                         </span>
-                        <span className={`font-bold ${reached ? 'text-amber-400' : 'text-white/40'}`}>
+                        <span className={`font-bold ${reached ? 'text-reward' : 'text-reward-surface-foreground/40'}`}>
                           +{step.pointsAwarded} pt
                         </span>
                       </div>
@@ -222,15 +223,15 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
                   <div
                     className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs ${
                       completed
-                        ? 'bg-amber-500/20 border border-amber-500/30'
-                        : 'bg-white/[0.03] border border-dashed border-amber-500/15'
+                        ? 'bg-reward/20 border border-reward/30'
+                        : 'bg-reward-surface-foreground/[0.03] border border-dashed border-reward/15'
                     }`}
                   >
-                    <span className={`flex items-center gap-2 ${completed ? 'text-amber-300' : 'text-white/40'}`}>
-                      <Award className={`h-3 w-3 ${completed ? 'text-amber-400 fill-amber-400' : 'text-white/15'}`} />
+                    <span className={`flex items-center gap-2 ${completed ? 'text-reward' : 'text-reward-surface-foreground/40'}`}>
+                      <Award className={`h-3 w-3 ${completed ? 'text-reward fill-reward' : 'text-reward-surface-foreground/15'}`} />
                       Bonus completare
                     </span>
-                    <span className={`font-bold ${completed ? 'text-amber-400' : 'text-white/30'}`}>
+                    <span className={`font-bold ${completed ? 'text-reward' : 'text-reward-surface-foreground/30'}`}>
                       +{campaign.bonusPoints} pt
                     </span>
                   </div>
@@ -243,12 +244,12 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
         {/* Multiplier info */}
         {campaign.rewardType === 'multiplier' && (
           <div className="px-5 pb-3">
-            <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+            <div className="bg-reward-surface-foreground/5 rounded-xl p-3 border border-reward-surface-foreground/5">
               <div className="flex items-center gap-1.5 mb-1">
-                <TrendingUp className="h-3.5 w-3.5 text-amber-400/70" />
-                <span className="text-xs font-semibold text-amber-400/70 uppercase tracking-wider">Multiplicator</span>
+                <TrendingUp className="h-3.5 w-3.5 text-reward/70" />
+                <span className="text-xs font-semibold text-reward/70 uppercase tracking-wider">Multiplicator</span>
               </div>
-              <p className="text-xs text-white/50">
+              <p className="text-xs text-reward-surface-foreground/50">
                 Baza {campaign.baseMultiplier}× · +{campaign.multiplierIncrement}× per pas · Aplicat la {campaign.bonusPoints} puncte
               </p>
             </div>
@@ -259,7 +260,7 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
         {hasValidation && (
           <div className="px-5 pb-2 flex flex-wrap gap-2">
             {campaign.minOrderValue > 0 && (
-              <span className="text-[10px] text-amber-400/40 bg-white/5 rounded px-2 py-0.5">
+              <span className="text-[10px] text-reward/40 bg-reward-surface-foreground/5 rounded px-2 py-0.5">
                 Min. {campaign.minOrderValue} RON/comandă
               </span>
             )}
@@ -270,7 +271,7 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
         {isEnrolled && (
           <div className="px-5 pb-4 flex-1 flex flex-col">
             {enrollmentProp === undefined && enrollmentLoading && !enrollment ? (
-              <Skeleton className="h-12 w-full bg-white/5" />
+              <Skeleton className="h-12 w-full bg-reward-surface-foreground/5" />
             ) : (
               <StreakProgressBar
                 current={enrollment.currentStreakCount}
@@ -284,7 +285,7 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
         )}
 
         {/* Divider */}
-        <div className="mx-5 h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
+        <div className="mx-5 h-px bg-gradient-to-r from-transparent via-reward/30 to-transparent" />
 
         {/* CTA */}
         <div className="p-5 pt-4 mt-auto">

@@ -1,6 +1,7 @@
 /**
  * Streak campaigns section — casino/rewards style.
  * Plugin: plugins/streak
+ * All colors use semantic reward-* tokens.
  */
 
 import React from 'react';
@@ -38,13 +39,13 @@ export const StreakCampaignBlock: React.FC = () => {
           transition={{ duration: 0.5 }}
           className="flex items-center gap-3 mb-6"
         >
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
-            <Flame className="h-5 w-5 text-white" />
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-reward to-reward-accent flex items-center justify-center shadow-lg shadow-reward/20">
+            <Flame className="h-5 w-5 text-reward-surface-foreground" />
           </div>
           <div>
             <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
               Campanii Active
-              <Sparkles className="h-4 w-4 text-amber-400/60 streak-sparkle" />
+              <Sparkles className="h-4 w-4 text-reward/60 streak-sparkle" />
             </h2>
             <p className="text-xs text-muted-foreground">
               Completează streak-ul și câștigă puncte bonus
@@ -52,7 +53,6 @@ export const StreakCampaignBlock: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* Cards scroll — bg-background ca zona vizibilă la scroll să nu fie gri */}
         <div className="overflow-x-auto overflow-y-hidden -mx-4 px-4 sm:-mx-6 sm:px-6 md:mx-0 md:px-0 bg-background scrollbar-none">
           <div className="flex gap-5 pb-2 min-w-0 scroll-smooth after:content-[''] after:flex-shrink-0 after:w-4 sm:after:w-6 md:after:w-0">
             {campaigns.length === 0 ? (

@@ -42,7 +42,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
                 <span
                   className={cn(
                     'flex items-center text-xs font-medium',
-                    trend.isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive'
+                    trend.isPositive ? 'text-success' : 'text-destructive'
                   )}
                 >
                   {trend.isPositive ? (
