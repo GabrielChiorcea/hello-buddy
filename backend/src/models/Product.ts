@@ -222,8 +222,10 @@ export async function findAll(options: {
     conditions.push('p.is_addon = TRUE');
   }
   if (search) {
-    conditions.push('(p.name LIKE ? OR p.description LIKE ?)');
-    params.push(`%${search}%`, `%${search}%`);
+    // Escape LIKE wildcards pentru a preveni wildcard injection
+    const escaped = search.replace(/%/g, '\\%').replace(/_/g, '\\_');
+    conditions.push('MATCH(p.name, p.description) AGAINST(? IN BOOLEAN MODE)');
+    params.push(escaped);
   }
   if (typeof minVisibilityXp === 'number') {
     conditions.push(
