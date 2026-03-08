@@ -203,7 +203,6 @@ export async function updateCampaign(
     endDate: string;
     resetType: ResetType;
     minOrderValue: number;
-    cooldownHours: number;
   }>
 ): Promise<StreakCampaign | null> {
   const fieldMap: Record<string, string> = {
