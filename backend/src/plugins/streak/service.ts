@@ -174,15 +174,6 @@ export async function recordOrderDelivered(
         }
       }
 
-      // ─── Validation: cooldown ───
-      if (campaign.cooldownHours > 0) {
-        const lastLog = await StreakLogsRepo.getLastLogTimestamp(enrollment.id);
-        if (lastLog) {
-          const diffHours = (Date.now() - new Date(lastLog).getTime()) / (1000 * 60 * 60);
-          if (diffHours < campaign.cooldownHours) continue;
-        }
-      }
-
       // ─── Insert log ───
       const inserted = await StreakLogsRepo.insertLog(enrollment.id, orderId, orderDateStr, orderTotal);
       if (!inserted) continue; // Duplicate day
