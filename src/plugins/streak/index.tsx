@@ -1,5 +1,5 @@
 /**
- * Plugin Streak - campanii streak
+ * Plugin Streak - campanii streak V2
  * Punct de intrare pentru înregistrare
  */
 
@@ -13,7 +13,7 @@ import { StreakCampaignBlock } from './components/StreakCampaignBlock';
 
 export { CampaignCard, CampaignJoinButton, StreakProgressBar, StreakCampaignBlock };
 export { default as AdminStreakCampaigns } from './pages/AdminStreakCampaigns';
-export type { StreakCampaign, StreakEnrollment, StreakType } from './types';
+export type { StreakCampaign, StreakEnrollment, RecurrenceType, RewardType, ResetType } from './types';
 export { ACTIVE_STREAK_CAMPAIGN, MY_STREAK_ENROLLMENT } from './queries';
 export { JOIN_STREAK_CAMPAIGN } from './mutations';
 

@@ -1,5 +1,5 @@
 /**
- * GraphQL queries for streak campaign plugin
+ * GraphQL queries for streak campaign plugin V2
  */
 
 import { gql } from '@apollo/client';
@@ -9,14 +9,24 @@ export const ACTIVE_STREAK_CAMPAIGN = gql`
     activeStreakCampaign {
       id
       name
-      streakType
+      recurrenceType
+      rollingWindowDays
       ordersRequired
       bonusPoints
+      rewardType
+      baseMultiplier
+      multiplierIncrement
       customText
       startDate
       endDate
-      resetOnMiss
-      pointsExpireAfterCampaign
+      resetType
+      minOrderValue
+      cooldownHours
+      rewardSteps {
+        stepNumber
+        pointsAwarded
+        label
+      }
       createdAt
       updatedAt
     }
@@ -28,14 +38,24 @@ export const ACTIVE_STREAK_CAMPAIGNS = gql`
     activeStreakCampaigns {
       id
       name
-      streakType
+      recurrenceType
+      rollingWindowDays
       ordersRequired
       bonusPoints
+      rewardType
+      baseMultiplier
+      multiplierIncrement
       customText
       startDate
       endDate
-      resetOnMiss
-      pointsExpireAfterCampaign
+      resetType
+      minOrderValue
+      cooldownHours
+      rewardSteps {
+        stepNumber
+        pointsAwarded
+        label
+      }
       createdAt
       updatedAt
     }
@@ -50,17 +70,28 @@ export const MY_STREAK_ENROLLMENT = gql`
       campaignId
       joinedAt
       currentStreakCount
+      currentLevel
       completedAt
       bonusAwardedAt
       campaign {
         id
         name
-        streakType
+        recurrenceType
+        rollingWindowDays
         ordersRequired
         bonusPoints
+        rewardType
+        baseMultiplier
+        multiplierIncrement
         customText
         startDate
         endDate
+        resetType
+        rewardSteps {
+          stepNumber
+          pointsAwarded
+          label
+        }
       }
     }
   }

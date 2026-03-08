@@ -1,6 +1,5 @@
 /**
- * Casino / Rewards style campaign card — dark theme with gold accents,
- * shimmer effects, sparkle particles, maximum visual impact.
+ * Casino / Rewards style campaign card V2
  * Plugin: plugins/streak
  */
 
@@ -11,9 +10,15 @@ import { ACTIVE_STREAK_CAMPAIGN, MY_STREAK_ENROLLMENT } from '../queries';
 import { StreakProgressBar } from './StreakProgressBar';
 import { CampaignJoinButton } from './CampaignJoinButton';
 import type { StreakCampaign, StreakEnrollment } from '../types';
-import { Flame, Gift, Sparkles } from 'lucide-react';
+import { Flame, Gift, Sparkles, Shield, Clock } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
+
+const RECURRENCE_LABELS: Record<string, string> = {
+  consecutive: 'Zile consecutive',
+  calendar_weekly: 'Săptămânal',
+  rolling: 'Fereastră mobilă',
+};
 
 export interface CampaignCardProps {
   campaign?: StreakCampaign | null;
@@ -60,6 +65,8 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
   if (campaignProp === undefined && (campaignLoading || !campaign)) return null;
   if (!campaign) return null;
 
+  const hasValidation = campaign.minOrderValue > 0 || campaign.cooldownHours > 0;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -68,7 +75,7 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
       className="streak-card-enter"
     >
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border border-amber-500/20 h-full flex flex-col shadow-2xl shadow-amber-900/20">
-        {/* Ambient glow behind card */}
+        {/* Ambient glow */}
         <div className="absolute -top-20 -right-20 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-amber-600/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -78,9 +85,6 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
         </div>
         <div className="absolute top-12 right-12 pointer-events-none">
           <Sparkles className="h-3 w-3 text-yellow-400/30 streak-sparkle" style={{ animationDelay: '0.7s' }} />
-        </div>
-        <div className="absolute bottom-20 left-6 pointer-events-none">
-          <Sparkles className="h-3 w-3 text-amber-400/25 streak-sparkle" style={{ animationDelay: '1.2s' }} />
         </div>
 
         {/* Header */}
@@ -93,21 +97,48 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-lg font-bold text-white truncate">{campaign.name}</h3>
+              <p className="text-xs text-amber-400/60 mt-0.5">
+                {RECURRENCE_LABELS[campaign.recurrenceType] || campaign.recurrenceType}
+                {campaign.recurrenceType === 'rolling' && ` (${campaign.rollingWindowDays} zile)`}
+              </p>
               {campaign.customText && (
-                <p className="text-xs text-amber-400/60 mt-0.5 line-clamp-2">{campaign.customText}</p>
+                <p className="text-xs text-amber-400/40 mt-0.5 line-clamp-2">{campaign.customText}</p>
               )}
             </div>
           </div>
         </div>
 
         {/* Bonus points badge */}
-        <div className="px-5 pb-3">
+        <div className="px-5 pb-2 flex flex-wrap gap-2">
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/15 to-yellow-500/10 border border-amber-500/20 rounded-full px-3.5 py-1.5">
             <Gift className="h-3.5 w-3.5 text-amber-400" />
             <span className="text-sm font-bold streak-shimmer">{campaign.bonusPoints} puncte</span>
             <span className="text-xs text-amber-400/50">premiu</span>
           </div>
+          {campaign.resetType === 'soft_decay' && (
+            <div className="inline-flex items-center gap-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full px-2.5 py-1">
+              <Shield className="h-3 w-3 text-blue-400" />
+              <span className="text-xs text-blue-400">Soft Decay</span>
+            </div>
+          )}
         </div>
+
+        {/* Validation info */}
+        {hasValidation && (
+          <div className="px-5 pb-2 flex flex-wrap gap-2">
+            {campaign.minOrderValue > 0 && (
+              <span className="text-[10px] text-amber-400/40 bg-white/5 rounded px-2 py-0.5">
+                Min. {campaign.minOrderValue} RON/comandă
+              </span>
+            )}
+            {campaign.cooldownHours > 0 && (
+              <span className="text-[10px] text-amber-400/40 bg-white/5 rounded px-2 py-0.5 flex items-center gap-1">
+                <Clock className="h-2.5 w-2.5" />
+                {campaign.cooldownHours}h între comenzi
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Progress section */}
         <div className="px-5 pb-4 flex-1 flex flex-col">
@@ -118,12 +149,13 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
               current={enrollment.currentStreakCount}
               required={enrollment.campaign?.ordersRequired ?? campaign.ordersRequired}
               completed={completed}
-              streakType={campaign.streakType}
+              recurrenceType={campaign.recurrenceType}
+              rewardSteps={campaign.rewardSteps}
             />
           ) : null}
         </div>
 
-        {/* Divider with glow */}
+        {/* Divider */}
         <div className="mx-5 h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
 
         {/* CTA */}

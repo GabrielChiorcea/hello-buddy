@@ -1,5 +1,5 @@
 /**
- * GraphQL mutations for streak campaign plugin
+ * GraphQL mutations for streak campaign plugin V2
  */
 
 import { gql } from '@apollo/client';
@@ -12,17 +12,25 @@ export const JOIN_STREAK_CAMPAIGN = gql`
       campaignId
       joinedAt
       currentStreakCount
+      currentLevel
       completedAt
       bonusAwardedAt
       campaign {
         id
         name
-        streakType
+        recurrenceType
+        rollingWindowDays
         ordersRequired
         bonusPoints
+        rewardType
         customText
         startDate
         endDate
+        rewardSteps {
+          stepNumber
+          pointsAwarded
+          label
+        }
       }
     }
   }
