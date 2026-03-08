@@ -88,17 +88,22 @@ function getTodayLocal(): string {
   return `${y}-${m}-${day}`;
 }
 
+/** Azi în Europe/Bucharest (YYYY-MM-DD) ca să excludem corect campaniile expirate indiferent de TZ server/DB. */
+function getTodayBucharest(): string {
+  const s = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Bucharest' });
+  return s;
+}
+
 export async function getActiveCampaigns(): Promise<StreakCampaign[]> {
-  const today = getTodayLocal();
-  /* Return all campaigns that have not ended yet (end_date >= today), so users see both
-   * currently active and upcoming campaigns; they can only join when start_date <= today. */
+  const today = getTodayBucharest();
+  /* Fetch all campaigns and filter by end_date >= today in app so expiry is correct
+   * regardless of DB timezone or driver param binding (Europe/Bucharest for "today"). */
   const rows = await query<StreakCampaignRow[]>(
-    `SELECT * FROM streak_campaigns
-     WHERE end_date >= ?
-     ORDER BY start_date ASC`,
-    [today]
+    `SELECT * FROM streak_campaigns ORDER BY start_date ASC`,
+    []
   );
-  return rows.map(mapRow);
+  const filtered = rows.filter((r) => toDateString(r.end_date) >= today);
+  return filtered.map(mapRow);
 }
 
 export async function getCampaignById(id: string): Promise<StreakCampaign | null> {

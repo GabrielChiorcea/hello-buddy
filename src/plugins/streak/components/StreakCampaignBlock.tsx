@@ -15,7 +15,7 @@ import { motion } from 'framer-motion';
 export const StreakCampaignBlock: React.FC = () => {
   const { enabled, loading } = usePluginEnabled('streak');
   const { data: campaignsData } = useQuery<{ activeStreakCampaigns: StreakCampaign[] }>(ACTIVE_STREAK_CAMPAIGNS, {
-    fetchPolicy: 'cache-first',
+    fetchPolicy: 'cache-and-network',
     skip: !enabled,
   });
   const { data: enrollmentData } = useQuery<{ myStreakEnrollment: StreakEnrollment | null }>(MY_STREAK_ENROLLMENT, {
