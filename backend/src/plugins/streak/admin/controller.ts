@@ -77,7 +77,7 @@ export async function createCampaign(req: Request, res: Response): Promise<void>
       endDate: body.endDate,
       resetType: body.resetType ?? 'hard',
       minOrderValue: body.minOrderValue ?? 0,
-      cooldownHours: body.cooldownHours ?? 0,
+      
     });
 
     // Set reward steps if provided
