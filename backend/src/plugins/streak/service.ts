@@ -1,7 +1,7 @@
 /**
  * Streak campaign service V2 — motor de reguli complet
  * Recurență (calendar/rolling/consecutive), Praguri (scăriță/multiplicator),
- * Validare (min order, cooldown, excluded products), Resetare (hard/soft decay)
+ * Validare (min order, excluded products), Resetare (hard/soft decay)
  * Plugin: plugins/streak
  */
 

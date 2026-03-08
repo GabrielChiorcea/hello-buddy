@@ -629,17 +629,6 @@ export default function AdminStreakCampaigns() {
                   />
                   <p className="text-xs text-muted-foreground mt-1">0 = fără limită</p>
                 </div>
-                <div>
-                  <Label>Cooldown între comenzi (ore)</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={formData.cooldownHours}
-                    onChange={(e) => setFormData((p) => ({ ...p, cooldownHours: parseInt(e.target.value, 10) || 0 }))}
-                    disabled={isActive}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">0 = fără cooldown</p>
-                </div>
               </div>
               <p className="text-xs text-muted-foreground">
                 Produsele excluse se pot configura prin endpoint-ul API (excludedProducts).

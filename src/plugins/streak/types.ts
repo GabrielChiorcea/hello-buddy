@@ -27,7 +27,6 @@ export interface StreakCampaign {
   endDate: string;
   resetType: ResetType;
   minOrderValue: number;
-  cooldownHours: number;
   rewardSteps: RewardStep[];
   createdAt: string;
   updatedAt: string;

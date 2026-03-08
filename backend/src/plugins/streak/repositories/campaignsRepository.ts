@@ -219,7 +219,6 @@ export async function updateCampaign(
     endDate: 'end_date',
     resetType: 'reset_type',
     minOrderValue: 'min_order_value',
-    cooldownHours: 'cooldown_hours',
   };
   const setters: string[] = [];
   const values: unknown[] = [];

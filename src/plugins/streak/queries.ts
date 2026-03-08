@@ -21,7 +21,6 @@ export const ACTIVE_STREAK_CAMPAIGN = gql`
       endDate
       resetType
       minOrderValue
-      cooldownHours
       rewardSteps {
         stepNumber
         pointsAwarded
@@ -50,7 +49,6 @@ export const ACTIVE_STREAK_CAMPAIGNS = gql`
       endDate
       resetType
       minOrderValue
-      cooldownHours
       rewardSteps {
         stepNumber
         pointsAwarded

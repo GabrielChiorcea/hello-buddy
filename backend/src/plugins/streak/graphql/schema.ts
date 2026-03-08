@@ -42,7 +42,6 @@ export const streakSchemaExtension = `#graphql
     endDate: String!
     resetType: ResetType!
     minOrderValue: Float!
-    cooldownHours: Int!
     rewardSteps: [RewardStep!]!
     createdAt: String!
     updatedAt: String!
