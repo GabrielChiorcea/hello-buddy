@@ -103,7 +103,7 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
   if (campaignProp === undefined && (campaignLoading || !campaign)) return null;
   if (!campaign) return null;
 
-  const hasValidation = campaign.minOrderValue > 0 || campaign.cooldownHours > 0;
+  const hasValidation = campaign.minOrderValue > 0;
   const remaining = daysRemaining(campaign.endDate);
   const hasSteps = campaign.rewardType === 'steps' && campaign.rewardSteps && campaign.rewardSteps.length > 0;
 
