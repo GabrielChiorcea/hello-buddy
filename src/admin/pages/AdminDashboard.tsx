@@ -102,6 +102,7 @@ function normalizeDashboardData(raw: unknown): DashboardData {
 
 export default function AdminDashboard() {
   const { getDashboard } = useAdminApi();
+  const navigate = useNavigate();
   const [data, setData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
