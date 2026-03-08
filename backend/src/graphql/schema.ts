@@ -19,8 +19,6 @@ const coreTypeDefs = `#graphql
     name: String!
     phone: String
     pointsBalance: Int!
-    totalXp: Int!
-    tierId: ID
     createdAt: String!
   }
 
