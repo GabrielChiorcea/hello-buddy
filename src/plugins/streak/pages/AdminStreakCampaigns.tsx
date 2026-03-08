@@ -437,6 +437,7 @@ export default function AdminStreakCampaigns() {
                 <Input
                   type="date"
                   value={formData.startDate}
+                  min={new Date().toISOString().slice(0, 10)}
                   onChange={(e) => setFormData((p) => ({ ...p, startDate: e.target.value }))}
                   disabled={isActive}
                 />
@@ -446,6 +447,7 @@ export default function AdminStreakCampaigns() {
                 <Input
                   type="date"
                   value={formData.endDate}
+                  min={formData.startDate || new Date().toISOString().slice(0, 10)}
                   onChange={(e) => setFormData((p) => ({ ...p, endDate: e.target.value }))}
                   disabled={isActive}
                 />
