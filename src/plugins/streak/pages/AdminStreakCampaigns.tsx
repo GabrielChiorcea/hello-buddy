@@ -325,7 +325,7 @@ export default function AdminStreakCampaigns() {
                       <span>· {REWARD_LABELS[c.rewardType]}</span>
                       <span>· {c.startDate} – {c.endDate}</span>
                       {c.minOrderValue > 0 && <span>· Min. {c.minOrderValue} RON</span>}
-                      {c.cooldownHours > 0 && <span>· Cooldown {c.cooldownHours}h</span>}
+                      
                       {c.resetType === 'soft_decay' && <span className="text-blue-500">· Soft Decay</span>}
                       {isCampaignActive(c) && (
                         <span className="text-primary font-medium">· Activă</span>
