@@ -1,7 +1,7 @@
 /**
  * Streak campaign service V2 — motor de reguli complet
  * Recurență (calendar/rolling/consecutive), Praguri (scăriță/multiplicator),
- * Validare (min order, cooldown, excluded products), Resetare (hard/soft decay)
+ * Validare (min order, excluded products), Resetare (hard/soft decay)
  * Plugin: plugins/streak
  */
 
@@ -171,15 +171,6 @@ export async function recordOrderDelivered(
         if (excluded.length > 0) {
           const hasOnlyExcluded = orderProductIds.every((pid) => excluded.includes(pid));
           if (hasOnlyExcluded) continue; // All products excluded
-        }
-      }
-
-      // ─── Validation: cooldown ───
-      if (campaign.cooldownHours > 0) {
-        const lastLog = await StreakLogsRepo.getLastLogTimestamp(enrollment.id);
-        if (lastLog) {
-          const diffHours = (Date.now() - new Date(lastLog).getTime()) / (1000 * 60 * 60);
-          if (diffHours < campaign.cooldownHours) continue;
         }
       }
 

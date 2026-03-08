@@ -57,14 +57,5 @@ export async function getOrderDatesInRange(
   return rows.map((r) => normDate(r.order_date));
 }
 
-/** Get last log timestamp for cooldown check */
-export async function getLastLogTimestamp(userStreakCampaignId: string): Promise<Date | null> {
-  const row = await queryOne<{ created_at: Date }>(
-    'SELECT created_at FROM streak_logs WHERE user_streak_campaign_id = ? ORDER BY created_at DESC LIMIT 1',
-    [userStreakCampaignId]
-  );
-  return row?.created_at ?? null;
-}
-
 /** Alias for backward compat */
 export const getOrderDatesInWeek = getOrderDatesInRange;

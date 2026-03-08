@@ -27,7 +27,6 @@ export interface StreakCampaignRow {
   end_date: Date | string;
   reset_type: string;
   min_order_value: number;
-  cooldown_hours: number;
   created_at: Date | string;
   updated_at: Date | string;
 }
@@ -47,7 +46,6 @@ export interface StreakCampaign {
   endDate: string;
   resetType: ResetType;
   minOrderValue: number;
-  cooldownHours: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -102,7 +100,6 @@ function mapRow(r: StreakCampaignRow): StreakCampaign {
     endDate: toDateString(r.end_date),
     resetType: (r.reset_type || 'hard') as ResetType,
     minOrderValue: Number(r.min_order_value) || 0,
-    cooldownHours: r.cooldown_hours || 0,
     createdAt: toISOString(r.created_at),
     updatedAt: toISOString(r.updated_at),
   };
@@ -159,7 +156,6 @@ export async function createCampaign(data: {
   endDate: string;
   resetType?: ResetType;
   minOrderValue?: number;
-  cooldownHours?: number;
 }): Promise<StreakCampaign> {
   const id = uuidv4();
   await query(
@@ -167,8 +163,8 @@ export async function createCampaign(data: {
       id, name, streak_type, rolling_window_days, orders_required, bonus_points,
       reward_type, base_multiplier, multiplier_increment,
       custom_text, start_date, end_date,
-      reset_type, min_order_value, cooldown_hours
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      reset_type, min_order_value
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       id,
       data.name,
@@ -184,7 +180,6 @@ export async function createCampaign(data: {
       data.endDate,
       data.resetType ?? 'hard',
       data.minOrderValue ?? 0,
-      data.cooldownHours ?? 0,
     ]
   );
   const campaign = await getCampaignById(id);
@@ -208,7 +203,6 @@ export async function updateCampaign(
     endDate: string;
     resetType: ResetType;
     minOrderValue: number;
-    cooldownHours: number;
   }>
 ): Promise<StreakCampaign | null> {
   const fieldMap: Record<string, string> = {
@@ -225,7 +219,6 @@ export async function updateCampaign(
     endDate: 'end_date',
     resetType: 'reset_type',
     minOrderValue: 'min_order_value',
-    cooldownHours: 'cooldown_hours',
   };
   const setters: string[] = [];
   const values: unknown[] = [];

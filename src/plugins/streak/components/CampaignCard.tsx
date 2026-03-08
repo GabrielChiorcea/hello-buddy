@@ -11,7 +11,7 @@ import { ACTIVE_STREAK_CAMPAIGN, MY_STREAK_ENROLLMENT } from '../queries';
 import { StreakProgressBar } from './StreakProgressBar';
 import { CampaignJoinButton } from './CampaignJoinButton';
 import type { StreakCampaign, StreakEnrollment, RewardStep } from '../types';
-import { Flame, Gift, Sparkles, Shield, Clock, Calendar, Target, TrendingUp, Star, Award } from 'lucide-react';
+import { Flame, Gift, Sparkles, Shield, Calendar, Target, TrendingUp, Star, Award } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
 
@@ -103,7 +103,7 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
   if (campaignProp === undefined && (campaignLoading || !campaign)) return null;
   if (!campaign) return null;
 
-  const hasValidation = campaign.minOrderValue > 0 || campaign.cooldownHours > 0;
+  const hasValidation = campaign.minOrderValue > 0;
   const remaining = daysRemaining(campaign.endDate);
   const hasSteps = campaign.rewardType === 'steps' && campaign.rewardSteps && campaign.rewardSteps.length > 0;
 
@@ -263,12 +263,6 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
             {campaign.minOrderValue > 0 && (
               <span className="text-[10px] text-amber-400/40 bg-white/5 rounded px-2 py-0.5">
                 Min. {campaign.minOrderValue} RON/comandă
-              </span>
-            )}
-            {campaign.cooldownHours > 0 && (
-              <span className="text-[10px] text-amber-400/40 bg-white/5 rounded px-2 py-0.5 flex items-center gap-1">
-                <Clock className="h-2.5 w-2.5" />
-                {campaign.cooldownHours}h între comenzi
               </span>
             )}
           </div>

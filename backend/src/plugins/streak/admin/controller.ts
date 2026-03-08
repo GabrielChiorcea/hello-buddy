@@ -77,7 +77,7 @@ export async function createCampaign(req: Request, res: Response): Promise<void>
       endDate: body.endDate,
       resetType: body.resetType ?? 'hard',
       minOrderValue: body.minOrderValue ?? 0,
-      cooldownHours: body.cooldownHours ?? 0,
+      
     });
 
     // Set reward steps if provided
@@ -127,7 +127,7 @@ export async function updateCampaign(req: Request, res: Response): Promise<void>
     const fields = [
       'name', 'recurrenceType', 'rollingWindowDays', 'ordersRequired', 'bonusPoints',
       'rewardType', 'baseMultiplier', 'multiplierIncrement', 'customText',
-      'startDate', 'endDate', 'resetType', 'minOrderValue', 'cooldownHours',
+      'startDate', 'endDate', 'resetType', 'minOrderValue',
     ] as const;
     for (const f of fields) {
       if (body[f] !== undefined) (updates as any)[f] = body[f];

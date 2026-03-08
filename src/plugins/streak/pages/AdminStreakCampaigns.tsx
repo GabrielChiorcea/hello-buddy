@@ -70,7 +70,6 @@ interface FormData {
   endDate: string;
   resetType: ResetType;
   minOrderValue: number;
-  cooldownHours: number;
   rewardSteps: RewardStep[];
 }
 
@@ -88,7 +87,6 @@ const defaultForm: FormData = {
   endDate: '',
   resetType: 'hard',
   minOrderValue: 0,
-  cooldownHours: 0,
   rewardSteps: [],
 };
 
@@ -183,7 +181,6 @@ export default function AdminStreakCampaigns() {
       endDate: c.endDate,
       resetType: c.resetType,
       minOrderValue: c.minOrderValue,
-      cooldownHours: c.cooldownHours,
       rewardSteps: c.rewardSteps ?? [],
     });
     setShowDialog(true);
@@ -328,7 +325,7 @@ export default function AdminStreakCampaigns() {
                       <span>· {REWARD_LABELS[c.rewardType]}</span>
                       <span>· {c.startDate} – {c.endDate}</span>
                       {c.minOrderValue > 0 && <span>· Min. {c.minOrderValue} RON</span>}
-                      {c.cooldownHours > 0 && <span>· Cooldown {c.cooldownHours}h</span>}
+                      
                       {c.resetType === 'soft_decay' && <span className="text-blue-500">· Soft Decay</span>}
                       {isCampaignActive(c) && (
                         <span className="text-primary font-medium">· Activă</span>
@@ -631,17 +628,6 @@ export default function AdminStreakCampaigns() {
                     disabled={isActive}
                   />
                   <p className="text-xs text-muted-foreground mt-1">0 = fără limită</p>
-                </div>
-                <div>
-                  <Label>Cooldown între comenzi (ore)</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={formData.cooldownHours}
-                    onChange={(e) => setFormData((p) => ({ ...p, cooldownHours: parseInt(e.target.value, 10) || 0 }))}
-                    disabled={isActive}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">0 = fără cooldown</p>
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">
