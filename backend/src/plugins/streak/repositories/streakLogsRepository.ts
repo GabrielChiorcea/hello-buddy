@@ -28,11 +28,18 @@ export async function insertLog(
 export async function getOrderDatesForEnrollment(
   userStreakCampaignId: string
 ): Promise<string[]> {
-  const rows = await query<{ order_date: string }[]>(
+  const rows = await query<{ order_date: string | Date }[]>(
     'SELECT order_date FROM streak_logs WHERE user_streak_campaign_id = ? ORDER BY order_date ASC',
     [userStreakCampaignId]
   );
-  return rows.map((r) => r.order_date);
+  return rows.map((r) => {
+    const v = r.order_date;
+    if (v instanceof Date) return v.toISOString().slice(0, 10);
+    const s = String(v);
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+    const d = new Date(s);
+    return isNaN(d.getTime()) ? s : d.toISOString().slice(0, 10);
+  });
 }
 
 /** Get distinct order_date values in the same ISO week as the given date (YYYY-MM-DD) */
@@ -41,11 +48,18 @@ export async function getOrderDatesInWeek(
   weekStart: string,
   weekEnd: string
 ): Promise<string[]> {
-  const rows = await query<{ order_date: string }[]>(
+  const rows = await query<{ order_date: string | Date }[]>(
     `SELECT DISTINCT order_date FROM streak_logs
      WHERE user_streak_campaign_id = ? AND order_date >= ? AND order_date <= ?
      ORDER BY order_date ASC`,
     [userStreakCampaignId, weekStart, weekEnd]
   );
-  return rows.map((r) => r.order_date);
+  return rows.map((r) => {
+    const v = r.order_date;
+    if (v instanceof Date) return v.toISOString().slice(0, 10);
+    const s = String(v);
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+    const d = new Date(s);
+    return isNaN(d.getTime()) ? s : d.toISOString().slice(0, 10);
+  });
 }

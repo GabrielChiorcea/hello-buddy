@@ -63,10 +63,17 @@ function isWorkingDay(dateStr: string): boolean {
   return day >= 1 && day <= 5;
 }
 
-/** Consecutive run length ending at endDate (inclusive), from sorted list of YYYY-MM-DD. If resetOnMiss, run is only from endDate backwards until a gap. */
+/** Consecutive run length ending at endDate (inclusive), from sorted list of YYYY-MM-DD.
+ *  If resetOnMiss=true, counts backwards from endDate until a gap.
+ *  If resetOnMiss=false, counts total unique dates (streak never resets). */
 function consecutiveRunLength(sortedDates: string[], endDate: string, resetOnMiss: boolean): number {
   const set = new Set(sortedDates);
   if (!set.has(endDate)) return 0;
+
+  if (!resetOnMiss) {
+    // No reset: total unique days count as progress
+    return sortedDates.length;
+  }
 
   let count = 0;
   let d = new Date(endDate + 'T12:00:00Z');
@@ -81,9 +88,13 @@ function consecutiveRunLength(sortedDates: string[], endDate: string, resetOnMis
   return count;
 }
 
-/** Consecutive working-days run ending at endDate. */
+/** Consecutive working-days run ending at endDate.
+ *  If resetOnMiss=false, counts total unique working dates. */
 function consecutiveWorkingDaysRun(sortedDates: string[], endDate: string, resetOnMiss: boolean): number {
   const workingDates = sortedDates.filter(isWorkingDay).sort();
+  if (!resetOnMiss) {
+    return workingDates.length;
+  }
   return consecutiveRunLength(workingDates, endDate, resetOnMiss);
 }
 

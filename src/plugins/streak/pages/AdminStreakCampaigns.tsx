@@ -170,6 +170,14 @@ export default function AdminStreakCampaigns() {
       toast({ title: 'Eroare', description: 'Numărul de zile trebuie să fie >= 1', variant: 'destructive' });
       return;
     }
+    if (formData.streakType === 'days_per_week' && formData.ordersRequired > 7) {
+      toast({ title: 'Eroare', description: 'Pentru "zile pe săptămână", maximum este 7', variant: 'destructive' });
+      return;
+    }
+    if (formData.streakType === 'working_days' && formData.ordersRequired > 5) {
+      toast({ title: 'Eroare', description: 'Pentru "zile lucrătoare", maximum este 5', variant: 'destructive' });
+      return;
+    }
     if (formData.startDate > formData.endDate) {
       toast({ title: 'Eroare', description: 'Data de start trebuie să fie înainte de data de sfârșit', variant: 'destructive' });
       return;
@@ -281,6 +289,8 @@ export default function AdminStreakCampaigns() {
                       variant="outline"
                       size="sm"
                       onClick={() => setDeleteConfirm(c)}
+                      disabled={isCampaignActive(c)}
+                      title={isCampaignActive(c) ? 'Campania activă nu poate fi ștearsă' : 'Șterge'}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
