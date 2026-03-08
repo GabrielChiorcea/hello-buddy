@@ -83,7 +83,7 @@ function mapRowToUser(row: UserRow): User {
  */
 export async function findById(id: string): Promise<User | null> {
   const row = await queryOne<UserRow>(
-    'SELECT * FROM users WHERE id = ?',
+    `SELECT ${USER_COLUMNS} FROM users WHERE id = ?`,
     [id]
   );
   return row ? mapRowToUser(row) : null;
