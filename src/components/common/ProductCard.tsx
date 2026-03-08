@@ -1,7 +1,7 @@
 /**
- * ProductCard — Glovo-style responsive card
- * Mobile: horizontal list item (image left, info right)
- * Desktop: vertical card with image on top
+ * ProductCard — Modern food delivery style
+ * Mobile: compact horizontal card with circular + button
+ * Desktop: vertical card with full add-to-cart button
  */
 
 import React, { useState } from 'react';
@@ -62,9 +62,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLi
   const cardContent = (
     <div
       className={cn(
-        // Mobile: elevated floating card
-        'flex flex-row items-center gap-4 rounded-2xl bg-card overflow-hidden transition-all group p-3',
-        'shadow-[0_4px_20px_-2px_rgba(0,0,0,0.1),0_2px_8px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.15),0_4px_12px_-2px_rgba(0,0,0,0.08)]',
+        // Mobile: compact horizontal card
+        'flex flex-row items-center gap-3 rounded-xl bg-card overflow-hidden transition-all group p-3',
+        'shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.12)]',
         // Desktop: vertical card
         'md:flex-col md:items-stretch md:gap-0 md:p-0 md:rounded-xl md:shadow-sm md:hover:shadow-md md:border md:border-border',
         !product.isAvailable && 'opacity-60',
@@ -73,7 +73,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLi
     >
       {/* Image */}
       <div className={cn(
-        'relative w-24 h-24 shrink-0 overflow-hidden rounded-xl flex items-center justify-center',
+        'relative w-[72px] h-[72px] shrink-0 overflow-hidden rounded-xl flex items-center justify-center',
         'md:w-full md:h-auto md:aspect-[4/3] md:rounded-none md:rounded-t-xl',
       )}>
         <img
@@ -97,28 +97,25 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLi
 
       {/* Info */}
       <div className={cn(
-        'flex flex-1 min-w-0 flex-col justify-between gap-3 pr-4',
+        'flex flex-1 min-w-0 flex-col justify-between gap-0.5',
         'md:p-4 md:pr-4 md:gap-1',
       )}>
-        {/* Row 1: Title + Price */}
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold text-foreground text-sm md:text-base truncate md:line-clamp-1 flex-1 min-w-0">
-            {product.name}
-          </h3>
-          <span className="text-sm md:text-lg font-bold text-primary whitespace-nowrap shrink-0">
-            {product.price} {texts.common.currency}
-          </span>
-        </div>
+        <h3 className="font-semibold text-foreground text-sm md:text-base truncate flex-1 min-w-0">
+          {product.name}
+        </h3>
 
-        {/* Row 2: Ingredients (mobile) / description (desktop) */}
-        {product.ingredients && product.ingredients.length > 0 && (
-          <p className="text-xs text-muted-foreground mt-0.5 md:hidden">
-            {product.ingredients.map(i => i.name).join(', ')}
-          </p>
-        )}
+        {/* Mobile: 1-line description */}
+        <p className="text-xs text-muted-foreground truncate md:hidden">
+          {product.ingredients && product.ingredients.length > 0
+            ? product.ingredients.map(i => i.name).join(', ')
+            : product.description}
+        </p>
+
+        {/* Desktop description */}
         <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2 hidden md:block md:mt-1">
           {product.description}
         </p>
+
         {product.preparationTime && (
           <div className="items-center gap-1 text-xs text-muted-foreground mt-1 hidden md:flex md:mt-2">
             <Clock className="h-3 w-3" />
@@ -126,40 +123,51 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLi
           </div>
         )}
 
-        {/* Row 3: Add to cart button */}
-        <div className="flex items-center justify-between mt-3 md:mt-3">
+        {/* Mobile: price + circular add button */}
+        <div className="flex items-center justify-between mt-1.5 md:hidden">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-primary">
+              {product.price} {texts.common.currency}
+            </span>
+            {pointsInfo && (
+              <span className="text-[10px] text-muted-foreground">
+                {pointsInfo}
+              </span>
+            )}
+          </div>
+          <button
+            onClick={handleAddToCart}
+            disabled={!product.isAvailable || isAdded}
+            className={cn(
+              'flex items-center justify-center w-8 h-8 rounded-full transition-all shrink-0',
+              isAdded
+                ? 'bg-success text-success-foreground'
+                : 'bg-primary text-primary-foreground hover:bg-primary/90',
+              (!product.isAvailable || isAdded) && 'opacity-70',
+            )}
+          >
+            {isAdded ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+          </button>
+        </div>
+
+        {/* Desktop: price + full button */}
+        <div className="hidden md:flex items-center justify-between mt-3">
+          <span className="text-lg font-bold text-primary">
+            {product.price} {texts.common.currency}
+          </span>
           {pointsInfo && (
             <span className="text-[10px] text-muted-foreground">
               {pointsInfo}
             </span>
           )}
+        </div>
+        <div className="hidden md:block mt-2">
           <Button
             size="sm"
             onClick={handleAddToCart}
             disabled={!product.isAvailable || isAdded}
             className={cn(
-              'ml-auto md:hidden h-9 px-3 rounded-lg transition-all text-xs',
-              isAdded && 'bg-success hover:bg-success',
-            )}
-          >
-            {isAdded ? (
-              <>
-                <Check className="mr-1 h-3.5 w-3.5" />
-                {texts.catalog.added}
-              </>
-            ) : (
-              <>
-                <ShoppingCart className="mr-1 h-3.5 w-3.5" />
-                {texts.catalog.addToCart}
-              </>
-            )}
-          </Button>
-          <Button
-            size="sm"
-            onClick={handleAddToCart}
-            disabled={!product.isAvailable || isAdded}
-            className={cn(
-              'hidden md:inline-flex transition-all',
+              'w-full transition-all',
               isAdded && 'bg-success hover:bg-success',
             )}
           >
