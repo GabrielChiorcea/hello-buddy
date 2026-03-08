@@ -46,10 +46,23 @@ export async function getCampaign(req: Request, res: Response): Promise<void> {
 export async function createCampaign(req: Request, res: Response): Promise<void> {
   try {
     const body = req.body;
+    const ordersRequired = body.ordersRequired;
+    const streakType = body.streakType;
+
+    // Validate ordersRequired vs streak type
+    if (streakType === 'days_per_week' && ordersRequired > 7) {
+      res.status(400).json({ error: 'Pentru "zile pe săptămână", maximum este 7 zile.' });
+      return;
+    }
+    if (streakType === 'working_days' && ordersRequired > 5) {
+      res.status(400).json({ error: 'Pentru "zile lucrătoare", maximum este 5 zile.' });
+      return;
+    }
+
     const campaign = await CampaignsRepo.createCampaign({
       name: body.name,
-      streakType: body.streakType,
-      ordersRequired: body.ordersRequired,
+      streakType,
+      ordersRequired,
       bonusPoints: body.bonusPoints ?? 0,
       customText: body.customText ?? null,
       startDate: body.startDate,
