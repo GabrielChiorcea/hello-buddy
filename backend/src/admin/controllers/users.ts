@@ -9,6 +9,12 @@ import * as UserRoleModel from '../../models/UserRole.js';
 import * as OrderModel from '../../models/Order.js';
 import { query } from '../../config/database.js';
 
+/** Sanitizează un obiect User pentru response-urile admin (exclude câmpuri interne sensibile) */
+function sanitizeUserForAdmin(user: UserModel.User) {
+  const { isBlocked, welcomeBonusSeen, ...safe } = user;
+  return { ...safe, isBlocked };
+}
+
 /**
  * GET /admin/users
  * Listează utilizatorii
