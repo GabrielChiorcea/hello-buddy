@@ -138,6 +138,14 @@ export async function getAnalytics(req: Request, res: Response): Promise<void> {
 
     res.json({
       period: `${daysBack}d`,
+      salesKpis: {
+        grossRevenue: currentGross,
+        totalOrders,
+        aov,
+        netProfitPerOrder,
+        revenueGrowthRate: parseFloat(revenueGrowthRate.toFixed(1)),
+        totalDeliveryFees,
+      },
       topCustomers: topCustomers.map(c => ({
         id: c.id,
         name: c.name,
