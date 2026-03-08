@@ -94,7 +94,6 @@ router.get('/addon-rules', addonsController.getAddonRules);
 router.put('/addon-rules', addonsController.updateAddonRules);
 
 // Push notifications admin (trimite promoții)
-const pushController = await import('./controllers/pushNotifications.js');
 router.post('/push/send-promotion', pushController.sendPromotion);
 
   return router;
