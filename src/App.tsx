@@ -142,6 +142,7 @@ const App = () => (
               <ErrorBoundary>
                 <Routes>
                 {/* Pagini publice */}
+                <Route path={routes.welcome} element={<Welcome />} />
                 <Route path={routes.home} element={<Home />} />
                 <Route path={routes.login} element={<Login />} />
                 <Route path={routes.signup} element={<Signup />} />
