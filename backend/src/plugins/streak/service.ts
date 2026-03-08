@@ -54,17 +54,8 @@ export async function getEnrollmentByUserAndActive(userId: string) {
 
 /* ─── Date helpers ─────────────────────────────────────────── */
 
-function getISOWeekRange(dateStr: string): [string, string] {
-  const d = new Date(dateStr + 'T12:00:00Z');
-  const day = d.getUTCDay();
-  const daysFromMonday = day === 0 ? 6 : day - 1;
-  const monday = new Date(d);
-  monday.setUTCDate(d.getUTCDate() - daysFromMonday);
-  const sunday = new Date(monday);
-  sunday.setUTCDate(monday.getUTCDate() + 6);
-  const fmt = (x: Date) => x.toISOString().slice(0, 10);
-  return [fmt(monday), fmt(sunday)];
-}
+
+
 
 function getRollingRange(dateStr: string, windowDays: number): [string, string] {
   const d = new Date(dateStr + 'T12:00:00Z');
