@@ -225,6 +225,29 @@ export const texts = {
     hintMessage: 'Apasă Share jos, apoi „Adaugă pe ecranul de start".',
     androidChromeHint: 'Deschide această pagină în Chrome pentru a instala aplicația.',
   },
+
+  // Admin Analytics
+  analytics: {
+    title: 'Analitice',
+    subtitle: 'Rapoarte avansate despre afacerea ta',
+    grossRevenue: 'Venit Brut Total',
+    netProfitPerOrder: 'Profit Net per Comandă',
+    aov: 'Valoarea Medie a Coșului (AOV)',
+    salesByCategory: 'Volumul Vânzărilor per Categorie',
+    revenueGrowthRate: 'Rata de Creștere a Veniturilor',
+    totalDeliveryFees: 'Total Taxe de Livrare Colectate',
+    totalOrders: 'Total Comenzi',
+    vsPreviousPeriod: 'vs. perioada anterioară',
+    noData: 'Nu există date',
+    topCustomers: 'Top clienți fideli',
+    frequentlyOrderedTogether: 'Frecvent comandate împreună',
+    fulfillmentDeliveryVsInLocation: 'Livrare vs. În locație',
+    fulfillmentTrend: 'Trend fulfillment pe săptămâni',
+    delivery: 'Livrare',
+    inLocation: 'În locație',
+    revenue: 'Venituri',
+    orders: 'comenzi',
+  },
 } as const;
 
 export type TextsType = typeof texts;
