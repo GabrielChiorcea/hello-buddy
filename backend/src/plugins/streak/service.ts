@@ -88,9 +88,13 @@ function consecutiveRunLength(sortedDates: string[], endDate: string, resetOnMis
   return count;
 }
 
-/** Consecutive working-days run ending at endDate. */
+/** Consecutive working-days run ending at endDate.
+ *  If resetOnMiss=false, counts total unique working dates. */
 function consecutiveWorkingDaysRun(sortedDates: string[], endDate: string, resetOnMiss: boolean): number {
   const workingDates = sortedDates.filter(isWorkingDay).sort();
+  if (!resetOnMiss) {
+    return workingDates.length;
+  }
   return consecutiveRunLength(workingDates, endDate, resetOnMiss);
 }
 
