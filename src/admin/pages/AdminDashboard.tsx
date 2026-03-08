@@ -5,15 +5,21 @@
  */
 
 import { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAdminApi } from '@/admin/hooks/useAdminApi';
 import { StatsCard } from '@/admin/components/StatsCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   ShoppingCart,
   DollarSign,
   Users,
   TrendingUp,
+  Clock,
+  ChevronRight,
+  Package,
+  User as UserIcon,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -28,9 +34,10 @@ import {
 } from 'recharts';
 import { DashboardData, OrdersByStatus } from '@/types/admin';
 import { Skeleton } from '@/components/ui/skeleton';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { ro } from 'date-fns/locale';
 import { toast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 const statusLabels: Record<keyof OrdersByStatus, { label: string; color: string }> = {
   pending: { label: 'În așteptare', color: 'bg-status-pending' },
