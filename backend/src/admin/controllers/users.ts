@@ -156,7 +156,7 @@ export async function updateUserRole(req: Request, res: Response): Promise<void>
     const updatedRoles = await UserRoleModel.getUserRoles(id);
     
     res.json({
-      ...user,
+      ...sanitizeUserForAdmin(user!),
       roles: updatedRoles,
     });
   } catch (error) {
