@@ -37,6 +37,7 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         navigateFallbackDenylist: [/^\/~oauth/],
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,jpg,jpeg}"],
+        importScripts: ['/sw-push.js'],
       },
     }),
   ].filter(Boolean),
