@@ -31,29 +31,8 @@ applyTheme(DEFAULT_THEME);
     } else {
       root.classList.remove("dark");
     }
-
-    const hasDarkClass = root.classList.contains("dark");
-
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/5b30d7ea-62d4-4fc8-b8b7-5a517226527b', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Debug-Session-Id': '102b61',
-      },
-      body: JSON.stringify({
-        sessionId: '102b61',
-        runId: 'run1',
-        hypothesisId: 'H5',
-        location: 'main.tsx:initDark',
-        message: 'Initial dark mode applied in main.tsx',
-        data: { isDark, hasDarkClass },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion agent log
   } catch {
-    // Preferința de dark mode nu e critică, putem ignora erorile aici.
+    // ignore
   }
 })();
 
