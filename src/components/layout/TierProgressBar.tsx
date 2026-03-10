@@ -18,7 +18,7 @@ const TIER_VARIANTS = {
 } as const;
 
 export const TierProgressBar: React.FC = () => {
-  const style = useComponentStyle();
+  const style = useTierStyle();
   const data = useTierDisplayData();
 
   if (!data) return null;

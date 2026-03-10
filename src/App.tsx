@@ -195,6 +195,7 @@ const App = () => (
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
+      </TierStyleProvider>
       </ComponentStyleProvider>
     </Provider>
   </ApolloProvider>
