@@ -6,6 +6,7 @@ import React from 'react';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { MobileBottomNav } from './MobileBottomNav';
+import { DarkModeToggle } from '@/components/DarkModeToggle';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -19,6 +20,7 @@ const Layout: React.FC<LayoutProps> = ({ children, showFooter = true }) => {
       <main className="flex-1 pb-20 md:pb-0">{children}</main>
       {showFooter && <Footer />}
       <MobileBottomNav />
+      <DarkModeToggle />
     </div>
   );
 };
