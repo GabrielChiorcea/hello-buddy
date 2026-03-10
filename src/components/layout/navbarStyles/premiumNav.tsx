@@ -1,12 +1,11 @@
 /**
- * Navbar — Premium
- * Glassmorphism cu tokens semantici — se adaptează la temă.
+ * Navbar — Premium (Apple-like)
+ * Clean, cu colțuri foarte rotunjite, fără bg-primary/15.
  */
 
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -27,7 +26,7 @@ export const PremiumNav: React.FC<{ data: NavbarDisplayData }> = ({ data }) => {
 
   return (
     <header className="sticky top-3 z-50 w-full hidden md:block px-6">
-      <div className="mx-auto max-w-7xl rounded-2xl border border-border/30 bg-background/50 backdrop-blur-3xl backdrop-saturate-[1.8] shadow-[0_4px_24px_hsl(var(--primary)/0.08),0_1px_2px_rgba(0,0,0,0.04)]">
+      <div className="mx-auto max-w-7xl rounded-[2rem] border border-border/30 bg-background/40 backdrop-blur-3xl backdrop-saturate-[1.8] shadow-[0_4px_24px_hsl(var(--primary)/0.08),0_1px_2px_rgba(0,0,0,0.04)]">
         <div className="flex h-14 items-center justify-between px-8">
           <Link to={routes.home} className="flex items-center gap-2.5 shrink-0">
             <Crown className="h-5 w-5 text-primary" />
@@ -40,9 +39,9 @@ export const PremiumNav: React.FC<{ data: NavbarDisplayData }> = ({ data }) => {
                 key={path} 
                 to={path} 
                 className={cn(
-                  'text-[13px] font-medium transition-all duration-200 px-4 py-1.5 rounded-xl',
-                  isActive(path) 
-                    ? 'bg-primary/15 text-primary' 
+                  'text-[13px] font-medium transition-all duration-200 px-4 py-1.5 rounded-[2rem]',
+                  isActive(path)
+                    ? 'text-primary'
                     : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
                 )}
               >
@@ -68,7 +67,12 @@ export const PremiumNav: React.FC<{ data: NavbarDisplayData }> = ({ data }) => {
           </form>
 
           <div className="flex items-center gap-1.5">
-            <Button variant="ghost" size="icon" className="lg:hidden h-9 w-9 rounded-xl hover:bg-accent/50" onClick={() => setShowSearch(!showSearch)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden h-9 w-9 rounded-xl hover:bg-accent/50"
+              onClick={() => setShowSearch(!showSearch)}
+            >
               <Search className="h-4 w-4" />
             </Button>
             <Link to={routes.cart}>
@@ -118,23 +122,7 @@ export const PremiumNav: React.FC<{ data: NavbarDisplayData }> = ({ data }) => {
           </div>
         </div>
       </div>
-
-      {showSearch && (
-        <div className="mt-2 mx-auto max-w-7xl rounded-2xl border border-border/25 bg-background/50 backdrop-blur-2xl px-5 py-3 lg:hidden shadow-lg">
-          <form onSubmit={handleSearchSubmit} className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              type="text" 
-              placeholder={texts.home.searchPlaceholder} 
-              value={localSearch} 
-              onChange={(e) => setLocalSearch(e.target.value)} 
-              className="pl-9 pr-8 h-10 rounded-xl border-border/20 bg-accent/30 font-medium" 
-              autoFocus 
-            />
-            {localSearch && <button type="button" onClick={handleSearchClear} className="absolute right-3 top-1/2 -translate-y-1/2"><X className="h-4 w-4 text-muted-foreground" /></button>}
-          </form>
-        </div>
-      )}
     </header>
   );
 };
+

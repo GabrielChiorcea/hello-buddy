@@ -75,16 +75,16 @@ export const STYLES = {
   navbar: 'premium' as StyleName,
 
   /** Pagina Coș */
-  cart: 'friendly' as StyleName,
+  cart: 'gamified' as StyleName,
 
   /** Pagina Checkout */
-  checkout: 'friendly' as StyleName,
+  checkout: 'gamified' as StyleName,
 
   /** Pagina Home (Hero, Categorii, Recomandate, CTA) */
-  home: 'friendly' as StyleName,
+  home: 'gamified' as StyleName,
 
   /** Footer */
-  footer: 'friendly' as StyleName,
+  footer: 'gamified' as StyleName,
 } as const;
 
 // ── Contexte React ──
