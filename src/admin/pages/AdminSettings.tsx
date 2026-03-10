@@ -292,6 +292,42 @@ export default function AdminSettings() {
         </CardContent>
       </Card>
 
+      {/* Stil componente */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Palette className="h-5 w-5" />
+            Stil componente
+          </CardTitle>
+          <CardDescription>
+            Alege stilul vizual pentru componentele de gamificare (streak, puncte, recompense)
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <Label>Stil vizual</Label>
+            <Select value={settings.component_style} onValueChange={(v) => updateField('component_style', v)}>
+              <SelectTrigger className="w-full md:w-80">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.entries(COMPONENT_STYLE_LABELS) as [ComponentStyleName, { label: string; description: string }][]).map(([key, { label, description }]) => (
+                  <SelectItem key={key} value={key}>
+                    <div>
+                      <span className="font-medium">{label}</span>
+                      <span className="text-muted-foreground ml-2 text-xs">— {description}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Notă: Schimbarea stilului necesită actualizarea valorii <code className="bg-muted px-1 rounded">DEFAULT_COMPONENT_STYLE</code> în cod sau implementarea unui sistem dinamic.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Plugin-uri */}
       <Card>
         <CardHeader>
