@@ -2,21 +2,6 @@
  * ═══════════════════════════════════════════════════════════════
  * CONFIGURARE CENTRALIZATĂ — TEME & STILURI VIZUALE
  * ═══════════════════════════════════════════════════════════════
- *
- * Acest fișier este SINGURUL loc de configurare vizuală.
- *
- * ── CULORI (Theme) ──
- *   Schimbă DEFAULT_THEME pentru a alege paleta de culori.
- *   Teme disponibile: 'orange' | 'tomato' | 'freshGreen' | 'mustard'
- *
- * ── STILURI COMPONENTE (Styles) ──
- *   Schimbă valorile din STYLES pentru a alege skinul fiecărei secțiuni.
- *   Stiluri disponibile: 'gamified' | 'clean' | 'premium' | 'friendly'
- *
- * Exemplu:
- *   DEFAULT_THEME = 'tomato'      → culori roșu-cald
- *   STYLES.navbar = 'premium'     → navigație cu glassmorphism
- *   STYLES.productCard = 'clean'  → carduri minimaliste
  */
 
 import { createContext, useContext } from 'react';
@@ -32,9 +17,6 @@ import type { ThemePreset } from './types';
 
 export type ThemeName = 'orange' | 'tomato' | 'freshGreen' | 'mustard';
 
-// ╔═══════════════════════════════════════════╗
-// ║  👇 SCHIMBĂ TEMA AICI (change theme here) ║
-// ╚═══════════════════════════════════════════╝
 export const DEFAULT_THEME: ThemeName = 'orange';
 
 export const themes: Record<ThemeName, ThemePreset> = {
@@ -44,10 +26,6 @@ export const themes: Record<ThemeName, ThemePreset> = {
   mustard,
 };
 
-/**
- * Applies theme CSS variables to <html>.
- * Call once at app startup in main.tsx.
- */
 export function applyTheme(name: ThemeName = DEFAULT_THEME): void {
   const theme = themes[name];
   if (!theme) return;
@@ -96,12 +74,17 @@ export const STYLES = {
   /** Navbar desktop + MobileBottomNav */
   navbar: 'premium' as StyleName,
 
-  // ── Viitoare ──
-  // cart: 'friendly' as StyleName,
-  // checkout: 'friendly' as StyleName,
-  // welcomeBonus: 'friendly' as StyleName,
-  // home: 'friendly' as StyleName,
-  // footer: 'friendly' as StyleName,
+  /** Pagina Coș */
+  cart: 'friendly' as StyleName,
+
+  /** Pagina Checkout */
+  checkout: 'friendly' as StyleName,
+
+  /** Pagina Home (Hero, Categorii, Recomandate, CTA) */
+  home: 'friendly' as StyleName,
+
+  /** Footer */
+  footer: 'friendly' as StyleName,
 } as const;
 
 // ── Contexte React ──
@@ -110,17 +93,29 @@ const ComponentStyleCtx = createContext<StyleName>(STYLES.component);
 const TierStyleCtx = createContext<StyleName>(STYLES.tier);
 const ProductCardStyleCtx = createContext<StyleName>(STYLES.productCard);
 const NavbarStyleCtx = createContext<StyleName>(STYLES.navbar);
+const CartStyleCtx = createContext<StyleName>(STYLES.cart);
+const CheckoutStyleCtx = createContext<StyleName>(STYLES.checkout);
+const HomeStyleCtx = createContext<StyleName>(STYLES.home);
+const FooterStyleCtx = createContext<StyleName>(STYLES.footer);
 
 // Provideri
 export const ComponentStyleProvider = ComponentStyleCtx.Provider;
 export const TierStyleProvider = TierStyleCtx.Provider;
 export const ProductCardStyleProvider = ProductCardStyleCtx.Provider;
 export const NavbarStyleProvider = NavbarStyleCtx.Provider;
+export const CartStyleProvider = CartStyleCtx.Provider;
+export const CheckoutStyleProvider = CheckoutStyleCtx.Provider;
+export const HomeStyleProvider = HomeStyleCtx.Provider;
+export const FooterStyleProvider = FooterStyleCtx.Provider;
 
 // Hook-uri
 export const useComponentStyle = () => useContext(ComponentStyleCtx);
 export const useTierStyle = () => useContext(TierStyleCtx);
 export const useProductCardStyle = () => useContext(ProductCardStyleCtx);
 export const useNavbarStyle = () => useContext(NavbarStyleCtx);
+export const useCartStyle = () => useContext(CartStyleCtx);
+export const useCheckoutStyle = () => useContext(CheckoutStyleCtx);
+export const useHomeStyle = () => useContext(HomeStyleCtx);
+export const useFooterStyle = () => useContext(FooterStyleCtx);
 
 export type { ThemePreset } from './types';

@@ -16,6 +16,14 @@ export {
   ProductCardStyleProvider,
   useNavbarStyle,
   NavbarStyleProvider,
+  useCartStyle,
+  CartStyleProvider,
+  useCheckoutStyle,
+  CheckoutStyleProvider,
+  useHomeStyle,
+  HomeStyleProvider,
+  useFooterStyle,
+  FooterStyleProvider,
 } from './themes';
 
 import { STYLES } from './themes';
