@@ -35,7 +35,7 @@ export type ThemeName = 'orange' | 'tomato' | 'freshGreen' | 'mustard';
 // ╔═══════════════════════════════════════════╗
 // ║  👇 SCHIMBĂ TEMA AICI (change theme here) ║
 // ╚═══════════════════════════════════════════╝
-export const DEFAULT_THEME: ThemeName = 'orange';
+export const DEFAULT_THEME: ThemeName = 'freshGreen';
 
 export const themes: Record<ThemeName, ThemePreset> = {
   orange,
@@ -85,16 +85,16 @@ export type StyleName = 'gamified' | 'clean' | 'premium' | 'friendly';
 
 export const STYLES = {
   /** Streak, Points, Rewards */
-  component: 'gamified' as StyleName,
+  component: 'friendly' as StyleName,
 
   /** TierProgressBar (ranguri) */
-  tier: 'gamified' as StyleName,
+  tier: 'friendly' as StyleName,
 
   /** Carduri de produse */
-  productCard: 'gamified' as StyleName,
+  productCard: 'friendly' as StyleName,
 
   /** Navbar desktop + MobileBottomNav */
-  navbar: 'premium' as StyleName,
+  navbar: 'friendly' as StyleName,
 
   // ── Viitoare ──
   // cart: 'friendly' as StyleName,
