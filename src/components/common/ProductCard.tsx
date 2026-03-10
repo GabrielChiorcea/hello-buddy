@@ -7,7 +7,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Product } from '@/types';
 import { getProductUrl } from '@/config/routes';
-import { useProductCardStyle } from '@/config/themes/styles';
+import { useProductCardStyle } from '@/config/themes';
 import { useProductCardData } from './productCardStyles/shared';
 import { GamifiedCard } from './productCardStyles/gamifiedCard';
 import { CleanCard } from './productCardStyles/cleanCard';

@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { useNavbarStyle } from '@/config/themes/styles';
+import { useNavbarStyle } from '@/config/themes';
 import { useMobileNavData } from './mobileNavStyles/shared';
 import { GamifiedMobileNav } from './mobileNavStyles/gamifiedMobileNav';
 import { CleanMobileNav } from './mobileNavStyles/cleanMobileNav';
