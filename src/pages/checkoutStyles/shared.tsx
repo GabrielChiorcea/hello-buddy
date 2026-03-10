@@ -12,6 +12,8 @@ import { Separator } from '@/components/ui/separator';
 import { FormInput } from '@/components/common/FormInput';
 import { Loader } from '@/components/common/Loader';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Layout } from '@/components/layout/Layout';
+import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { resetCart } from '@/store/slices/cartSlice';
 import { fetchAddresses, fetchCurrentUser } from '@/store/slices/userSlice';
