@@ -57,7 +57,6 @@ function parseSettings(map: SettingsMap): EditableSettings {
     plugin_addons_enabled: (map.plugin_addons_enabled?.value ?? 'true') === 'true',
     plugin_tiers_enabled: (map.plugin_tiers_enabled?.value ?? 'true') === 'true',
     has_tables: (map.has_tables?.value ?? 'true') === 'true',
-    component_style: (map.component_style?.value ?? 'gamified') as ComponentStyleName,
   };
 }
 
