@@ -1,11 +1,10 @@
 /**
  * MobileBottomNav — Premium
- * Floating pill cu glassmorphism, elegant și rafinat.
+ * Floating pill cu glassmorphism, tokens semantici — se adaptează la temă.
  */
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { MobileNavDisplayData } from './shared';
 
@@ -14,7 +13,7 @@ export const PremiumMobileNav: React.FC<{ data: MobileNavDisplayData }> = ({ dat
 
   return (
     <div className="fixed bottom-5 left-4 right-4 z-50 md:hidden safe-area-bottom">
-      <nav className="mx-auto max-w-md flex items-center justify-around px-3 py-2 rounded-2xl border border-white/30 bg-white/15 backdrop-blur-3xl backdrop-saturate-[1.8] shadow-[0_4px_24px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.5)]">
+      <nav className="mx-auto max-w-md flex items-center justify-around px-3 py-2 rounded-2xl border border-border/30 bg-background/50 backdrop-blur-3xl backdrop-saturate-[1.8] shadow-[0_4px_24px_hsl(var(--primary)/0.08)]">
         {navItems.map(({ path, label, icon: Icon, badge }) => (
           <Link
             key={path}
@@ -22,8 +21,8 @@ export const PremiumMobileNav: React.FC<{ data: MobileNavDisplayData }> = ({ dat
             className={cn(
               'flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 rounded-xl transition-all duration-200',
               isActive(path) 
-                ? 'bg-white/40 text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]' 
-                : 'text-foreground/50 hover:text-foreground hover:bg-white/20'
+                ? 'bg-primary/15 text-primary' 
+                : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
             )}
           >
             <div className="relative">
