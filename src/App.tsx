@@ -41,6 +41,7 @@ import { useSessionRestore } from "@/hooks/useSessionRestore";
 // Import Apollo Provider
 import { ApolloProvider } from "@apollo/client";
 import { apolloClient } from "@/graphql/client";
+import { ComponentStyleProvider, DEFAULT_COMPONENT_STYLE } from "./config/componentStyle";
 
 // ============================================================================
 // IMPORTURI PAGINI
