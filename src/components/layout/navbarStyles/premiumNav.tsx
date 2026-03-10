@@ -138,3 +138,4 @@ export const PremiumNav: React.FC<{ data: NavbarDisplayData }> = ({ data }) => {
       )}
     </header>
   );
+};
