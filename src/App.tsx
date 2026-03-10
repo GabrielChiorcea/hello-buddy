@@ -2,7 +2,7 @@
  * =============================================================================
  * COMPONENTA PRINCIPALĂ A APLICAȚIEI
  * =============================================================================
-import { ComponentStyleProvider, DEFAULT_COMPONENT_STYLE } from "./config/componentStyle";
+ *
  * 
  * App.tsx este punctul central al aplicației React.
  * 
