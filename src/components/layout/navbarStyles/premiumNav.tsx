@@ -27,7 +27,7 @@ export const PremiumNav: React.FC<{ data: NavbarDisplayData }> = ({ data }) => {
 
   return (
     <header className="sticky top-3 z-50 w-full hidden md:block px-6">
-      <div className="mx-auto max-w-7xl rounded-[2rem] border border-border/30 backdrop-blur-3xl backdrop-saturate-[1.8] shadow-[0_4px_24px_hsl(var(--primary)/0.08),0_1px_2px_rgba(0,0,0,0.04)]">
+      <div className="mx-auto max-w-7xl rounded-2xl border border-border/30 bg-background/50 backdrop-blur-3xl backdrop-saturate-[1.8] shadow-[0_4px_24px_hsl(var(--primary)/0.08),0_1px_2px_rgba(0,0,0,0.04)]">
         <div className="flex h-14 items-center justify-between px-8">
           <Link to={routes.home} className="flex items-center gap-2.5 shrink-0">
             <Crown className="h-5 w-5 text-primary" />
@@ -40,9 +40,9 @@ export const PremiumNav: React.FC<{ data: NavbarDisplayData }> = ({ data }) => {
                 key={path} 
                 to={path} 
                 className={cn(
-                  'text-[13px] font-medium transition-all duration-200 px-4 py-1.5 rounded-[2rem]',
-                  isActive(path)
-                    ? 'text-primary'
+                  'text-[13px] font-medium transition-all duration-200 px-4 py-1.5 rounded-xl',
+                  isActive(path) 
+                    ? 'bg-primary/15 text-primary' 
                     : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
                 )}
               >
