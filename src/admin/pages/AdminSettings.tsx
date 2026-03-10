@@ -42,6 +42,7 @@ interface EditableSettings {
   plugin_addons_enabled: boolean;
   plugin_tiers_enabled: boolean;
   has_tables: boolean;
+  component_style: ComponentStyleName;
 }
 
 function parseSettings(map: SettingsMap): EditableSettings {
