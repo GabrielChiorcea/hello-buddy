@@ -127,6 +127,7 @@ const App = () => (
   <ApolloProvider client={apolloClient}>
     <Provider store={store}>
       <ComponentStyleProvider value={DEFAULT_COMPONENT_STYLE}>
+      <TierStyleProvider value={DEFAULT_TIER_STYLE}>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           {/* Componente globale pentru notificări */}
