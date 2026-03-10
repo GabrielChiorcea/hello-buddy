@@ -18,7 +18,7 @@ export type ComponentStyleName = 'gamified' | 'clean' | 'premium' | 'friendly';
 // ╔═══════════════════════════════════════════════════╗
 // ║  👇 SCHIMBĂ STILUL AICI (change component style) ║
 // ╚═══════════════════════════════════════════════════╝
-export const DEFAULT_COMPONENT_STYLE: ComponentStyleName = 'gamified';
+export const DEFAULT_COMPONENT_STYLE: ComponentStyleName = 'friendly';
 
 const ComponentStyleContext = createContext<ComponentStyleName>(DEFAULT_COMPONENT_STYLE);
 

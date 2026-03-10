@@ -84,11 +84,18 @@ function getTodayLocal(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+function normalizeRecurrenceType(raw: string): RecurrenceType {
+  if (raw === 'rolling' || raw === 'consecutive') return raw;
+  return 'rolling';
+}
+
 function mapRow(r: StreakCampaignRow): StreakCampaign {
+  const recurrenceType = normalizeRecurrenceType(String(r.streak_type || 'rolling'));
+
   return {
     id: r.id,
     name: r.name,
-    recurrenceType: r.streak_type as RecurrenceType,
+    recurrenceType,
     rollingWindowDays: r.rolling_window_days,
     ordersRequired: r.orders_required,
     bonusPoints: r.bonus_points,
