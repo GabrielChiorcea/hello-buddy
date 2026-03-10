@@ -41,7 +41,15 @@ import { useSessionRestore } from "@/hooks/useSessionRestore";
 // Import Apollo Provider
 import { ApolloProvider } from "@apollo/client";
 import { apolloClient } from "@/graphql/client";
-import { ComponentStyleProvider, DEFAULT_COMPONENT_STYLE, TierStyleProvider, DEFAULT_TIER_STYLE } from "./config/componentStyle";
+
+// Import stil providers din config centralizat
+import {
+  STYLES,
+  ComponentStyleProvider,
+  TierStyleProvider,
+  ProductCardStyleProvider,
+  NavbarStyleProvider,
+} from "@/config/themes/styles";
 
 // ============================================================================
 // IMPORTURI PAGINI
@@ -121,13 +129,15 @@ const TokenRefreshHandler: React.FC<{ children: React.ReactNode }> = ({ children
  * App - Componenta rădăcină a aplicației
  * 
  * Structura ierarhică a provider-ilor:
- * ApolloProvider -> Redux Provider -> QueryClientProvider -> TooltipProvider -> Routes
+ * ApolloProvider -> Redux Provider -> Style Providers -> QueryClientProvider -> TooltipProvider -> Routes
  */
 const App = () => (
   <ApolloProvider client={apolloClient}>
     <Provider store={store}>
-      <ComponentStyleProvider value={DEFAULT_COMPONENT_STYLE}>
-      <TierStyleProvider value={DEFAULT_TIER_STYLE}>
+      <ComponentStyleProvider value={STYLES.component}>
+      <TierStyleProvider value={STYLES.tier}>
+      <ProductCardStyleProvider value={STYLES.productCard}>
+      <NavbarStyleProvider value={STYLES.navbar}>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           {/* Componente globale pentru notificări */}
@@ -195,6 +205,8 @@ const App = () => (
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
+      </NavbarStyleProvider>
+      </ProductCardStyleProvider>
       </TierStyleProvider>
       </ComponentStyleProvider>
     </Provider>
