@@ -122,6 +122,13 @@ export async function updateSettings(req: Request, res: Response): Promise<void>
           return;
         }
       }
+      if (key === 'component_style') {
+        const validStyles = ['gamified', 'clean', 'premium', 'friendly'];
+        if (!validStyles.includes(String(value))) {
+          res.status(400).json({ error: `component_style trebuie să fie una din: ${validStyles.join(', ')}` });
+          return;
+        }
+      }
       
       // Actualizează setarea
       await query(
