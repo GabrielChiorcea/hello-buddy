@@ -109,7 +109,6 @@ export default function AdminSettings() {
         plugin_addons_enabled: settings.plugin_addons_enabled ? 'true' : 'false',
         plugin_tiers_enabled: settings.plugin_tiers_enabled ? 'true' : 'false',
         has_tables: settings.has_tables ? 'true' : 'false',
-        component_style: settings.component_style,
       });
       toast({
         title: 'Setări salvate',
