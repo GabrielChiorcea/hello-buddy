@@ -1,11 +1,10 @@
 /**
  * ═══ Backward Compatibility ═══
  *
- * Importurile vechi funcționează în continuare.
- * Configurarea centralizată se face în src/config/themes/styles.ts
+ * Configurarea centralizată se face în src/config/themes/index.ts
  */
 
-export type { StyleName as ComponentStyleName } from './themes/styles';
+export type { StyleName as ComponentStyleName } from './themes';
 
 export {
   STYLES,
@@ -17,9 +16,9 @@ export {
   ProductCardStyleProvider,
   useNavbarStyle,
   NavbarStyleProvider,
-} from './themes/styles';
+} from './themes';
 
-import { STYLES } from './themes/styles';
+import { STYLES } from './themes';
 
 export const DEFAULT_COMPONENT_STYLE = STYLES.component;
 export const DEFAULT_TIER_STYLE = STYLES.tier;

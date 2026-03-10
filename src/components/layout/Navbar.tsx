@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { useNavbarStyle } from '@/config/themes/styles';
+import { useNavbarStyle } from '@/config/themes';
 import { useNavbarData } from './navbarStyles/shared';
 import { GamifiedNav } from './navbarStyles/gamifiedNav';
 import { CleanNav } from './navbarStyles/cleanNav';

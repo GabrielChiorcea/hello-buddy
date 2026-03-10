@@ -49,7 +49,7 @@ import {
   TierStyleProvider,
   ProductCardStyleProvider,
   NavbarStyleProvider,
-} from "@/config/themes/styles";
+} from "@/config/themes";
 
 // ============================================================================
 // IMPORTURI PAGINI
