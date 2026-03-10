@@ -96,7 +96,7 @@ export const GamifiedTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
             <ChevronRight className="h-3.5 w-3.5 text-primary flex-shrink-0" />
             <span className="text-[11px] text-muted-foreground">La nivelul următor:</span>
             <span className="text-[11px] font-semibold text-foreground">
-              {data.nextTier && require('@/config/tierIcons').getTierBadgeIcon(data.nextTier.badgeIcon)} {nextTier.name}
+              {nextTier && getTierBadgeIcon(nextTier.badgeIcon)} {nextTier.name}
             </span>
             <span className="ml-auto text-[10px] font-bold text-primary">x{nextMultiplier.toFixed(1)}</span>
           </div>
