@@ -87,65 +87,8 @@
     --sidebar-ring: 16 90% 50%;
   }
 
-  .dark {
-    --background: 20 14.3% 4.1%;
-    --foreground: 30 25% 98%;
-
-    --card: 20 14.3% 6%;
-    --card-foreground: 30 25% 98%;
-
-    --popover: 20 14.3% 6%;
-    --popover-foreground: 30 25% 98%;
-
-    --primary: 16 90% 55%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 20 14.3% 12%;
-    --secondary-foreground: 30 25% 98%;
-
-    --muted: 20 14.3% 12%;
-    --muted-foreground: 30 15% 65%;
-
-    --accent: 16 50% 15%;
-    --accent-foreground: 16 90% 70%;
-
-    --destructive: 0 62.8% 50%;
-    --destructive-foreground: 0 0% 100%;
-
-    --success: 142 70% 45%;
-    --success-foreground: 0 0% 100%;
-
-    --warning: 45 93% 47%;
-    --warning-foreground: 20 14.3% 4.1%;
-
-    /* ═══ Reward / Gamification theme (dark) ═══ */
-    --reward: 43 96% 56%;
-    --reward-foreground: 0 0% 0%;
-    --reward-light: 48 97% 63%;
-    --reward-accent: 25 95% 53%;
-    --reward-surface: 220 20% 8%;
-    --reward-surface-foreground: 40 30% 95%;
-
-    /* ═══ Status colors (dark) ═══ */
-    --status-pending: 45 93% 47%;
-    --status-confirmed: 217 91% 60%;
-    --status-preparing: 25 95% 53%;
-    --status-delivering: 271 91% 65%;
-    --status-delivered: 142 70% 45%;
-
-    --border: 20 14.3% 15%;
-    --input: 20 14.3% 15%;
-    --ring: 16 90% 55%;
-
-    --sidebar-background: 20 14.3% 6%;
-    --sidebar-foreground: 30 15% 80%;
-    --sidebar-primary: 16 90% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 20 14.3% 12%;
-    --sidebar-accent-foreground: 30 25% 98%;
-    --sidebar-border: 20 14.3% 15%;
-    --sidebar-ring: 16 90% 55%;
-  }
+  /* Dark mode tokens vin din tema activă (applyTheme)
+     — nu mai definim valori hardcodate aici. */
 }
 
 @layer base {

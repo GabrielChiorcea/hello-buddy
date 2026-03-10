@@ -19,17 +19,8 @@ export function useAdminDarkMode() {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, String(isDark));
-    } catch {}
-
-    try {
-      const root = document.documentElement;
-      if (isDark) {
-        root.classList.add('dark');
-      } else {
-        root.classList.remove('dark');
-      }
     } catch {
-      // Fail silently if document is not available (e.g. during SSR/tests)
+      // ignore
     }
   }, [isDark]);
 
