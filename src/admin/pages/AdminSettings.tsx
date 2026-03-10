@@ -13,11 +13,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, Loader2, Puzzle, Palette } from 'lucide-react';
+import { Save, Loader2, Puzzle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { COMPONENT_STYLE_LABELS, type ComponentStyleName } from '@/config/componentStyle';
 
 /**
  * Structura internă a setărilor primite de la API
@@ -42,7 +40,6 @@ interface EditableSettings {
   plugin_addons_enabled: boolean;
   plugin_tiers_enabled: boolean;
   has_tables: boolean;
-  component_style: ComponentStyleName;
 }
 
 function parseSettings(map: SettingsMap): EditableSettings {
@@ -60,7 +57,6 @@ function parseSettings(map: SettingsMap): EditableSettings {
     plugin_addons_enabled: (map.plugin_addons_enabled?.value ?? 'true') === 'true',
     plugin_tiers_enabled: (map.plugin_tiers_enabled?.value ?? 'true') === 'true',
     has_tables: (map.has_tables?.value ?? 'true') === 'true',
-    component_style: (map.component_style?.value ?? 'gamified') as ComponentStyleName,
   };
 }
 
@@ -113,7 +109,6 @@ export default function AdminSettings() {
         plugin_addons_enabled: settings.plugin_addons_enabled ? 'true' : 'false',
         plugin_tiers_enabled: settings.plugin_tiers_enabled ? 'true' : 'false',
         has_tables: settings.has_tables ? 'true' : 'false',
-        component_style: settings.component_style,
       });
       toast({
         title: 'Setări salvate',
@@ -292,41 +287,7 @@ export default function AdminSettings() {
         </CardContent>
       </Card>
 
-      {/* Stil componente */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Palette className="h-5 w-5" />
-            Stil componente
-          </CardTitle>
-          <CardDescription>
-            Alege stilul vizual pentru componentele de gamificare (streak, puncte, recompense)
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <Label>Stil vizual</Label>
-            <Select value={settings.component_style} onValueChange={(v) => updateField('component_style', v)}>
-              <SelectTrigger className="w-full md:w-80">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {(Object.entries(COMPONENT_STYLE_LABELS) as [ComponentStyleName, { label: string; description: string }][]).map(([key, { label, description }]) => (
-                  <SelectItem key={key} value={key}>
-                    <div>
-                      <span className="font-medium">{label}</span>
-                      <span className="text-muted-foreground ml-2 text-xs">— {description}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              Notă: Schimbarea stilului necesită actualizarea valorii <code className="bg-muted px-1 rounded">DEFAULT_COMPONENT_STYLE</code> în cod sau implementarea unui sistem dinamic.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+
 
       {/* Plugin-uri */}
       <Card>
