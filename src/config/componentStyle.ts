@@ -45,22 +45,3 @@ export function useTierStyle(): ComponentStyleName {
   return useContext(TierStyleContext);
 }
 
-/** Human-readable labels for admin UI */
-export const COMPONENT_STYLE_LABELS: Record<ComponentStyleName, { label: string; description: string }> = {
-  gamified: {
-    label: 'Gamified',
-    description: 'Stil energic cu badge-uri, glow și animații — ideal pentru fast-food',
-  },
-  clean: {
-    label: 'Clean / Minimal',
-    description: 'Design simplu și discret — ideal pentru healthy brands',
-  },
-  premium: {
-    label: 'Premium',
-    description: 'Stil elegant și sobru — ideal pentru restaurante upscale',
-  },
-  friendly: {
-    label: 'Friendly / Casual',
-    description: 'Stil cald și accesibil — ideal pentru bistro sau restaurante italiene',
-  },
-};
