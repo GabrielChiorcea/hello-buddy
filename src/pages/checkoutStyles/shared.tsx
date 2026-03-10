@@ -342,8 +342,6 @@ export const SubmitButton: React.FC<{ isLoading: boolean }> = ({ isLoading }) =>
 
 /** Checkout template used by all style variants */
 export const CheckoutTemplate: React.FC<{ data: CheckoutDisplayData; variant: StyleName }> = ({ data, variant }) => {
-  const { Layout } = require('@/components/layout/Layout');
-  const { ProtectedRoute } = require('@/components/layout/ProtectedRoute');
 
   if (data.isCartEmpty && !data.isSuccess) return null;
 
