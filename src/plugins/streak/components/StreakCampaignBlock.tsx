@@ -1,7 +1,6 @@
 /**
- * Streak campaigns section — casino/rewards style.
+ * Streak campaigns section — style-aware.
  * Plugin: plugins/streak
- * All colors use semantic reward-* tokens.
  */
 
 import React from 'react';
@@ -12,9 +11,11 @@ import { ACTIVE_STREAK_CAMPAIGNS, MY_STREAK_ENROLLMENT } from '../queries';
 import type { StreakCampaign, StreakEnrollment } from '../types';
 import { Flame, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useComponentStyle } from '@/config/componentStyle';
 
 export const StreakCampaignBlock: React.FC = () => {
   const { enabled, loading } = usePluginEnabled('streak');
+  const style = useComponentStyle();
   const { data: campaignsData } = useQuery<{ activeStreakCampaigns: StreakCampaign[] }>(ACTIVE_STREAK_CAMPAIGNS, {
     fetchPolicy: 'cache-and-network',
     skip: !enabled,
@@ -28,6 +29,8 @@ export const StreakCampaignBlock: React.FC = () => {
 
   if (loading || !enabled) return null;
 
+  const isGamified = style === 'gamified';
+
   return (
     <section className="relative py-10 overflow-hidden bg-background">
       <div className="relative container mx-auto px-4">
@@ -39,13 +42,16 @@ export const StreakCampaignBlock: React.FC = () => {
           transition={{ duration: 0.5 }}
           className="flex items-center gap-3 mb-6"
         >
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-reward to-reward-accent flex items-center justify-center shadow-lg shadow-reward/20">
-            <Flame className="h-5 w-5 text-reward-surface-foreground" />
+          <div className={isGamified
+            ? "w-9 h-9 rounded-lg bg-gradient-to-br from-reward to-reward-accent flex items-center justify-center shadow-lg shadow-reward/20"
+            : "w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center"
+          }>
+            <Flame className={isGamified ? "h-5 w-5 text-reward-surface-foreground" : "h-5 w-5 text-primary"} />
           </div>
           <div>
             <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
               Campanii Active
-              <Sparkles className="h-4 w-4 text-reward/60 streak-sparkle" />
+              {isGamified && <Sparkles className="h-4 w-4 text-reward/60 streak-sparkle" />}
             </h2>
             <p className="text-xs text-muted-foreground">
               Completează streak-ul și câștigă puncte bonus
@@ -58,10 +64,8 @@ export const StreakCampaignBlock: React.FC = () => {
             {campaigns.length === 0 ? (
               <p className="text-sm text-muted-foreground py-4">Momentan nu există campanii active. Revino mai târziu sau verifică în admin.</p>
             ) : campaigns.map((campaign, index) => {
-              const enrollment =
-                myActiveEnrollment?.campaignId === campaign.id ? myActiveEnrollment : null;
-              const enrolledInOtherCampaign =
-                myActiveEnrollment != null && myActiveEnrollment.campaignId !== campaign.id;
+              const enrollment = myActiveEnrollment?.campaignId === campaign.id ? myActiveEnrollment : null;
+              const enrolledInOtherCampaign = myActiveEnrollment != null && myActiveEnrollment.campaignId !== campaign.id;
               return (
                 <motion.div
                   key={campaign.id}
@@ -71,11 +75,7 @@ export const StreakCampaignBlock: React.FC = () => {
                   transition={{ delay: index * 0.1, duration: 0.5 }}
                   className="flex-shrink-0 w-[min(100%,320px)] md:w-80"
                 >
-                  <CampaignCard
-                    campaign={campaign}
-                    enrollment={enrollment ?? undefined}
-                    enrolledInOtherCampaign={enrolledInOtherCampaign}
-                  />
+                  <CampaignCard campaign={campaign} enrollment={enrollment ?? undefined} enrolledInOtherCampaign={enrolledInOtherCampaign} />
                 </motion.div>
               );
             })}

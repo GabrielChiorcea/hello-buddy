@@ -76,6 +76,7 @@ export async function updateSettings(req: Request, res: Response): Promise<void>
       'tiers_notify_on_level_up',
       'tiers_notify_message',
       'has_tables',
+      'component_style',
     ];
     
     for (const [key, value] of Object.entries(updates)) {
@@ -118,6 +119,13 @@ export async function updateSettings(req: Request, res: Response): Promise<void>
         const v = String(value).toLowerCase();
         if (!['true', 'false'].includes(v)) {
           res.status(400).json({ error: 'has_tables trebuie să fie true sau false' });
+          return;
+        }
+      }
+      if (key === 'component_style') {
+        const validStyles = ['gamified', 'clean', 'premium', 'friendly'];
+        if (!validStyles.includes(String(value))) {
+          res.status(400).json({ error: `component_style trebuie să fie una din: ${validStyles.join(', ')}` });
           return;
         }
       }

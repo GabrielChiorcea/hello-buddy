@@ -2,6 +2,7 @@
  * =============================================================================
  * COMPONENTA PRINCIPALĂ A APLICAȚIEI
  * =============================================================================
+ *
  * 
  * App.tsx este punctul central al aplicației React.
  * 
@@ -40,6 +41,7 @@ import { useSessionRestore } from "@/hooks/useSessionRestore";
 // Import Apollo Provider
 import { ApolloProvider } from "@apollo/client";
 import { apolloClient } from "@/graphql/client";
+import { ComponentStyleProvider, DEFAULT_COMPONENT_STYLE } from "./config/componentStyle";
 
 // ============================================================================
 // IMPORTURI PAGINI
@@ -124,6 +126,7 @@ const TokenRefreshHandler: React.FC<{ children: React.ReactNode }> = ({ children
 const App = () => (
   <ApolloProvider client={apolloClient}>
     <Provider store={store}>
+      <ComponentStyleProvider value={DEFAULT_COMPONENT_STYLE}>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           {/* Componente globale pentru notificări */}
@@ -191,6 +194,7 @@ const App = () => (
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
+      </ComponentStyleProvider>
     </Provider>
   </ApolloProvider>
 );
