@@ -13,30 +13,29 @@ export const PremiumMobileNav: React.FC<{ data: MobileNavDisplayData }> = ({ dat
   const { navItems, isActive } = data;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 md:hidden safe-area-bottom">
-      <nav className="mx-auto max-w-sm rounded-2xl bg-card/80 backdrop-blur-xl backdrop-saturate-150 border border-border/30 shadow-[0_8px_32px_rgba(0,0,0,0.12)]">
-        <div className="flex items-center justify-around h-14 px-4">
-          {navItems.map(({ path, label, icon: Icon, badge }) => (
-            <Link
-              key={path}
-              to={path}
-              className={cn(
-                'flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors',
-                isActive(path) ? 'text-primary' : 'text-muted-foreground/60 hover:text-muted-foreground',
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 md:hidden safe-area-bottom">
+      <nav className="flex items-center gap-1 px-2 py-2 rounded-full border border-white/25 bg-background/50 backdrop-blur-2xl backdrop-saturate-200 shadow-[0_12px_40px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.35)]">
+        {navItems.map(({ path, label, icon: Icon, badge }) => (
+          <Link
+            key={path}
+            to={path}
+            className={cn(
+              'flex flex-col items-center justify-center gap-0.5 h-12 w-12 rounded-full transition-all duration-200',
+              isActive(path) 
+                ? 'bg-primary/15 text-primary scale-105' 
+                : 'text-muted-foreground/70 hover:text-foreground hover:bg-white/40'
+            )}
+          >
+            <div className="relative">
+              <Icon className={cn('h-[18px] w-[18px]', isActive(path) && 'stroke-[2.5]')} />
+              {badge !== undefined && badge > 0 && (
+                <span className="absolute -right-1.5 -top-1 h-4 w-4 rounded-full text-[9px] font-bold flex items-center justify-center bg-primary text-primary-foreground">
+                  {badge > 9 ? '9+' : badge}
+                </span>
               )}
-            >
-              <div className="relative">
-                <Icon className={cn('h-5 w-5', isActive(path) && 'stroke-[2.5]')} />
-                {badge !== undefined && badge > 0 && (
-                  <Badge className="absolute -right-2 -top-1.5 h-3.5 w-3.5 rounded-full p-0 flex items-center justify-center text-[8px] border border-primary/30 bg-primary/10 text-primary">
-                    {badge > 9 ? '9+' : badge}
-                  </Badge>
-                )}
-              </div>
-              <span className={cn('text-[9px] font-light tracking-wide', isActive(path) && 'font-medium')}>{label}</span>
-            </Link>
-          ))}
-        </div>
+            </div>
+          </Link>
+        ))}
       </nav>
     </div>
   );
