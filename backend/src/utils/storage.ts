@@ -65,15 +65,32 @@ export async function saveProductImage(base64Data: string): Promise<string> {
 }
 
 /**
- * Șterge o imagine din storage
+ * Verifică dacă un path rezolvat este strict sub un director de bază (previne path traversal).
+ */
+function isPathUnderBase(resolvedPath: string, baseDir: string): boolean {
+  const normalizedPath = path.resolve(resolvedPath);
+  const normalizedBase = path.resolve(baseDir);
+  const relative = path.relative(normalizedBase, normalizedPath);
+  return relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative);
+}
+
+/**
+ * Șterge o imagine din storage.
+ * Refuză orice path care ar ieși din STORAGE (ex: ../etc/passwd).
  */
 export async function deleteProductImage(imagePath: string): Promise<void> {
-  if (!imagePath || !imagePath.startsWith('/storage/products/')) {
+  if (!imagePath || typeof imagePath !== 'string' || !imagePath.startsWith('/storage/products/')) {
     return;
   }
-  
-  const fullPath = path.join(process.cwd(), imagePath);
-  
+
+  const baseDir = path.resolve(PRODUCTS_DIR);
+  const fullPath = path.resolve(process.cwd(), imagePath);
+
+  if (!isPathUnderBase(fullPath, baseDir)) {
+    logError('ștergere imagine', new Error(`Path traversal blocked: ${imagePath}`));
+    return;
+  }
+
   try {
     if (fs.existsSync(fullPath)) {
       await fs.promises.unlink(fullPath);
