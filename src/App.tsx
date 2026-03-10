@@ -41,7 +41,7 @@ import { useSessionRestore } from "@/hooks/useSessionRestore";
 // Import Apollo Provider
 import { ApolloProvider } from "@apollo/client";
 import { apolloClient } from "@/graphql/client";
-import { ComponentStyleProvider, DEFAULT_COMPONENT_STYLE } from "./config/componentStyle";
+import { ComponentStyleProvider, DEFAULT_COMPONENT_STYLE, TierStyleProvider, DEFAULT_TIER_STYLE } from "./config/componentStyle";
 
 // ============================================================================
 // IMPORTURI PAGINI
@@ -127,6 +127,7 @@ const App = () => (
   <ApolloProvider client={apolloClient}>
     <Provider store={store}>
       <ComponentStyleProvider value={DEFAULT_COMPONENT_STYLE}>
+      <TierStyleProvider value={DEFAULT_TIER_STYLE}>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           {/* Componente globale pentru notificări */}
@@ -194,6 +195,7 @@ const App = () => (
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
+      </TierStyleProvider>
       </ComponentStyleProvider>
     </Provider>
   </ApolloProvider>

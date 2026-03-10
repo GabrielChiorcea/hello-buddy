@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useComponentStyle } from '@/config/componentStyle';
+import { useTierStyle } from '@/config/componentStyle';
 import { useTierDisplayData } from './tierStyles/shared';
 import { GamifiedTier } from './tierStyles/gamifiedTier';
 import { CleanTier } from './tierStyles/cleanTier';
@@ -18,7 +18,7 @@ const TIER_VARIANTS = {
 } as const;
 
 export const TierProgressBar: React.FC = () => {
-  const style = useComponentStyle();
+  const style = useTierStyle();
   const data = useTierDisplayData();
 
   if (!data) return null;
