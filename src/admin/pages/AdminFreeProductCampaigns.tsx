@@ -62,6 +62,7 @@ interface FormData {
   endDate: string;
   customText: string;
   productIds: string[];
+  minOrderValue?: number;
 }
 
 const defaultForm: FormData = {
@@ -71,6 +72,7 @@ const defaultForm: FormData = {
   endDate: '',
   customText: '',
   productIds: [],
+  minOrderValue: 0,
 };
 
 export default function AdminFreeProductCampaigns() {
