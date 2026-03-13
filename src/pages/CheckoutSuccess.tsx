@@ -179,7 +179,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ order }) => {
             </div>
           )}
           {(order.discountFromFreeProducts ?? 0) > 0 && (
-            <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
+            <div className="flex justify-between text-success">
               <span>Produse gratuite</span>
               <span>-{(order.discountFromFreeProducts ?? 0).toFixed(2)} RON</span>
             </div>
