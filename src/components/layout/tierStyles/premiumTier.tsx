@@ -5,10 +5,11 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Crown, ChevronRight } from 'lucide-react';
+import { texts } from '@/config/texts';
 import type { TierDisplayData } from './shared';
 
 export const PremiumTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
-  const { tierName, currentBadgeIcon, multiplier, currentXp, progressPercent, isMaxLevel, xpToNextLevel, nextTierThreshold, currentBenefit, nextTier, nextBenefitText, nextMultiplier } = data;
+  const { tierName, currentBadgeIcon, multiplier, currentXp, progressPercent, isMaxLevel, xpToNextLevel, nextTierThreshold, currentBenefit, nextTier, nextBenefitText, nextMultiplier, hasFreeProductBenefits, freeProductCampaignsSummary } = data;
 
   return (
     <div className={cn(
