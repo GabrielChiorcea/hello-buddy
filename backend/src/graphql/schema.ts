@@ -18,7 +18,7 @@ const coreTypeDefs = `#graphql
     email: String!
     name: String!
     phone: String
-    pointsBalance: Int!
+    pointsBalance: Float!
     createdAt: String!
     # Beneficii produse gratuite pe rank (plugin free-products)
     hasFreeProductBenefits: Boolean!
@@ -56,6 +56,10 @@ const coreTypeDefs = `#graphql
     productsCount: Int
   }
 
+  type AppStats {
+    totalProducts: Int!
+  }
+
   type Address {
     id: ID!
     label: String!
@@ -88,7 +92,7 @@ const coreTypeDefs = `#graphql
     phone: String!
     notes: String
     paymentMethod: PaymentMethod!
-    pointsEarned: Int!
+    pointsEarned: Float!
     pointsUsed: Int!
     discountFromPoints: Float!
     discountFromFreeProducts: Float!
@@ -197,9 +201,11 @@ const coreTypeDefs = `#graphql
     products: [Product!]!
     product(id: ID!): Product
     productsByCategory(category: String!): [Product!]!
+    recommendedProducts: [Product!]!
     addonProducts: [Product!]!
     searchProducts(query: String!): [Product!]!
-    
+    appStats: AppStats!
+
     # Categorii
     categories: [Category!]!
     

@@ -3,13 +3,13 @@
  * Uses card/primary tokens instead of reward tokens
  */
 import React from 'react';
-import { Flame, Gift, Calendar, Target, Shield, TrendingUp, Check } from 'lucide-react';
+import { Flame, Gift, Calendar, Target, Shield } from 'lucide-react';
 import type { StreakCampaign, StreakEnrollment } from '../../types';
 import { StreakProgressBar } from '../StreakProgressBar';
 import { CampaignJoinButton } from '../CampaignJoinButton';
 import { Skeleton } from '@/components/ui/skeleton';
 import { buildRuleDescription, formatDate, daysRemaining } from '../campaignUtils';
-import { cn } from '@/lib/utils';
+import { RewardStepsLadder } from '../RewardStepsLadder';
 
 interface Props {
   campaign: StreakCampaign;
@@ -84,20 +84,13 @@ export const CleanCard: React.FC<Props> = ({
         <div className="px-4 pb-3">
           <div className="bg-muted/50 rounded-lg p-3">
             <p className="text-xs font-medium text-muted-foreground mb-2">Praguri recompensă</p>
-            <div className="space-y-1">
-              {campaign.rewardSteps.slice().sort((a, b) => a.stepNumber - b.stepNumber).map((step) => {
-                const reached = isEnrolled && enrollment!.currentStreakCount >= step.stepNumber;
-                return (
-                  <div key={step.stepNumber} className="flex items-center justify-between text-xs py-1">
-                    <span className={cn('flex items-center gap-2', reached ? 'text-primary font-medium' : 'text-muted-foreground')}>
-                      <Check className={cn('h-3 w-3', reached ? 'text-primary' : 'text-muted-foreground/30')} />
-                      {step.label || `Pasul ${step.stepNumber}`}
-                    </span>
-                    <span className={cn('font-medium', reached ? 'text-primary' : 'text-muted-foreground/50')}>+{step.pointsAwarded} pt</span>
-                  </div>
-                );
-              })}
-            </div>
+            <RewardStepsLadder
+              steps={campaign.rewardSteps}
+              currentCount={isEnrolled ? enrollment!.currentStreakCount : null}
+              styleName="clean"
+              bonusPoints={campaign.bonusPoints}
+              completed={completed}
+            />
           </div>
         </div>
       )}

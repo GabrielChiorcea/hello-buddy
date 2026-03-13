@@ -56,6 +56,8 @@ interface AdminProduct {
   categoryName?: string;
   isAvailable: boolean;
   isAddon?: boolean;
+  isRecommended?: boolean;
+  recommendedOrder?: number | null;
   rating: number;
   reviewsCount: number;
   preparationTime: number;
@@ -99,6 +101,8 @@ export default function AdminProducts() {
     categoryId: '',
     isAvailable: true,
     isAddon: false,
+    isRecommended: false,
+    recommendedOrder: '',
     preparationTime: '',
     image: '',
     ingredients: '',  // Text liber pentru ingrediente
@@ -176,6 +180,8 @@ export default function AdminProducts() {
       categoryId: product.categoryId,
       isAvailable: product.isAvailable,
       isAddon: product.isAddon ?? false,
+      isRecommended: product.isRecommended ?? false,
+      recommendedOrder: product.recommendedOrder != null ? String(product.recommendedOrder) : '',
       preparationTime: String(product.preparationTime || ''),
       image: product.image || '',
       ingredients: regularIngredients,
@@ -195,6 +201,8 @@ export default function AdminProducts() {
       categoryId: categories[0]?.id || '',
       isAvailable: true,
       isAddon: false,
+      isRecommended: false,
+      recommendedOrder: '',
       preparationTime: '30',
       image: '',
       ingredients: '',
@@ -264,6 +272,8 @@ export default function AdminProducts() {
         categoryId: formData.categoryId,
         isAvailable: formData.isAvailable,
         isAddon: formData.isAddon,
+        isRecommended: formData.isRecommended,
+        recommendedOrder: formData.recommendedOrder ? parseInt(formData.recommendedOrder, 10) : undefined,
         preparationTime: formData.preparationTime ? parseInt(formData.preparationTime) : 30,
         image: imagePreview || formData.image || '/placeholder.svg',
         ingredients: allIngredients.length > 0 ? allIngredients : undefined,
@@ -380,6 +390,15 @@ export default function AdminProducts() {
       ),
     },
     {
+      key: 'recommended',
+      header: 'Recomandat',
+      cell: (product) => (
+        <Badge variant={product.isRecommended ? 'default' : 'outline'}>
+          {product.isRecommended ? 'Da' : 'Nu'}
+        </Badge>
+      ),
+    },
+    {
       key: 'actions',
       header: '',
       className: 'w-12',
@@ -416,6 +435,9 @@ export default function AdminProducts() {
           <h1 className="text-2xl font-bold text-foreground">Produse</h1>
           <p className="text-muted-foreground">
             Gestionează produsele din meniu
+            {pagination.total > 0 && (
+              <span className="ml-1 font-medium text-foreground">— {pagination.total} produse</span>
+            )}
           </p>
         </div>
         <Button onClick={handleCreate}>
@@ -659,6 +681,39 @@ export default function AdminProducts() {
                 }
               />
             </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="isRecommended">Recomandat (apare în „Recomandate pentru tine”)</Label>
+                <p className="text-xs text-muted-foreground">
+                  Produsele marcate apar pe pagina principală în secțiunea Recomandate
+                </p>
+              </div>
+              <Switch
+                id="isRecommended"
+                checked={formData.isRecommended}
+                onCheckedChange={(checked) =>
+                  setFormData((prev) => ({ ...prev, isRecommended: checked }))
+                }
+              />
+            </div>
+            {formData.isRecommended && (
+              <div className="space-y-2">
+                <Label htmlFor="recommendedOrder">Ordine afișare (opțional)</Label>
+                <Input
+                  id="recommendedOrder"
+                  type="number"
+                  min="1"
+                  value={formData.recommendedOrder}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, recommendedOrder: e.target.value }))
+                  }
+                  placeholder="1 = primul"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Număr mai mic = afișat mai întâi. Lăsat gol = la final.
+                </p>
+              </div>
+            )}
             <div className={`flex items-center justify-between${!addonsPluginEnabled ? ' opacity-50' : ''}`}>
               <div>
                 <Label htmlFor="isAddon">Add-on la coș</Label>

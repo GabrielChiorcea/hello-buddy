@@ -3,7 +3,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { Search, Filter, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -53,10 +53,6 @@ const Catalog: React.FC = () => {
     setCurrentPage(1);
   }, [selectedCategory, searchQuery]);
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(setSearchQuery(e.target.value));
-  };
-
   const handleCategoryClick = (categoryName: string | null) => {
     dispatch(setSelectedCategory(categoryName));
   };
@@ -64,8 +60,6 @@ const Catalog: React.FC = () => {
   const handleClearFilters = () => {
     dispatch(clearFilters());
   };
-
-  const hasActiveFilters = selectedCategory || searchQuery;
 
   // Pagination logic
   const totalItems = filteredItems.length;
@@ -89,9 +83,15 @@ const Catalog: React.FC = () => {
 
   return (
     <Layout>
-      {/* Bara de progres nivel – full-width, același spațiu ca pe Home */}
-      <TierProgressBar />
-      {/* Campanii active – același context ca pe Home (full-width, fără container) */}
+      {/* Bara de progres nivel – aliniată cu contentul principal */}
+      <section className="pt-4">
+        <div className="container mx-auto px-4">
+          <div className="max-w-xl mx-auto">
+            <TierProgressBar />
+          </div>
+        </div>
+      </section>
+      {/* Campanii active – full-width, ca înainte */}
       <StreakCampaignBlock />
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
@@ -99,41 +99,10 @@ const Catalog: React.FC = () => {
           <h1 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
             {texts.catalog.title}
           </h1>
-          
-          {/* Search and Filters */}
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Search */}
-            <div className="relative flex-1 max-w-xl">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder={texts.home.searchPlaceholder}
-                value={searchQuery}
-                onChange={handleSearch}
-                className="pl-10"
-              />
-            </div>
-            
-            {/* Clear Filters Button */}
-            {hasActiveFilters && (
-              <Button
-                variant="outline"
-                onClick={handleClearFilters}
-                className="shrink-0"
-              >
-                <X className="mr-2 h-4 w-4" />
-                Șterge filtrele
-              </Button>
-            )}
-          </div>
         </div>
 
         {/* Category Filters */}
         <div className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Filter className="h-5 w-5 text-muted-foreground" />
-            <span className="font-medium text-foreground">{texts.catalog.filterBy}:</span>
-          </div>
           <div className="flex flex-wrap gap-2">
             <Badge
               variant={selectedCategory === null ? 'default' : 'outline'}

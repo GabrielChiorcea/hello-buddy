@@ -122,7 +122,34 @@ export async function getPointsMultiplierForUser(userId: string): Promise<number
     if (!row) return 1;
 
     const tier = await TiersRepo.getTierForXp(row.total_xp ?? 0);
-    return tier?.pointsMultiplier ?? 1;
+    const multiplier = tier?.pointsMultiplier ?? 1;
+
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/5b30d7ea-62d4-4fc8-b8b7-5a517226527b', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Debug-Session-Id': 'd6a1bb',
+      },
+      body: JSON.stringify({
+        sessionId: 'd6a1bb',
+        runId: 'pre-fix',
+        hypothesisId: 'H4',
+        location: 'backend/src/plugins/tiers/service.ts:getPointsMultiplierForUser',
+        message: 'Computed tier multiplier for user',
+        data: {
+          userId,
+          totalXp: row.total_xp ?? 0,
+          tierId: tier?.id ?? null,
+          tierName: tier?.name ?? null,
+          pointsMultiplier: multiplier,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
+
+    return multiplier;
   } catch (err) {
     logError('tiers.getPointsMultiplierForUser', err);
     return 1;

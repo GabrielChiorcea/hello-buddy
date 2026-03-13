@@ -88,6 +88,8 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
       isAddon,
       ingredients,
       minVisibilityTierId,
+      isRecommended,
+      recommendedOrder,
     } = req.body;
     
     // Validare
@@ -108,6 +110,8 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
       preparationTime: preparationTime ? parseInt(preparationTime) : undefined,
       isAddon: Boolean(isAddon),
       minVisibilityTierId: minVisibilityTierId ?? null,
+      isRecommended: Boolean(isRecommended),
+      recommendedOrder: recommendedOrder != null ? parseInt(recommendedOrder, 10) : undefined,
       ingredients,
     });
     
@@ -136,6 +140,8 @@ export async function updateProduct(req: Request, res: Response): Promise<void> 
       preparationTime,
       ingredients,
       minVisibilityTierId,
+      isRecommended,
+      recommendedOrder,
     } = req.body;
     
     // Obține produsul existent pentru imaginea veche
@@ -158,6 +164,8 @@ export async function updateProduct(req: Request, res: Response): Promise<void> 
       isAddon: isAddon !== undefined ? Boolean(isAddon) : undefined,
       preparationTime: preparationTime !== undefined ? parseInt(preparationTime) : undefined,
       minVisibilityTierId: minVisibilityTierId ?? null,
+      isRecommended: isRecommended !== undefined ? Boolean(isRecommended) : undefined,
+      recommendedOrder: recommendedOrder !== undefined ? (recommendedOrder != null ? parseInt(recommendedOrder, 10) : null) : undefined,
       ingredients,
     });
     

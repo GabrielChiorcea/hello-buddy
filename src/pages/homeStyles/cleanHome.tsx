@@ -21,7 +21,7 @@ import type { HomeDisplayData } from './shared';
 import { easeOut, fadeUp, staggerContainer, cardVariant } from './shared';
 
 export const CleanHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
-  const { items, filteredItems, categories, searchQuery, isLoading, recommendedProducts, handleSearch, handleCategoryClick } = data;
+  const { items, filteredItems, categories, searchQuery, isLoading, recommendedProducts, totalProducts, handleSearch, handleCategoryClick } = data;
 
   if (isLoading && items.length === 0) return <Layout><PageLoader /></Layout>;
 
@@ -45,7 +45,13 @@ export const CleanHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
         </div>
       </section>
 
-      <TierProgressBar />
+      <section className="pb-4">
+        <div className="container mx-auto px-6">
+          <div className="max-w-xl mx-auto">
+            <TierProgressBar />
+          </div>
+        </div>
+      </section>
       <StreakCampaignBlock />
 
       {/* Categories — text-only grid */}
@@ -84,7 +90,12 @@ export const CleanHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
         <section className="py-12">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between mb-6">
-              <motion.h2 className="text-lg font-medium text-foreground" initial="hidden" whileInView="visible" viewport={{ once: true }} custom={0} variants={fadeUp}>{texts.home.recommended}</motion.h2>
+              <div>
+                <motion.h2 className="text-lg font-medium text-foreground" initial="hidden" whileInView="visible" viewport={{ once: true }} custom={0} variants={fadeUp}>{texts.home.recommended}</motion.h2>
+                {totalProducts > 0 && (
+                  <p className="text-xs text-muted-foreground mt-1">{texts.home.totalProductsInMenu.replace('{count}', String(totalProducts))}</p>
+                )}
+              </div>
               <Link to={routes.catalog} className="text-xs text-muted-foreground hover:text-foreground transition-colors">{texts.home.viewAll} →</Link>
             </div>
             <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }}>

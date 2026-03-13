@@ -187,6 +187,23 @@ export const GET_PRODUCTS = gql`
   ${PRODUCT_FRAGMENT}
 `;
 
+export const GET_RECOMMENDED_PRODUCTS = gql`
+  query GetRecommendedProducts {
+    recommendedProducts {
+      ...ProductFields
+    }
+  }
+  ${PRODUCT_FRAGMENT}
+`;
+
+export const GET_APP_STATS = gql`
+  query GetAppStats {
+    appStats {
+      totalProducts
+    }
+  }
+`;
+
 export const GET_PRODUCT_BY_ID = gql`
   query GetProductById($id: ID!) {
     product(id: $id) {

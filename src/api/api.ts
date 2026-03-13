@@ -12,6 +12,8 @@ import {
   GET_PRODUCTS,
   GET_PRODUCT_BY_ID,
   GET_PRODUCTS_BY_CATEGORY,
+  GET_RECOMMENDED_PRODUCTS,
+  GET_APP_STATS,
   GET_ADDON_PRODUCTS,
   GET_SUGGESTED_ADDONS_FOR_CART,
   SEARCH_PRODUCTS,
@@ -298,6 +300,36 @@ export const fetchProductsApi = async (): Promise<ApiResponse<Product[]>> => {
   } catch (error) {
     console.error('Fetch products API error:', error);
     return { success: false, error: 'Eroare la încărcarea produselor' };
+  }
+};
+
+export const fetchRecommendedProductsApi = async (): Promise<ApiResponse<Product[]>> => {
+  try {
+    const { data } = await apolloClient.query<{ recommendedProducts: Product[] }>({
+      query: GET_RECOMMENDED_PRODUCTS,
+      fetchPolicy: 'cache-first',
+    });
+    return { success: true, data: data?.recommendedProducts || [] };
+  } catch (error) {
+    console.error('Fetch recommended products API error:', error);
+    return { success: false, error: 'Eroare la încărcarea produselor recomandate' };
+  }
+};
+
+export interface AppStats {
+  totalProducts: number;
+}
+
+export const fetchAppStatsApi = async (): Promise<ApiResponse<AppStats>> => {
+  try {
+    const { data } = await apolloClient.query<{ appStats: AppStats }>({
+      query: GET_APP_STATS,
+      fetchPolicy: 'cache-first',
+    });
+    return { success: true, data: data?.appStats ?? { totalProducts: 0 } };
+  } catch (error) {
+    console.error('Fetch app stats API error:', error);
+    return { success: false, error: 'Eroare la încărcarea statisticilor' };
   }
 };
 

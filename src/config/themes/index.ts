@@ -63,10 +63,10 @@ export type StyleName = 'gamified' | 'clean' | 'premium' | 'friendly';
 
 export const STYLES = {
   /** Streak, Points, Rewards */
-  component: 'gamified' as StyleName,
+  component: 'premium' as StyleName,
 
   /** TierProgressBar (ranguri) */
-  tier: 'gamified' as StyleName,
+  tier: 'premium' as StyleName,
 
   /** Carduri de produse */
   productCard: 'gamified' as StyleName,

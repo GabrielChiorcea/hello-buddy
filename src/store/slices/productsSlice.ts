@@ -5,7 +5,13 @@
 
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Product, Category } from '@/types';
-import { fetchProductsApi, fetchCategoriesApi, searchProductsApi } from '@/api/api';
+import {
+  fetchProductsApi,
+  fetchCategoriesApi,
+  searchProductsApi,
+  fetchRecommendedProductsApi,
+  fetchAppStatsApi,
+} from '@/api/api';
 
 interface ProductsState {
   items: Product[];
@@ -15,6 +21,8 @@ interface ProductsState {
   searchQuery: string;
   isLoading: boolean;
   error: string | null;
+  recommendedProducts: Product[];
+  totalProducts: number;
 }
 
 const initialState: ProductsState = {
@@ -25,6 +33,8 @@ const initialState: ProductsState = {
   searchQuery: '',
   isLoading: false,
   error: null,
+  recommendedProducts: [],
+  totalProducts: 0,
 };
 
 // Async thunks
@@ -58,6 +68,28 @@ export const searchProducts = createAsyncThunk(
       return rejectWithValue(response.error || 'Search failed');
     }
     return response.data;
+  }
+);
+
+export const fetchRecommendedProducts = createAsyncThunk(
+  'products/fetchRecommendedProducts',
+  async (_, { rejectWithValue }) => {
+    const response = await fetchRecommendedProductsApi();
+    if (!response.success || !response.data) {
+      return rejectWithValue(response.error || 'Failed to fetch recommended products');
+    }
+    return response.data;
+  }
+);
+
+export const fetchAppStats = createAsyncThunk(
+  'products/fetchAppStats',
+  async (_, { rejectWithValue }) => {
+    const response = await fetchAppStatsApi();
+    if (!response.success || !response.data) {
+      return rejectWithValue(response.error || 'Failed to fetch app stats');
+    }
+    return response.data.totalProducts;
   }
 );
 
@@ -173,6 +205,14 @@ const productsSlice = createSlice({
       .addCase(searchProducts.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
+      })
+      // Recommended products
+      .addCase(fetchRecommendedProducts.fulfilled, (state, action) => {
+        state.recommendedProducts = action.payload;
+      })
+      // App stats (total products)
+      .addCase(fetchAppStats.fulfilled, (state, action) => {
+        state.totalProducts = action.payload;
       });
   },
 });
@@ -187,3 +227,5 @@ export const selectCategories = (state: { products: ProductsState }) => state.pr
 export const selectSelectedCategory = (state: { products: ProductsState }) => state.products.selectedCategory;
 export const selectSearchQuery = (state: { products: ProductsState }) => state.products.searchQuery;
 export const selectProductsLoading = (state: { products: ProductsState }) => state.products.isLoading;
+export const selectRecommendedProducts = (state: { products: ProductsState }) => state.products.recommendedProducts;
+export const selectTotalProducts = (state: { products: ProductsState }) => state.products.totalProducts;

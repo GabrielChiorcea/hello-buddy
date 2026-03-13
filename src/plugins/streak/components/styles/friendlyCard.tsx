@@ -3,13 +3,13 @@
  * Rounded shapes, soft shadows, warm accent colors, playful but not over-the-top
  */
 import React from 'react';
-import { Flame, Gift, Calendar, Target, Shield, Star, Heart } from 'lucide-react';
+import { Flame, Gift, Calendar, Target } from 'lucide-react';
 import type { StreakCampaign, StreakEnrollment } from '../../types';
 import { StreakProgressBar } from '../StreakProgressBar';
 import { CampaignJoinButton } from '../CampaignJoinButton';
 import { Skeleton } from '@/components/ui/skeleton';
 import { buildRuleDescription, formatDate, daysRemaining } from '../campaignUtils';
-import { cn } from '@/lib/utils';
+import { RewardStepsLadder } from '../RewardStepsLadder';
 
 interface Props {
   campaign: StreakCampaign;
@@ -77,26 +77,16 @@ export const FriendlyCard: React.FC<Props> = ({
       {hasSteps && (
         <div className="px-4 pb-3">
           <div className="bg-card rounded-xl p-3 border border-border">
-            <p className="text-xs font-semibold text-foreground/80 mb-2 flex items-center gap-1.5">
-              <Star className="h-3 w-3 text-primary" />
+            <p className="text-xs font-semibold text-foreground/80 mb-2">
               Praguri recompensă
             </p>
-            <div className="space-y-1.5">
-              {campaign.rewardSteps.slice().sort((a, b) => a.stepNumber - b.stepNumber).map((step) => {
-                const reached = isEnrolled && enrollment!.currentStreakCount >= step.stepNumber;
-                return (
-                  <div key={step.stepNumber} className={cn(
-                    'flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs',
-                    reached ? 'bg-success/10 text-success' : 'text-muted-foreground'
-                  )}>
-                    <span className="flex items-center gap-2">
-                      {reached ? '✅' : '⬜'} {step.label || `Pasul ${step.stepNumber}`}
-                    </span>
-                    <span className="font-bold">+{step.pointsAwarded} pt</span>
-                  </div>
-                );
-              })}
-            </div>
+            <RewardStepsLadder
+              steps={campaign.rewardSteps}
+              currentCount={isEnrolled ? enrollment!.currentStreakCount : null}
+              styleName="friendly"
+              bonusPoints={campaign.bonusPoints}
+              completed={completed}
+            />
           </div>
         </div>
       )}

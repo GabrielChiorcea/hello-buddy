@@ -10,12 +10,13 @@
 
 import { useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { restoreSession } from '@/store/slices/userSlice';
+import { restoreSession, fetchCurrentUser } from '@/store/slices/userSlice';
 import { adminRefreshToken, setAdminLoading } from '@/store/slices/adminSlice';
 
 /**
  * Hook pentru restaurarea sesiunii la încărcarea aplicației
  * Restaurează atât sesiunea utilizator cât și cea admin
+ * După restore, încarcă și currentUser complet (tier, XP etc.) pentru Home/Profil
  */
 export const useSessionRestore = () => {
   const dispatch = useAppDispatch();
@@ -30,9 +31,17 @@ export const useSessionRestore = () => {
 
     // Restaurează DOAR sesiunea de user la încărcare.
     // Admin refresh se face doar când accesezi /admin (evită rotații inutile).
-    dispatch(restoreSession()).catch(() => {
-      // Erorile sunt gestionate în slice
-    });
+    dispatch(restoreSession())
+      .then((action) => {
+        // După restore, user din REST e minimal (fără tier/nextTier). Încarcă currentUser complet
+        // ca TierProgressBar pe Home și alte componente să aibă rangul de loialitate.
+        if (restoreSession.fulfilled.match(action) && action.payload?.user) {
+          dispatch(fetchCurrentUser());
+        }
+      })
+      .catch(() => {
+        // Erorile sunt gestionate în slice
+      });
   }, [dispatch]);
   
   return {

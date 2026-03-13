@@ -26,6 +26,10 @@ export interface Product {
   preparationTime: number;
    /** Nivel minim de vizibilitate (tier) sau null dacă e vizibil pentru toți */
   minVisibilityTierId: string | null;
+  /** Afișat în secțiunea "Recomandate pentru tine" pe home */
+  isRecommended: boolean;
+  /** Ordinea în secțiunea recomandate (1 = primul); null = la final */
+  recommendedOrder: number | null;
   ingredients: ProductIngredient[];
   createdAt: Date;
   updatedAt: Date;
@@ -44,6 +48,8 @@ interface ProductRow {
   priority_drain?: boolean;
   preparation_time: number;
   min_visibility_tier_id?: string | null;
+  is_recommended?: boolean;
+  recommended_order?: number | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -65,6 +71,8 @@ export interface CreateProductInput {
   isAddon?: boolean;
   priorityDrain?: boolean;
   minVisibilityTierId?: string | null;
+  isRecommended?: boolean;
+  recommendedOrder?: number | null;
   ingredients?: Array<{ name: string; isAllergen?: boolean }>;
 }
 
@@ -79,6 +87,8 @@ export interface UpdateProductInput {
   priorityDrain?: boolean;
   preparationTime?: number;
   minVisibilityTierId?: string | null;
+  isRecommended?: boolean;
+  recommendedOrder?: number | null;
   ingredients?: Array<{ name: string; isAllergen?: boolean }>;
 }
 
@@ -97,6 +107,8 @@ function mapRowToProduct(row: ProductRow, ingredients: ProductIngredient[] = [])
     priorityDrain: Boolean(row.priority_drain),
     preparationTime: row.preparation_time,
     minVisibilityTierId: row.min_visibility_tier_id ?? null,
+    isRecommended: Boolean(row.is_recommended),
+    recommendedOrder: row.recommended_order ?? null,
     ingredients,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -146,7 +158,9 @@ export async function findByIds(ids: string[]): Promise<Product[]> {
     `SELECT p.id, p.name, p.description, p.price, p.image, p.category_id, p.is_available,
             COALESCE(p.is_addon, FALSE) as is_addon,
             COALESCE(p.priority_drain, FALSE) as priority_drain,
-            p.preparation_time, p.min_visibility_tier_id, p.created_at, p.updated_at,
+            p.preparation_time, p.min_visibility_tier_id,
+            COALESCE(p.is_recommended, FALSE) as is_recommended, p.recommended_order,
+            p.created_at, p.updated_at,
             c.display_name as category_name
      FROM products p
      LEFT JOIN categories c ON p.category_id = c.id
@@ -194,6 +208,8 @@ export async function findAll(options: {
   sortOrder?: 'ASC' | 'DESC';
   /** XP utilizatorului pentru filtrarea vizibilității pe nivel (tiers). Dacă e omis, nu se aplică filtrul. */
   minVisibilityXp?: number;
+  /** Doar produsele marcate ca recomandate (pentru secțiunea "Recomandate pentru tine") */
+  recommendedOnly?: boolean;
 } = {}): Promise<{ products: Product[]; total: number }> {
   const {
     categoryId,
@@ -205,6 +221,7 @@ export async function findAll(options: {
     sortBy = 'created_at',
     sortOrder = 'DESC',
     minVisibilityXp,
+    recommendedOnly,
   } = options;
 
   const conditions: string[] = [];
@@ -237,6 +254,9 @@ export async function findAll(options: {
     );
     params.push(minVisibilityXp);
   }
+  if (recommendedOnly === true) {
+    conditions.push('COALESCE(p.is_recommended, FALSE) = TRUE');
+  }
 
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
@@ -251,17 +271,21 @@ export async function findAll(options: {
   const allowedSorts = ['name', 'price', 'rating', 'created_at'];
   const safeSortBy = allowedSorts.includes(sortBy) ? sortBy : 'created_at';
   const safeSortOrder = sortOrder === 'ASC' ? 'ASC' : 'DESC';
+  const orderClause = recommendedOnly
+    ? 'ORDER BY p.recommended_order IS NULL, p.recommended_order ASC, p.name ASC'
+    : `ORDER BY p.${safeSortBy} ${safeSortOrder}`;
 
   const selectColumns =
     'p.id, p.name, p.description, p.price, p.image, p.category_id, p.is_available, ' +
     'COALESCE(p.is_addon, FALSE) as is_addon, COALESCE(p.priority_drain, FALSE) as priority_drain, ' +
-    'p.preparation_time, p.min_visibility_tier_id, p.created_at, p.updated_at, c.display_name as category_name';
+    'p.preparation_time, p.min_visibility_tier_id, COALESCE(p.is_recommended, FALSE) as is_recommended, p.recommended_order, ' +
+    'p.created_at, p.updated_at, c.display_name as category_name';
   const rows = await query<ProductRow[]>(
     `SELECT ${selectColumns}
      FROM products p
      LEFT JOIN categories c ON p.category_id = c.id
      ${whereClause}
-     ORDER BY p.${safeSortBy} ${safeSortOrder}
+     ${orderClause}
      LIMIT ? OFFSET ?`,
     [...params, limit, (page - 1) * limit]
   );
@@ -296,6 +320,31 @@ export async function findAll(options: {
 }
 
 /**
+ * Listează produsele marcate ca recomandate (secțiunea "Recomandate pentru tine"), ordonate după recommended_order.
+ */
+export async function findRecommended(limit = 12): Promise<Product[]> {
+  const { products } = await findAll({
+    isAvailable: true,
+    recommendedOnly: true,
+    limit,
+    page: 1,
+  });
+  return products;
+}
+
+/**
+ * Număr total de produse (disponibile). Pentru statistici / app stats.
+ */
+export async function countTotal(onlyAvailable = false): Promise<number> {
+  const where = onlyAvailable ? 'WHERE is_available = TRUE' : '';
+  const r = await queryOne<{ total: number }>(
+    `SELECT COUNT(*) as total FROM products ${where}`,
+    []
+  );
+  return r?.total ?? 0;
+}
+
+/**
  * Găsește produse după categorie
  */
 export async function findByCategory(categoryName: string): Promise<Product[]> {
@@ -322,8 +371,8 @@ export async function create(input: CreateProductInput): Promise<Product> {
     const id = uuidv4();
     
     await connection.execute(
-      `INSERT INTO products (id, name, description, price, image, category_id, preparation_time, is_addon, priority_drain, min_visibility_tier_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO products (id, name, description, price, image, category_id, preparation_time, is_addon, priority_drain, min_visibility_tier_id, is_recommended, recommended_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         input.name,
@@ -335,6 +384,8 @@ export async function create(input: CreateProductInput): Promise<Product> {
         input.isAddon ? 1 : 0,
         input.priorityDrain ? 1 : 0,
         input.minVisibilityTierId ?? null,
+        input.isRecommended ? 1 : 0,
+        input.recommendedOrder ?? null,
       ]
     );
     
@@ -411,6 +462,14 @@ export async function update(id: string, input: UpdateProductInput): Promise<Pro
     if (input.minVisibilityTierId !== undefined) {
       updates.push('min_visibility_tier_id = ?');
       values.push(input.minVisibilityTierId ?? null);
+    }
+    if (input.isRecommended !== undefined) {
+      updates.push('is_recommended = ?');
+      values.push(input.isRecommended ? 1 : 0);
+    }
+    if (input.recommendedOrder !== undefined) {
+      updates.push('recommended_order = ?');
+      values.push(input.recommendedOrder ?? null);
     }
 
     if (updates.length > 0) {

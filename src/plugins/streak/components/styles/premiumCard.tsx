@@ -3,13 +3,13 @@
  * Subtle gradients, muted tones, refined typography, no flashy animations
  */
 import React from 'react';
-import { Flame, Gift, Calendar, Target, Shield, TrendingUp, Check, ChevronRight } from 'lucide-react';
+import { Flame, Gift, Calendar, Target } from 'lucide-react';
 import type { StreakCampaign, StreakEnrollment } from '../../types';
 import { StreakProgressBar } from '../StreakProgressBar';
 import { CampaignJoinButton } from '../CampaignJoinButton';
 import { Skeleton } from '@/components/ui/skeleton';
 import { buildRuleDescription, formatDate, daysRemaining } from '../campaignUtils';
-import { cn } from '@/lib/utils';
+import { RewardStepsLadder } from '../RewardStepsLadder';
 
 interface Props {
   campaign: StreakCampaign;
@@ -78,20 +78,13 @@ export const PremiumCard: React.FC<Props> = ({
       {/* Steps */}
       {hasSteps && (
         <div className="px-5 pb-3">
-          <div className="border-l-2 border-primary/20 pl-3 space-y-2">
-            {campaign.rewardSteps.slice().sort((a, b) => a.stepNumber - b.stepNumber).map((step) => {
-              const reached = isEnrolled && enrollment!.currentStreakCount >= step.stepNumber;
-              return (
-                <div key={step.stepNumber} className="flex items-center justify-between text-xs">
-                  <span className={cn('flex items-center gap-2', reached ? 'text-foreground font-medium' : 'text-muted-foreground/50')}>
-                    <ChevronRight className={cn('h-3 w-3', reached ? 'text-primary' : 'text-muted-foreground/20')} />
-                    {step.label || `Pasul ${step.stepNumber}`}
-                  </span>
-                  <span className={cn('font-medium tabular-nums', reached ? 'text-primary' : 'text-muted-foreground/30')}>+{step.pointsAwarded}</span>
-                </div>
-              );
-            })}
-          </div>
+          <RewardStepsLadder
+            steps={campaign.rewardSteps}
+            currentCount={isEnrolled ? enrollment!.currentStreakCount : null}
+            styleName="premium"
+            bonusPoints={campaign.bonusPoints}
+            completed={completed}
+          />
         </div>
       )}
 

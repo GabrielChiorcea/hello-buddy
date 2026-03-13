@@ -73,6 +73,21 @@ export const productResolvers = {
     },
 
     /**
+     * Listează produsele recomandate (secțiunea "Recomandate pentru tine")
+     */
+    async recommendedProducts() {
+      return ProductModel.findRecommended(12);
+    },
+
+    /**
+     * Statistici aplicație (număr total produse etc.)
+     */
+    async appStats() {
+      const totalProducts = await ProductModel.countTotal(true);
+      return { totalProducts };
+    },
+
+    /**
      * Listează toate categoriile
      */
     async categories() {

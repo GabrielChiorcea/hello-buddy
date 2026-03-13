@@ -4,12 +4,13 @@
  */
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Flame, Gift, Sparkles, Shield, Calendar, Target, TrendingUp, Star, Award } from 'lucide-react';
+import { Flame, Gift, Sparkles, Shield, Calendar, Target, TrendingUp } from 'lucide-react';
 import type { StreakCampaign, StreakEnrollment } from '../../types';
 import { StreakProgressBar } from '../StreakProgressBar';
 import { CampaignJoinButton } from '../CampaignJoinButton';
 import { Skeleton } from '@/components/ui/skeleton';
 import { buildRuleDescription, formatDate, daysRemaining } from '../campaignUtils';
+import { RewardStepsLadder } from '../RewardStepsLadder';
 
 interface Props {
   campaign: StreakCampaign;
@@ -107,29 +108,13 @@ export const GamifiedCard: React.FC<Props> = ({
               <TrendingUp className="h-3.5 w-3.5 text-reward/70" />
               <span className="text-xs font-semibold text-reward/70 uppercase tracking-wider">Praguri recompensă</span>
             </div>
-            <div className="space-y-1.5">
-              {campaign.rewardSteps.slice().sort((a, b) => a.stepNumber - b.stepNumber).map((step) => {
-                const reached = isEnrolled && enrollment!.currentStreakCount >= step.stepNumber;
-                return (
-                  <div key={step.stepNumber} className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs transition-colors ${reached ? 'bg-reward/15 border border-reward/25' : 'bg-reward-surface-foreground/[0.03] border border-transparent'}`}>
-                    <span className={`flex items-center gap-2 ${reached ? 'text-reward' : 'text-reward-surface-foreground/50'}`}>
-                      <Star className={`h-3 w-3 ${reached ? 'text-reward fill-reward' : 'text-reward-surface-foreground/20'}`} />
-                      {step.label || `Pasul ${step.stepNumber}`}
-                    </span>
-                    <span className={`font-bold ${reached ? 'text-reward' : 'text-reward-surface-foreground/40'}`}>+{step.pointsAwarded} pt</span>
-                  </div>
-                );
-              })}
-              {campaign.bonusPoints > 0 && (
-                <div className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs ${completed ? 'bg-reward/20 border border-reward/30' : 'bg-reward-surface-foreground/[0.03] border border-dashed border-reward/15'}`}>
-                  <span className={`flex items-center gap-2 ${completed ? 'text-reward' : 'text-reward-surface-foreground/40'}`}>
-                    <Award className={`h-3 w-3 ${completed ? 'text-reward fill-reward' : 'text-reward-surface-foreground/15'}`} />
-                    Bonus completare
-                  </span>
-                  <span className={`font-bold ${completed ? 'text-reward' : 'text-reward-surface-foreground/30'}`}>+{campaign.bonusPoints} pt</span>
-                </div>
-              )}
-            </div>
+            <RewardStepsLadder
+              steps={campaign.rewardSteps}
+              currentCount={isEnrolled ? enrollment!.currentStreakCount : null}
+              styleName="gamified"
+              bonusPoints={campaign.bonusPoints}
+              completed={completed}
+            />
           </div>
         </div>
       )}

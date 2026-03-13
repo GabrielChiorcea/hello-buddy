@@ -106,15 +106,91 @@ export async function awardOnDelivery(orderId: string, order: { userId: string; 
       pointsEarned += Math.floor(order.total / pointsPerRon);
     }
 
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/5b30d7ea-62d4-4fc8-b8b7-5a517226527b', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Debug-Session-Id': 'd6a1bb',
+      },
+      body: JSON.stringify({
+        sessionId: 'd6a1bb',
+        runId: 'pre-fix',
+        hypothesisId: 'H1',
+        location: 'backend/src/plugins/points/service.ts:awardOnDelivery:init',
+        message: 'Base points before tier multiplier',
+        data: {
+          orderId,
+          userId: order.userId,
+          total: order.total,
+          pointsPerOrder,
+          pointsPerRon,
+          basePointsEarned: pointsEarned,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
+
     // Aplică multiplicatorul de nivel (tiers), dacă este activ
     try {
       const multiplier = await tiersPlugin.service.getPointsMultiplierForUser(order.userId);
+
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/5b30d7ea-62d4-4fc8-b8b7-5a517226527b', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Debug-Session-Id': 'd6a1bb',
+        },
+        body: JSON.stringify({
+          sessionId: 'd6a1bb',
+          runId: 'pre-fix',
+          hypothesisId: 'H2',
+          location: 'backend/src/plugins/points/service.ts:awardOnDelivery:multiplier',
+          message: 'Tier multiplier result',
+          data: {
+            orderId,
+            userId: order.userId,
+            multiplier,
+            pointsBeforeMultiplier: pointsEarned,
+          },
+          timestamp: Date.now(),
+        }),
+      }).catch(() => {});
+      // #endregion
+
       if (multiplier && multiplier > 0) {
-        pointsEarned = Math.round(pointsEarned * multiplier);
+        // Păstrăm zecimale (ex. 5.25 la x1.05) ca să nu pierdem fracția
+        pointsEarned = Number((pointsEarned * multiplier).toFixed(2));
       }
     } catch (e) {
       logError('calcul multiplicator puncte (tiers)', e);
     }
+
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/5b30d7ea-62d4-4fc8-b8b7-5a517226527b', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Debug-Session-Id': 'd6a1bb',
+      },
+      body: JSON.stringify({
+        sessionId: 'd6a1bb',
+        runId: 'pre-fix',
+        hypothesisId: 'H3',
+        location: 'backend/src/plugins/points/service.ts:awardOnDelivery:final',
+        message: 'Final pointsEarned after multiplier',
+        data: {
+          orderId,
+          userId: order.userId,
+          total: order.total,
+          finalPointsEarned: pointsEarned,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
 
     if (pointsEarned > 0) {
       const updated = await OrderModel.setPointsEarned(orderId, pointsEarned);

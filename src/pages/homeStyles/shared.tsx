@@ -4,7 +4,14 @@
 
 import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { fetchProducts, fetchCategories, setSearchQuery, setSelectedCategory } from '@/store/slices/productsSlice';
+import {
+  fetchProducts,
+  fetchCategories,
+  fetchRecommendedProducts,
+  fetchAppStats,
+  setSearchQuery,
+  setSelectedCategory,
+} from '@/store/slices/productsSlice';
 
 import type { Easing } from 'framer-motion';
 
@@ -36,19 +43,28 @@ export interface HomeDisplayData {
   searchQuery: string;
   isLoading: boolean;
   recommendedProducts: any[];
+  totalProducts: number;
   handleSearch: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleCategoryClick: (name: string) => void;
 }
 
 export function useHomeData(): HomeDisplayData {
   const dispatch = useAppDispatch();
-  const { items, filteredItems, categories, searchQuery, isLoading } = useAppSelector(
-    (state) => state.products
-  );
+  const {
+    items,
+    filteredItems,
+    categories,
+    searchQuery,
+    isLoading,
+    recommendedProducts: recommendedFromApi,
+    totalProducts,
+  } = useAppSelector((state) => state.products);
 
   useEffect(() => {
     dispatch(fetchProducts());
     dispatch(fetchCategories());
+    dispatch(fetchRecommendedProducts());
+    dispatch(fetchAppStats());
   }, [dispatch]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,7 +75,9 @@ export function useHomeData(): HomeDisplayData {
     dispatch(setSelectedCategory(categoryName));
   };
 
-  const recommendedProducts = [...items].slice(0, 4);
+  // Dacă adminul nu a setat recomandate, afișăm primele 4 produse din listă
+  const recommendedProducts =
+    recommendedFromApi.length > 0 ? recommendedFromApi : [...items].slice(0, 4);
 
   return {
     items,
@@ -68,6 +86,7 @@ export function useHomeData(): HomeDisplayData {
     searchQuery,
     isLoading,
     recommendedProducts,
+    totalProducts,
     handleSearch,
     handleCategoryClick,
   };

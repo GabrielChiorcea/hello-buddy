@@ -29,6 +29,7 @@ export const texts = {
     searchPlaceholder: 'Caută preparate sau restaurante...',
     categories: 'Categorii',
     recommended: 'Recomandate pentru tine',
+    totalProductsInMenu: '{count} produse în meniu',
     viewAll: 'Vezi toate',
     orderNow: 'Comandă acum',
   },
