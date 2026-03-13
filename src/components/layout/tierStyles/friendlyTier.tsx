@@ -60,6 +60,14 @@ export const FriendlyTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
         <p className="text-xs text-muted-foreground">
           ✨ {currentBenefit}
         </p>
+        {hasFreeProductBenefits ? (
+          <p className="text-[10px] text-success mt-1">
+            {texts.freeProducts.rankInfoActivePrefix}{' '}
+            {freeProductCampaignsSummary.length > 0 ? freeProductCampaignsSummary.map((c) => c.name).join(', ') : ''}
+          </p>
+        ) : (
+          <p className="text-[10px] text-muted-foreground mt-1">{texts.freeProducts.rankInfoNone}</p>
+        )}
       </div>
 
       {/* Next tier */}
