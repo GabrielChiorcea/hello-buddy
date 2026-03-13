@@ -62,5 +62,5 @@ describe('Free Products - Exemplu de aplicare logică (pur funcțional)', () => 
     expect(result.subtotal).toBe(10);
     expect(result.discountFromFreeProducts).toBe(0);
   });
-}
+});
 
