@@ -19,6 +19,7 @@ import * as authController from './controllers/auth.js';
 import { pointsPlugin } from '../plugins/points/index.js';
 import { streakPlugin } from '../plugins/streak/index.js';
 import { tiersPlugin } from '../plugins/tiers/index.js';
+import { freeProductsPlugin } from '../plugins/free-products/index.js';
 import * as addonsController from './controllers/addons.js';
 
 export type AdminRateLimiters = {
@@ -88,6 +89,8 @@ pointsPlugin.registerAdminRoutes(router);
 tiersPlugin.registerAdminRoutes(router);
 // Campanii streak (plugin)
 streakPlugin.registerAdminRoutes(router);
+  // Campanii produse gratuite pe rank (plugin)
+  freeProductsPlugin.registerAdminRoutes(router);
 
 // Reguli add-on per categorie
 router.get('/addon-rules/full', addonsController.getAddonRulesFull);

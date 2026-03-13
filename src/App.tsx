@@ -88,6 +88,7 @@ import { AdminTiers } from "./plugins/tiers";
 import AdminSettings from "./admin/pages/AdminSettings";
 import AdminAnalytics from "./admin/pages/AdminAnalytics";
 import AdminAddonRules from "./admin/pages/AdminAddonRules";
+import AdminFreeProductCampaigns from "./admin/pages/AdminFreeProductCampaigns";
 
 // ============================================================================
 // CONFIGURARE QUERY CLIENT
@@ -190,6 +191,7 @@ const App = () => (
                   <Route path="points" element={<AdminPoints />} />
                   <Route path="streak" element={<AdminStreakCampaigns />} />
                   <Route path="tiers" element={<AdminTiers />} />
+                  <Route path="free-products" element={<AdminFreeProductCampaigns />} />
                   <Route path="orders" element={<AdminOrders />} />
                   <Route path="users" element={<AdminUsers />} />
                   <Route path="settings" element={<AdminSettings />} />

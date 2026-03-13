@@ -73,6 +73,7 @@ export async function updateSettings(req: Request, res: Response): Promise<void>
       'plugin_welcome_bonus_enabled',
       'plugin_addons_enabled',
       'plugin_tiers_enabled',
+      'plugin_free_products_enabled',
       'tiers_notify_on_level_up',
       'tiers_notify_message',
       'has_tables',
@@ -107,7 +108,7 @@ export async function updateSettings(req: Request, res: Response): Promise<void>
           return;
         }
       }
-      if (['plugin_points_enabled', 'plugin_streak_enabled', 'plugin_welcome_bonus_enabled', 'plugin_addons_enabled', 'plugin_tiers_enabled', 'tiers_notify_on_level_up'].includes(key)) {
+      if (['plugin_points_enabled', 'plugin_streak_enabled', 'plugin_welcome_bonus_enabled', 'plugin_addons_enabled', 'plugin_tiers_enabled', 'plugin_free_products_enabled', 'tiers_notify_on_level_up'].includes(key)) {
         const v = String(value).toLowerCase();
         if (!['true', 'false'].includes(v)) {
           res.status(400).json({ error: `${key} trebuie să fie true sau false` });

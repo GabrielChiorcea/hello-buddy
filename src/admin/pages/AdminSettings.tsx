@@ -39,6 +39,7 @@ interface EditableSettings {
   plugin_welcome_bonus_enabled: boolean;
   plugin_addons_enabled: boolean;
   plugin_tiers_enabled: boolean;
+   plugin_free_products_enabled: boolean;
   has_tables: boolean;
 }
 
@@ -56,6 +57,7 @@ function parseSettings(map: SettingsMap): EditableSettings {
     plugin_welcome_bonus_enabled: (map.plugin_welcome_bonus_enabled?.value ?? 'true') === 'true',
     plugin_addons_enabled: (map.plugin_addons_enabled?.value ?? 'true') === 'true',
     plugin_tiers_enabled: (map.plugin_tiers_enabled?.value ?? 'true') === 'true',
+    plugin_free_products_enabled: (map.plugin_free_products_enabled?.value ?? 'false') === 'true',
     has_tables: (map.has_tables?.value ?? 'true') === 'true',
   };
 }
@@ -108,6 +110,7 @@ export default function AdminSettings() {
         plugin_welcome_bonus_enabled: settings.plugin_welcome_bonus_enabled ? 'true' : 'false',
         plugin_addons_enabled: settings.plugin_addons_enabled ? 'true' : 'false',
         plugin_tiers_enabled: settings.plugin_tiers_enabled ? 'true' : 'false',
+        plugin_free_products_enabled: settings.plugin_free_products_enabled ? 'true' : 'false',
         has_tables: settings.has_tables ? 'true' : 'false',
       });
       toast({
@@ -359,6 +362,18 @@ export default function AdminSettings() {
             <Switch
               checked={settings.plugin_tiers_enabled}
               onCheckedChange={(checked) => updateField('plugin_tiers_enabled', checked)}
+            />
+          </div>
+          <div className="flex items-center justify-between pt-4 border-t">
+            <div>
+              <Label>Produse gratis pe rank</Label>
+              <p className="text-sm text-muted-foreground">
+                Permite definirea de campanii cu produse gratuite pentru anumite niveluri (tiers) într-o perioadă limitată.
+              </p>
+            </div>
+            <Switch
+              checked={settings.plugin_free_products_enabled}
+              onCheckedChange={(checked) => updateField('plugin_free_products_enabled', checked)}
             />
           </div>
         </CardContent>

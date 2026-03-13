@@ -20,6 +20,9 @@ const coreTypeDefs = `#graphql
     phone: String
     pointsBalance: Int!
     createdAt: String!
+    # Beneficii produse gratuite pe rank (plugin free-products)
+    hasFreeProductBenefits: Boolean!
+    freeProductCampaignsSummary: [FreeProductCampaignSummary!]!
   }
 
   type Ingredient {
@@ -88,10 +91,19 @@ const coreTypeDefs = `#graphql
     pointsEarned: Int!
     pointsUsed: Int!
     discountFromPoints: Float!
+    discountFromFreeProducts: Float!
     items: [OrderItem!]!
     createdAt: String!
     estimatedDelivery: String
     deliveredAt: String
+  }
+
+  type FreeProductCampaignSummary {
+    id: ID!
+    name: String!
+    customText: String
+    minOrderValue: Float!
+    products: [String!]!
   }
 
   enum FulfillmentType {

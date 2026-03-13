@@ -5,6 +5,9 @@
 import { v4 as uuidv4 } from 'uuid';
 import { query, queryOne, beginTransaction } from '../config/database.js';
 import { pointsPlugin } from '../plugins/points/index.js';
+import { findById as findUserById } from './User.js';
+import { getActiveProductIdsForTier } from '../plugins/free-products/repositories/campaignsRepository.js';
+import { isPluginEnabled } from '../utils/pluginFlags.js';
 
 export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'delivering' | 'delivered' | 'cancelled';
 export type PaymentMethod = 'cash' | 'card';
@@ -41,6 +44,7 @@ export interface Order {
   pointsEarned: number;
   pointsUsed: number;
   discountFromPoints: number;
+  discountFromFreeProducts?: number;
   items: OrderItem[];
   createdAt: Date;
   updatedAt: Date;
@@ -68,6 +72,7 @@ interface OrderRow {
   points_earned: number;
   points_used: number;
   discount_from_points: string;
+  discount_from_free_products?: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -123,6 +128,9 @@ function mapRowToOrder(row: OrderRow, items: OrderItem[] = []): Order {
     pointsEarned: row.points_earned ?? 0,
     pointsUsed: row.points_used ?? 0,
     discountFromPoints: parseFloat(row.discount_from_points ?? '0'),
+    discountFromFreeProducts: row.discount_from_free_products
+      ? parseFloat(row.discount_from_free_products)
+      : 0,
     items,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -294,6 +302,7 @@ export interface OrderTotals {
   deliveryFee: number;
   pointsUsed: number;
   discountFromPoints: number;
+  discountFromFreeProducts: number;
   total: number;
 }
 
@@ -307,8 +316,16 @@ export async function computeOrderTotal(
   connection: PoolConnection,
   input: CreateOrderInput
 ): Promise<OrderTotals> {
-  let subtotal = 0;
-  const itemDetails: OrderItemDetail[] = [];
+  // Primul pas: calculăm subtotalul de bază (fără gratuități) și colectăm produsele.
+  let baseSubtotal = 0;
+  const rawItems: Array<{
+    productId: string;
+    productName: string;
+    productImage: string | null;
+    quantity: number;
+    price: number;
+  }> = [];
+
   for (const item of input.items) {
     const [productRows] = await connection.execute<any[]>(
       'SELECT id, name, image, price, is_available FROM products WHERE id = ?',
@@ -322,8 +339,8 @@ export async function computeOrderTotal(
       throw new Error(`Produsul ${product.name} nu este disponibil`);
     }
     const price = parseFloat(product.price);
-    subtotal += price * item.quantity;
-    itemDetails.push({
+    baseSubtotal += price * item.quantity;
+    rawItems.push({
       productId: product.id,
       productName: product.name,
       productImage: product.image,
@@ -331,6 +348,56 @@ export async function computeOrderTotal(
       price,
     });
   }
+
+  // Al doilea pas: aplicăm regulile de produse gratuite (max 1 buc. per produs, cu prag comandă).
+  let discountFromFreeProducts = 0;
+  const itemDetails: OrderItemDetail[] = [];
+
+  const freeProductsPluginEnabled = await isPluginEnabled('free_products');
+  const user = freeProductsPluginEnabled ? await findUserById(input.userId) : null;
+  const tierId = user?.tierId ?? null;
+
+  let minOrderByProduct = new Map<string, number>();
+  if (freeProductsPluginEnabled) {
+    const mappings = await getActiveProductIdsForTier(tierId);
+    // Pentru fiecare produs, folosim cel mai mic prag de comandă dintre campaniile active.
+    for (const m of mappings) {
+      const existing = minOrderByProduct.get(m.productId);
+      const v = m.minOrderValue ?? 0;
+      if (existing == null || v < existing) {
+        minOrderByProduct.set(m.productId, v);
+      }
+    }
+  }
+
+  const grantedFreeForProduct = new Set<string>();
+
+  for (const item of rawItems) {
+    const threshold = minOrderByProduct.get(item.productId);
+    let freeQty = 0;
+
+    if (
+      freeProductsPluginEnabled &&
+      threshold !== undefined &&
+      baseSubtotal >= threshold &&
+      !grantedFreeForProduct.has(item.productId) &&
+      item.quantity > 0
+    ) {
+      freeQty = 1;
+      grantedFreeForProduct.add(item.productId);
+      discountFromFreeProducts += item.price * freeQty;
+    }
+
+    // Prețul per unitate rămâne prețul de listă; discountul este separat.
+    itemDetails.push({
+      productId: item.productId,
+      productName: item.productName,
+      productImage: item.productImage,
+      quantity: item.quantity,
+      price: item.price,
+    });
+  }
+
   const fulfillmentType = input.fulfillmentType ?? 'delivery';
   const isInLocation = fulfillmentType === 'in_location';
   let deliveryFee = 0;
@@ -344,8 +411,17 @@ export async function computeOrderTotal(
     userId: input.userId,
     pointsToUse: input.pointsToUse,
   });
-  const total = Math.max(0, subtotal + deliveryFee - discountFromPoints);
-  return { itemDetails, subtotal, deliveryFee, pointsUsed, discountFromPoints, total };
+  const subtotal = baseSubtotal;
+  const total = Math.max(0, subtotal + deliveryFee - discountFromPoints - discountFromFreeProducts);
+  return {
+    itemDetails,
+    subtotal,
+    deliveryFee,
+    pointsUsed,
+    discountFromPoints,
+    discountFromFreeProducts,
+    total,
+  };
 }
 
 /**
@@ -357,19 +433,146 @@ export async function create(input: CreateOrderInput): Promise<Order> {
   try {
     const id = uuidv4();
     const totals = await computeOrderTotal(connection, input);
-    const { itemDetails, subtotal, deliveryFee, pointsUsed, discountFromPoints, total } = totals;
+    const {
+      itemDetails,
+      subtotal,
+      deliveryFee,
+      pointsUsed,
+      discountFromPoints,
+      discountFromFreeProducts,
+      total,
+    } = totals;
     
     const fulfillmentType = input.fulfillmentType ?? 'delivery';
     const isInLocation = fulfillmentType === 'in_location';
     const deliveryAddress = isInLocation ? 'În locație' : input.deliveryAddress;
     const deliveryCity = isInLocation ? 'În locație' : input.deliveryCity;
 
+    // Verificăm dacă coloana discount_from_free_products există în tabela orders
+    const [discountColRows] = await connection.execute<any[]>(
+      `SELECT COLUMN_NAME FROM information_schema.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE()
+         AND TABLE_NAME = 'orders'
+         AND COLUMN_NAME = 'discount_from_free_products'`
+    );
+    const hasDiscountFromFreeProductsColumn =
+      Array.isArray(discountColRows) && discountColRows.length > 0;
+
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/5b30d7ea-62d4-4fc8-b8b7-5a517226527b', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Debug-Session-Id': '19f6dc',
+      },
+      body: JSON.stringify({
+        sessionId: '19f6dc',
+        runId: 'post-fix-check',
+        hypothesisId: 'H5',
+        location: 'backend/src/models/Order.ts:create:before-insert',
+        message: 'orders table column check',
+        data: {
+          hasDiscountFromFreeProductsColumn,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
+
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/5b30d7ea-62d4-4fc8-b8b7-5a517226527b', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Debug-Session-Id': '19f6dc',
+      },
+      body: JSON.stringify({
+        sessionId: '19f6dc',
+        runId: 'pre-fix-1',
+        hypothesisId: 'H1',
+        location: 'backend/src/models/Order.ts:create:before-insert',
+        message: 'create order insert debug',
+        data: {
+          expectedColumns: [
+            'id',
+            'user_id',
+            'subtotal',
+            'delivery_fee',
+            'total',
+            'fulfillment_type',
+            'table_number',
+            'delivery_address',
+            'delivery_city',
+            'phone',
+            'notes',
+            'payment_method',
+            'payment_id',
+            'points_used',
+            'discount_from_points',
+            'discount_from_free_products',
+          ],
+          valuesLength: 16,
+          fulfillmentType,
+          hasDiscountFromFreeProducts: discountFromFreeProducts > 0,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
+
     // Inserează comanda (payment_id opțional - setat la plată card)
     const paymentId = input.paymentId ?? null;
+
+    const baseColumns = [
+      'id',
+      'user_id',
+      'subtotal',
+      'delivery_fee',
+      'total',
+      'fulfillment_type',
+      'table_number',
+      'delivery_address',
+      'delivery_city',
+      'phone',
+      'notes',
+      'payment_method',
+      'payment_id',
+      'points_used',
+      'discount_from_points',
+    ];
+
+    const baseValues = [
+      id,
+      input.userId,
+      subtotal,
+      deliveryFee,
+      total,
+      fulfillmentType,
+      input.tableNumber ?? null,
+      deliveryAddress,
+      deliveryCity,
+      input.phone,
+      input.notes || null,
+      input.paymentMethod,
+      paymentId,
+      pointsUsed,
+      discountFromPoints,
+    ];
+
+    const columns = hasDiscountFromFreeProductsColumn
+      ? [...baseColumns, 'discount_from_free_products']
+      : baseColumns;
+
+    const values = hasDiscountFromFreeProductsColumn
+      ? [...baseValues, discountFromFreeProducts]
+      : baseValues;
+
+    const placeholders = columns.map(() => '?').join(', ');
+
     await connection.execute(
-      `INSERT INTO orders (id, user_id, subtotal, delivery_fee, total, fulfillment_type, table_number, delivery_address, delivery_city, phone, notes, payment_method, payment_id, points_used, discount_from_points)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, input.userId, subtotal, deliveryFee, total, fulfillmentType, input.tableNumber ?? null, deliveryAddress, deliveryCity, input.phone, input.notes || null, input.paymentMethod, paymentId, pointsUsed, discountFromPoints]
+      `INSERT INTO orders (${columns.join(', ')})
+       VALUES (${placeholders})`,
+      values
     );
 
     if (pointsUsed > 0) {
@@ -404,6 +607,27 @@ export async function create(input: CreateOrderInput): Promise<Order> {
     
     return order;
   } catch (error) {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/5b30d7ea-62d4-4fc8-b8b7-5a517226527b', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Debug-Session-Id': '19f6dc',
+      },
+      body: JSON.stringify({
+        sessionId: '19f6dc',
+        runId: 'pre-fix-1',
+        hypothesisId: 'H1',
+        location: 'backend/src/models/Order.ts:create:catch',
+        message: 'create order error',
+        data: {
+          name: (error as any)?.name,
+          message: (error as any)?.message,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
     await connection.rollback();
     connection.release();
     throw error;

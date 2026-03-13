@@ -38,6 +38,14 @@ export const USER_FRAGMENT = gql`
     }
     xpToNextLevel
     createdAt
+    hasFreeProductBenefits
+    freeProductCampaignsSummary {
+      id
+      name
+      customText
+      minOrderValue
+      products
+    }
   }
 `;
 
@@ -127,6 +135,10 @@ export const ORDER_FRAGMENT = gql`
     phone
     notes
     paymentMethod
+    pointsEarned
+    pointsUsed
+    discountFromPoints
+    discountFromFreeProducts
     items {
       ...OrderItemFields
     }
@@ -152,6 +164,7 @@ export const ORDER_FRAGMENT_LITE = gql`
     pointsEarned
     pointsUsed
     discountFromPoints
+    discountFromFreeProducts
     items {
       ...OrderItemFieldsLite
     }

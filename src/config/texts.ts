@@ -285,6 +285,66 @@ export const texts = {
     tierDistribution: 'Distribuție utilizatori per nivel',
     tierLtv: 'Valoare per nivel',
   },
+
+  // Free products plugin (produse gratis pe rank)
+  freeProducts: {
+    adminTitle: 'Campanii produse gratis pe rank',
+    adminSubtitle:
+      'Configurează campanii în care anumite produse devin gratuite pentru clienții cu un anumit nivel (tier), într-o perioadă limitată.',
+    adminMenuLabel: 'Produse gratis pe rank',
+    listTitle: 'Campanii',
+    listDescription:
+      'Fiecare campanie se aplică unui singur nivel (tier). Poți crea mai multe campanii pentru niveluri diferite sau perioade diferite.',
+    listEmpty:
+      'Nicio campanie. Creează una nouă pentru a oferi produse gratis clienților fideli.',
+    loading: 'Se încarcă...',
+    createButton: 'Campanie nouă',
+    editDialogTitle: 'Editează campania de produse gratis',
+    createDialogTitle: 'Campanie nouă de produse gratis',
+    dialogSubtitle:
+      'Alege nivelul țintă, perioada și produsele care vor fi gratuite pentru clienți.',
+    nameLabel: 'Nume campanie',
+    namePlaceholder: 'ex: Gratis cafea pentru Gold',
+    tierLabel: 'Nivel (tier)',
+    tierPlaceholder: 'Alege nivelul',
+    customTextLabel: 'Mesaj afișat clientului (opțional)',
+    customTextPlaceholder: 'ex: Produs gratuit pentru nivelul tău de loialitate',
+    startDateLabel: 'Data start',
+    endDateLabel: 'Data sfârșit',
+    minOrderValueLabel: 'Valoare minimă comandă (RON)',
+    minOrderValueHelp: '0 = fără prag de sumă. Gratuitatea se aplică doar peste acest prag.',
+    productsLabel: 'Produse gratuite în campanie',
+    productsHelp:
+      'Bifează produsele care vor fi gratuite pentru utilizatorii cu nivelul selectat (maxim 1 bucată per produs per comandă).',
+    productsEmpty: 'Nu există produse în catalog.',
+    productsCount: '{count} produse',
+    activeBadge: 'Activă',
+    cancel: 'Anulare',
+    save: 'Salvează',
+    deleteTitle: 'Șterge campania?',
+    deleteDescription: 'Campania „{name}” va fi ștearsă permanent.',
+    deleteConfirm: 'Șterge',
+    toastLoadError: 'Nu s-au putut încărca campaniile sau datele auxiliare',
+    toastSaveError: 'Eroare la salvare',
+    toastDeleteError: 'Eroare la ștergere',
+    toastCreated: 'Campanie creată',
+    toastUpdated: 'Campanie actualizată',
+    toastDeleted: 'Campanie ștearsă',
+    validationNameRequired: 'Numele este obligatoriu',
+    validationTierRequired: 'Selectează un nivel (tier)',
+    validationDatesRequired: 'Datele de start și sfârșit sunt obligatorii',
+    validationDatesOrder: 'Data de start trebuie să fie înainte de data de sfârșit',
+    validationMinOrderValue:
+      'Valoarea minimă a comenzii trebuie să fie un număr mai mare sau egal cu 0',
+    warnNoProducts:
+      'Campania nu are niciun produs selectat. Poți continua, dar nu va avea efect până nu adaugi produse.',
+    // Frontend user-facing
+    rankInfoNone:
+      'Momentan nu ai produse gratuite pentru acest nivel, dar pot apărea campanii speciale pentru tine în orice moment.',
+    rankInfoActivePrefix: 'Ai produse gratuite active pentru nivelul tău:',
+    cartInfoNone:
+      'Uneori poți primi produse gratuite pentru nivelul tău de loialitate — urmărește ofertele speciale.',
+  },
 } as const;
 
 export type TextsType = typeof texts;

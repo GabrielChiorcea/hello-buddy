@@ -48,10 +48,13 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-extrabold mb-8 text-foreground flex items-center gap-3">
+        <h1 className="text-3xl font-extrabold mb-4 text-foreground flex items-center gap-3">
           <Zap className="h-7 w-7 text-primary" />
           {texts.cart.title}
         </h1>
+        <p className="text-xs text-muted-foreground">
+          {texts.freeProducts.cartInfoNone}
+        </p>
       </div>
       <TierProgressBar />
       <div className="container mx-auto px-4 py-8">

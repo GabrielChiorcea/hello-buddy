@@ -30,6 +30,7 @@ const routeTitles: Record<string, string> = {
   '/admin/points': 'Puncte',
   '/admin/streak': 'Streak',
   '/admin/tiers': 'Niveluri',
+  '/admin/free-products': 'Produse gratis pe rank',
   '/admin/settings': 'Setări',
   '/admin/addon-rules': 'Reguli Add-on',
 };

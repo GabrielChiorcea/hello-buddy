@@ -50,6 +50,15 @@ export interface User {
   /** XP rămas până la următorul nivel */
   xpToNextLevel?: number | null;
   createdAt: string;
+  /** Beneficii de produse gratuite (plugin free-products) */
+  hasFreeProductBenefits?: boolean;
+  freeProductCampaignsSummary?: {
+    id: string;
+    name: string;
+    customText: string | null;
+    minOrderValue: number;
+    products: string[];
+  }[];
 }
 
 /** 
@@ -238,6 +247,7 @@ export interface Order {
   pointsEarned?: number;
   pointsUsed?: number;
   discountFromPoints?: number;
+  discountFromFreeProducts?: number;
   items: OrderItem[];
   createdAt: string;
   estimatedDelivery?: string | null;

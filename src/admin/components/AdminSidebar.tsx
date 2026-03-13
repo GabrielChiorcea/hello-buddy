@@ -18,6 +18,7 @@ import {
   LogOut,
   ChefHat,
   Puzzle,
+  DollarSign,
 } from 'lucide-react';
 import { pointsPlugin } from '@/plugins/points';
 import { streakPlugin } from '@/plugins/streak';
@@ -64,12 +65,16 @@ export function AdminSidebar() {
   const { enabled: streakEnabled } = usePluginEnabled('streak');
   const { enabled: addonsEnabled } = usePluginEnabled('addons');
   const { enabled: tiersEnabled } = usePluginEnabled('tiers');
+  const { enabled: freeProductsEnabled } = usePluginEnabled('free_products');
 
   const mainNavItems = [
     ...baseNavItems,
     ...(pointsEnabled ? pointsPlugin.navItems : []),
     ...(streakEnabled ? streakPlugin.navItems : []),
     ...(tiersEnabled ? tiersPlugin.navItems : []),
+    ...(freeProductsEnabled
+      ? [{ title: 'Produse gratis pe rank', url: '/admin/free-products', icon: DollarSign }]
+      : []),
     ...(addonsEnabled ? [{ title: 'Reguli Add-on', url: '/admin/addon-rules', icon: Puzzle }] : []),
   ];
 

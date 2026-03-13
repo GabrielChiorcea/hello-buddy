@@ -13,6 +13,7 @@ import { streakResolvers } from '../../plugins/streak/index.js';
 import { tiersResolvers } from '../../plugins/tiers/index.js';
 import { resolvers as welcomeBonusResolvers } from '../../plugins/welcome_bonus/index.js';
 import { addonsResolvers } from '../../plugins/addons/index.js';
+import { freeProductsUserResolvers } from './freeProductsUser.js';
 import { queryOne } from '../../config/database.js';
 
 // Combină toate rezolverele
@@ -55,5 +56,6 @@ export const resolvers: any = {
   User: {
     ...welcomeBonusResolvers.User,
     ...tiersResolvers.User,
+    ...freeProductsUserResolvers.User,
   },
 };

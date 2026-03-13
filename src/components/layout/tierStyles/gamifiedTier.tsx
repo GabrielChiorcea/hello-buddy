@@ -5,6 +5,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, ChevronRight, Zap, Gift, Star, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { texts } from '@/config/texts';
 import { getTierBadgeIcon } from '@/config/tierIcons';
 import type { TierDisplayData } from './shared';
 
@@ -35,7 +36,23 @@ const InfoPill: React.FC<{ icon: React.ReactNode; children: React.ReactNode; var
 );
 
 export const GamifiedTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
-  const { tierName, currentBadgeIcon, multiplier, currentXp, progressPercent, isMaxLevel, xpToNextLevel, nextTierThreshold, currentBenefit, xpFormulaText, nextTier, nextBenefitText, nextMultiplier } = data;
+  const {
+    tierName,
+    currentBadgeIcon,
+    multiplier,
+    currentXp,
+    progressPercent,
+    isMaxLevel,
+    xpToNextLevel,
+    nextTierThreshold,
+    currentBenefit,
+    xpFormulaText,
+    nextTier,
+    nextBenefitText,
+    nextMultiplier,
+    hasFreeProductBenefits,
+    freeProductCampaignsSummary,
+  } = data;
 
   return (
     <div className={cn('relative overflow-hidden rounded-2xl border border-border shadow-sm', 'bg-gradient-to-br from-card via-card to-accent/30')}>
@@ -87,6 +104,18 @@ export const GamifiedTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
         <InfoPill icon={<TrendingUp className="h-3 w-3" />}>
           <span className="font-medium">Cum câștigi XP:</span> {xpFormulaText}
         </InfoPill>
+        {hasFreeProductBenefits ? (
+          <p className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-1">
+            {texts.freeProducts.rankInfoActivePrefix}{' '}
+            {freeProductCampaignsSummary.length > 0
+              ? freeProductCampaignsSummary.map((c) => c.name).join(', ')
+              : ''}
+          </p>
+        ) : (
+          <p className="text-[10px] text-muted-foreground mt-1">
+            {texts.freeProducts.rankInfoNone}
+          </p>
+        )}
       </div>
 
       {/* Next tier */}

@@ -26,12 +26,21 @@ export interface TierDisplayData {
   } | null;
   nextBenefitText: string | null;
   nextMultiplier: number;
+   hasFreeProductBenefits: boolean;
+   freeProductCampaignsSummary: {
+     id: string;
+     name: string;
+     customText: string | null;
+     minOrderValue: number;
+     products: string[];
+   }[];
 }
 
 export function useTierDisplayData(): TierDisplayData | null {
   const { isAuthenticated, user } = useAppSelector((s) => s.user);
   const { enabled: tiersEnabled } = usePluginEnabled('tiers');
   const { enabled: pointsEnabled } = usePluginEnabled('points');
+  const { enabled: freeProductsEnabled } = usePluginEnabled('free_products');
 
   const { data: economyData } = useQuery<{
     tiers_xp_per_ron: string | null;
@@ -52,7 +61,9 @@ export function useTierDisplayData(): TierDisplayData | null {
   const hasNextTier = nextTier != null;
   const canShow = tiersEnabled && isAuthenticated && (hasTier || hasNextTier);
 
-  if (!canShow) return null;
+  if (!canShow) {
+    return null;
+  }
 
   const currentTierThreshold = user?.tier?.xpThreshold ?? 0;
   let progressPercent = 100;
@@ -82,5 +93,7 @@ export function useTierDisplayData(): TierDisplayData | null {
     tierName, currentBadgeIcon, multiplier, currentXp, progressPercent,
     isMaxLevel, xpToNextLevel, nextTierThreshold, currentBenefit,
     xpFormulaText, nextTier, nextBenefitText, nextMultiplier,
+    hasFreeProductBenefits: !!(freeProductsEnabled && user?.hasFreeProductBenefits),
+    freeProductCampaignsSummary: user?.freeProductCampaignsSummary ?? [],
   };
 }

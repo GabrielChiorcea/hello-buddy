@@ -387,6 +387,38 @@ export const useAdminApi = () => {
     [fetchWithAuth]
   );
 
+  // Campanii produse gratuite pe rank
+  const getFreeProductCampaigns = useCallback(
+    () => fetchWithAuth<any[]>('/admin/free-products/campaigns'),
+    [fetchWithAuth]
+  );
+
+  const createFreeProductCampaign = useCallback(
+    (data: unknown) =>
+      fetchWithAuth<any>('/admin/free-products/campaigns', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    [fetchWithAuth]
+  );
+
+  const updateFreeProductCampaign = useCallback(
+    (id: string, data: unknown) =>
+      fetchWithAuth<any>(`/admin/free-products/campaigns/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    [fetchWithAuth]
+  );
+
+  const deleteFreeProductCampaign = useCallback(
+    (id: string) =>
+      fetchWithAuth<{ success: boolean }>(`/admin/free-products/campaigns/${id}`, {
+        method: 'DELETE',
+      }),
+    [fetchWithAuth]
+  );
+
   // Upload imagine
   const uploadImage = useCallback(
     async (file: File): Promise<string> => {
@@ -504,6 +536,11 @@ export const useAdminApi = () => {
     updateStreakCampaign,
     deleteStreakCampaign,
     getStreakCampaignEnrollments,
+    // Free products campaigns
+    getFreeProductCampaigns,
+    createFreeProductCampaign,
+    updateFreeProductCampaign,
+    deleteFreeProductCampaign,
     // Add-on rules
     getAddonRules,
     getAddonRulesFull,
