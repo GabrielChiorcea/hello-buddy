@@ -4,10 +4,11 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { ArrowRight } from 'lucide-react';
+import { texts } from '@/config/texts';
 import type { TierDisplayData } from './shared';
 
 export const CleanTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
-  const { tierName, currentBadgeIcon, multiplier, currentXp, progressPercent, isMaxLevel, xpToNextLevel, nextTierThreshold, currentBenefit, nextTier, nextBenefitText, nextMultiplier } = data;
+  const { tierName, currentBadgeIcon, multiplier, currentXp, progressPercent, isMaxLevel, xpToNextLevel, nextTierThreshold, currentBenefit, nextTier, nextBenefitText, nextMultiplier, hasFreeProductBenefits, freeProductCampaignsSummary } = data;
 
   return (
     <div className="rounded-xl border border-border bg-card p-4 space-y-3">
@@ -50,6 +51,14 @@ export const CleanTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
 
       {/* Current benefit */}
       <p className="text-xs text-muted-foreground">{currentBenefit}</p>
+      {hasFreeProductBenefits ? (
+        <p className="text-[10px] text-success mt-1">
+          {texts.freeProducts.rankInfoActivePrefix}{' '}
+          {freeProductCampaignsSummary.length > 0 ? freeProductCampaignsSummary.map((c) => c.name).join(', ') : ''}
+        </p>
+      ) : (
+        <p className="text-[10px] text-muted-foreground mt-1">{texts.freeProducts.rankInfoNone}</p>
+      )}
 
       {/* Next tier */}
       {!isMaxLevel && nextTier && (

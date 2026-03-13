@@ -105,7 +105,7 @@ export const GamifiedTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
           <span className="font-medium">Cum câștigi XP:</span> {xpFormulaText}
         </InfoPill>
         {hasFreeProductBenefits ? (
-          <p className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-1">
+          <p className="text-[10px] text-success mt-1">
             {texts.freeProducts.rankInfoActivePrefix}{' '}
             {freeProductCampaignsSummary.length > 0
               ? freeProductCampaignsSummary.map((c) => c.name).join(', ')

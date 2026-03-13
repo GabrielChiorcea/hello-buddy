@@ -5,10 +5,11 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Crown, ChevronRight } from 'lucide-react';
+import { texts } from '@/config/texts';
 import type { TierDisplayData } from './shared';
 
 export const PremiumTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
-  const { tierName, currentBadgeIcon, multiplier, currentXp, progressPercent, isMaxLevel, xpToNextLevel, nextTierThreshold, currentBenefit, nextTier, nextBenefitText, nextMultiplier } = data;
+  const { tierName, currentBadgeIcon, multiplier, currentXp, progressPercent, isMaxLevel, xpToNextLevel, nextTierThreshold, currentBenefit, nextTier, nextBenefitText, nextMultiplier, hasFreeProductBenefits, freeProductCampaignsSummary } = data;
 
   return (
     <div className={cn(
@@ -63,6 +64,14 @@ export const PremiumTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
         <p className="text-xs text-muted-foreground leading-relaxed italic">
           „{currentBenefit}"
         </p>
+        {hasFreeProductBenefits ? (
+          <p className="text-[10px] text-success mt-1">
+            {texts.freeProducts.rankInfoActivePrefix}{' '}
+            {freeProductCampaignsSummary.length > 0 ? freeProductCampaignsSummary.map((c) => c.name).join(', ') : ''}
+          </p>
+        ) : (
+          <p className="text-[10px] text-muted-foreground mt-1">{texts.freeProducts.rankInfoNone}</p>
+        )}
       </div>
 
       {/* Next tier */}
