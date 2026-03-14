@@ -7,12 +7,19 @@
 import { v4 as uuidv4 } from 'uuid';
 import { query, queryOne } from '../../../config/database.js';
 
+const APP_TIMEZONE = 'Europe/Bucharest';
+
+/**
+ * Normalizează o dată la format YYYY-MM-DD în timezone-ul Bucharest.
+ * Evită bug-ul unde toISOString() convertea la UTC, cauzând decalaj de o zi
+ * față de orderDateStr (calculat cu getDateInBucharest).
+ */
 function normDate(v: string | Date): string {
-  if (v instanceof Date) return v.toISOString().slice(0, 10);
+  if (v instanceof Date) return v.toLocaleDateString('en-CA', { timeZone: APP_TIMEZONE });
   const s = String(v);
   if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
   const d = new Date(s);
-  return isNaN(d.getTime()) ? s : d.toISOString().slice(0, 10);
+  return isNaN(d.getTime()) ? s : d.toLocaleDateString('en-CA', { timeZone: APP_TIMEZONE });
 }
 
 export async function insertLog(
