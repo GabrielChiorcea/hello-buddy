@@ -144,38 +144,63 @@ export async function recordOrderDelivered(
 ): Promise<void> {
   const orderDateStr = CampaignsRepo.getDateInBucharest(orderDate);
 
+  console.log(`[STREAK DEBUG] ═══════════════════════════════════════`);
+  console.log(`[STREAK DEBUG] recordOrderDelivered called`);
+  console.log(`[STREAK DEBUG]   userId=${userId}, orderId=${orderId}`);
+  console.log(`[STREAK DEBUG]   orderDate=${orderDate.toISOString()}, orderDateStr=${orderDateStr}`);
+  console.log(`[STREAK DEBUG]   orderTotal=${orderTotal}`);
+
   const enrollments = await EnrollmentsRepo.getActiveEnrollmentsForUser(userId);
+  console.log(`[STREAK DEBUG]   activeEnrollments found: ${enrollments.length}`);
+
+  if (enrollments.length === 0) {
+    console.log(`[STREAK DEBUG]   ⚠️ No active enrollments — exiting`);
+  }
+
   for (const enrollment of enrollments) {
     try {
+      console.log(`[STREAK DEBUG]   ── enrollment ${enrollment.id} (campaign=${enrollment.campaignId}, currentStreak=${enrollment.currentStreakCount})`);
+
       const campaign = await CampaignsRepo.getCampaignById(enrollment.campaignId);
-      if (!campaign) continue;
+      if (!campaign) {
+        console.log(`[STREAK DEBUG]     ⚠️ Campaign not found — skipping`);
+        continue;
+      }
+
+      console.log(`[STREAK DEBUG]     campaign: name="${campaign.name}", recurrence=${campaign.recurrenceType}, rewardType=${campaign.rewardType}, ordersRequired=${campaign.ordersRequired}, minOrderValue=${campaign.minOrderValue}`);
 
       // ─── Validation: min order value ───
       if (campaign.minOrderValue > 0 && orderTotal != null && orderTotal < campaign.minOrderValue) {
-        continue; // Order too small, skip
+        console.log(`[STREAK DEBUG]     ⚠️ Order total ${orderTotal} < minOrderValue ${campaign.minOrderValue} — skipping`);
+        continue;
       }
 
       // ─── Insert log (poate fi duplicate day – ziua deja înregistrată) ───
       const inserted = await StreakLogsRepo.insertLog(enrollment.id, orderId, orderDateStr, orderTotal);
+      console.log(`[STREAK DEBUG]     insertLog result: inserted=${inserted}`);
 
-      // ─── Recalculăm mereu progresul din streak_logs (și când inserted=false, ca UI să fie corect) ───
+      // ─── Recalculăm mereu progresul din streak_logs ───
       const previousCount = enrollment.currentStreakCount;
       let currentCount = 0;
 
       if (campaign.recurrenceType === 'consecutive') {
         const allDates = await StreakLogsRepo.getOrderDatesForEnrollment(enrollment.id);
+        console.log(`[STREAK DEBUG]     consecutive: allDates=[${allDates.join(', ')}], orderDateStr=${orderDateStr}`);
         currentCount = consecutiveRunLength(allDates, orderDateStr);
-
+        console.log(`[STREAK DEBUG]     consecutive: consecutiveRunLength=${currentCount}`);
 
       } else if (campaign.recurrenceType === 'rolling') {
         const [rangeStart, rangeEnd] = getRollingRange(orderDateStr, campaign.rollingWindowDays);
         const rangeDates = await StreakLogsRepo.getOrderDatesInRange(enrollment.id, rangeStart, rangeEnd);
+        console.log(`[STREAK DEBUG]     rolling: range=[${rangeStart}, ${rangeEnd}], rangeDates=[${rangeDates.join(', ')}]`);
         currentCount = rangeDates.length;
       }
 
       const completed = currentCount >= campaign.ordersRequired;
       const currentLevel = completed ? campaign.ordersRequired : currentCount;
       const now = new Date();
+
+      console.log(`[STREAK DEBUG]     RESULT: previousCount=${previousCount} → currentCount=${currentCount}, completed=${completed}`);
 
       await EnrollmentsRepo.updateEnrollmentProgress(
         enrollment.id,
@@ -184,30 +209,36 @@ export async function recordOrderDelivered(
         completed ? now : null,
         completed ? now : null
       );
+      console.log(`[STREAK DEBUG]     ✅ Progress updated in DB`);
 
-      // ─── Acordăm puncte doar când ziua a fost nou inserată (evităm dublu la re-marcare livrată) ───
+      // ─── Acordăm puncte doar când ziua a fost nou inserată ───
       if (inserted) {
         const pointsEnabled = await isPluginEnabled('points');
         if (pointsEnabled) {
           const { addPoints } = await import('../points/repositories/transactionsRepository.js');
 
           if (campaign.rewardType === 'single' && completed && campaign.bonusPoints > 0) {
+            console.log(`[STREAK DEBUG]     🎁 Awarding single bonus: ${campaign.bonusPoints} points`);
             await addPoints(userId, campaign.bonusPoints, null, 'earned');
           } else if (campaign.rewardType === 'steps' || campaign.rewardType === 'multiplier') {
             const reward = await getIncrementalReward(campaign, previousCount, currentCount);
+            console.log(`[STREAK DEBUG]     🎁 Incremental reward: ${reward} points`);
             if (reward > 0) {
               await addPoints(userId, reward, null, 'earned');
             }
             if (completed && campaign.bonusPoints > 0 && campaign.rewardType === 'steps') {
+              console.log(`[STREAK DEBUG]     🎁 Steps completion bonus: ${campaign.bonusPoints} points`);
               await addPoints(userId, campaign.bonusPoints, null, 'earned');
             }
           }
         }
       }
     } catch (err) {
+      console.error(`[STREAK DEBUG]     ❌ Error:`, err);
       logError('streak recordOrderDelivered', err);
     }
   }
+  console.log(`[STREAK DEBUG] ═══════════════════════════════════════`);
 }
 
 /**
