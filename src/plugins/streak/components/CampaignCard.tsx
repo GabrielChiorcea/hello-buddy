@@ -40,6 +40,7 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
       variables: { campaignId: campaignId ?? undefined },
       fetchPolicy: 'cache-and-network',
       skip: !campaignId || enrollmentProp !== undefined,
+      pollInterval: campaignId ? 15_000 : 0, // refetch la 15s ca bara de progres să se actualizeze după livrare
     }
   );
   const enrollment =

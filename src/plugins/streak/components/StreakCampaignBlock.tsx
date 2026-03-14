@@ -64,7 +64,6 @@ export const StreakCampaignBlock: React.FC = () => {
             {campaigns.length === 0 ? (
               <p className="text-sm text-muted-foreground py-4">Momentan nu există campanii active. Revino mai târziu sau verifică în admin.</p>
             ) : campaigns.map((campaign, index) => {
-              const enrollment = myActiveEnrollment?.campaignId === campaign.id ? myActiveEnrollment : null;
               const enrolledInOtherCampaign = myActiveEnrollment != null && myActiveEnrollment.campaignId !== campaign.id;
               return (
                 <motion.div
@@ -75,7 +74,7 @@ export const StreakCampaignBlock: React.FC = () => {
                   transition={{ delay: index * 0.1, duration: 0.5 }}
                   className="flex-shrink-0 w-[min(100%,320px)] md:w-80"
                 >
-                  <CampaignCard campaign={campaign} enrollment={enrollment ?? undefined} enrolledInOtherCampaign={enrolledInOtherCampaign} />
+                  <CampaignCard campaign={campaign} enrolledInOtherCampaign={enrolledInOtherCampaign} />
                 </motion.div>
               );
             })}

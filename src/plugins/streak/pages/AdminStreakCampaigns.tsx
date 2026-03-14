@@ -629,9 +629,6 @@ export default function AdminStreakCampaigns() {
                   <p className="text-xs text-muted-foreground mt-1">0 = fără limită</p>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Produsele excluse se pot configura prin endpoint-ul API (excludedProducts).
-              </p>
             </div>
 
             {/* ─── 4. Resetare ─── */}

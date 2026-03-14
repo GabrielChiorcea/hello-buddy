@@ -165,11 +165,12 @@ export async function updateOrderStatus(req: Request, res: Response): Promise<vo
         total: order.total,
         pointsEarned: order.pointsEarned,
       });
-      // 3) Campanii streak
+      // 3) Campanii streak (folosim deliveredAt pentru ziua care contează la streak)
       await streakPlugin.hooks.onOrderDelivered(id, {
         userId: order.userId,
         total: order.total,
         pointsEarned: order.pointsEarned,
+        deliveredAt: order.deliveredAt ?? undefined,
       });
     }
 

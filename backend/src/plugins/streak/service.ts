@@ -1,7 +1,7 @@
 /**
  * Streak campaign service V2 — motor de reguli complet
  * Recurență (calendar/rolling/consecutive), Praguri (scăriță/multiplicator),
- * Validare (min order, excluded products), Resetare (hard/soft decay)
+ * Validare (min order), Resetare (hard/soft decay)
  * Plugin: plugins/streak
  */
 
@@ -24,8 +24,7 @@ export async function getCampaignWithDetails(campaignId: string) {
   const campaign = await CampaignsRepo.getCampaignById(campaignId);
   if (!campaign) return null;
   const rewardSteps = await CampaignsRepo.getRewardSteps(campaignId);
-  const excludedProducts = await CampaignsRepo.getExcludedProducts(campaignId);
-  return { ...campaign, rewardSteps, excludedProducts };
+  return { ...campaign, rewardSteps };
 }
 
 export async function enrollUser(userId: string, campaignId: string) {
@@ -143,7 +142,7 @@ export async function recordOrderDelivered(
   orderTotal?: number,
   orderProductIds?: string[]
 ): Promise<void> {
-  const orderDateStr = orderDate.toISOString().slice(0, 10);
+  const orderDateStr = CampaignsRepo.getDateInBucharest(orderDate);
 
   const enrollments = await EnrollmentsRepo.getActiveEnrollmentsForUser(userId);
   for (const enrollment of enrollments) {
@@ -156,20 +155,10 @@ export async function recordOrderDelivered(
         continue; // Order too small, skip
       }
 
-      // ─── Validation: excluded products ───
-      if (orderProductIds && orderProductIds.length > 0) {
-        const excluded = await CampaignsRepo.getExcludedProducts(campaign.id);
-        if (excluded.length > 0) {
-          const hasOnlyExcluded = orderProductIds.every((pid) => excluded.includes(pid));
-          if (hasOnlyExcluded) continue; // All products excluded
-        }
-      }
-
-      // ─── Insert log ───
+      // ─── Insert log (poate fi duplicate day – ziua deja înregistrată) ───
       const inserted = await StreakLogsRepo.insertLog(enrollment.id, orderId, orderDateStr, orderTotal);
-      if (!inserted) continue; // Duplicate day
 
-      // ─── Calculate progress based on recurrence type ───
+      // ─── Recalculăm mereu progresul din streak_logs (și când inserted=false, ca UI să fie corect) ───
       const previousCount = enrollment.currentStreakCount;
       let currentCount = 0;
 
@@ -184,7 +173,6 @@ export async function recordOrderDelivered(
         currentCount = rangeDates.length;
       }
 
-      // ─── Determine level ───
       const completed = currentCount >= campaign.ordersRequired;
       const currentLevel = completed ? campaign.ordersRequired : currentCount;
       const now = new Date();
@@ -197,21 +185,22 @@ export async function recordOrderDelivered(
         completed ? now : null
       );
 
-      // ─── Award points ───
-      const pointsEnabled = await isPluginEnabled('points');
-      if (pointsEnabled) {
-        const { addPoints } = await import('../points/repositories/transactionsRepository.js');
+      // ─── Acordăm puncte doar când ziua a fost nou inserată (evităm dublu la re-marcare livrată) ───
+      if (inserted) {
+        const pointsEnabled = await isPluginEnabled('points');
+        if (pointsEnabled) {
+          const { addPoints } = await import('../points/repositories/transactionsRepository.js');
 
-        if (campaign.rewardType === 'single' && completed && campaign.bonusPoints > 0) {
-          await addPoints(userId, campaign.bonusPoints, null, 'earned');
-        } else if (campaign.rewardType === 'steps' || campaign.rewardType === 'multiplier') {
-          const reward = await getIncrementalReward(campaign, previousCount, currentCount);
-          if (reward > 0) {
-            await addPoints(userId, reward, null, 'earned');
-          }
-          // Also award completion bonus for steps if completed
-          if (completed && campaign.bonusPoints > 0 && campaign.rewardType === 'steps') {
+          if (campaign.rewardType === 'single' && completed && campaign.bonusPoints > 0) {
             await addPoints(userId, campaign.bonusPoints, null, 'earned');
+          } else if (campaign.rewardType === 'steps' || campaign.rewardType === 'multiplier') {
+            const reward = await getIncrementalReward(campaign, previousCount, currentCount);
+            if (reward > 0) {
+              await addPoints(userId, reward, null, 'earned');
+            }
+            if (completed && campaign.bonusPoints > 0 && campaign.rewardType === 'steps') {
+              await addPoints(userId, campaign.bonusPoints, null, 'earned');
+            }
           }
         }
       }
@@ -219,6 +208,58 @@ export async function recordOrderDelivered(
       logError('streak recordOrderDelivered', err);
     }
   }
+}
+
+/**
+ * Recalculează progresul unui enrollment din streak_logs (pentru date existente care nu s-au actualizat).
+ */
+export async function recalcEnrollmentProgressFromLogs(enrollmentId: string): Promise<{ currentCount: number; currentLevel: number; updated: boolean }> {
+  const enrollment = await EnrollmentsRepo.getEnrollmentById(enrollmentId);
+  if (!enrollment) return { currentCount: 0, currentLevel: 0, updated: false };
+  const campaign = await CampaignsRepo.getCampaignById(enrollment.campaignId);
+  if (!campaign) return { currentCount: 0, currentLevel: 0, updated: false };
+
+  const allDates = await StreakLogsRepo.getOrderDatesForEnrollment(enrollmentId);
+  let currentCount = 0;
+  if (allDates.length > 0) {
+    const lastDate = allDates[allDates.length - 1];
+    if (campaign.recurrenceType === 'consecutive') {
+      currentCount = consecutiveRunLength(allDates, lastDate);
+    } else {
+      const [rangeStart, rangeEnd] = getRollingRange(lastDate, campaign.rollingWindowDays);
+      const rangeDates = await StreakLogsRepo.getOrderDatesInRange(enrollmentId, rangeStart, rangeEnd);
+      currentCount = rangeDates.length;
+    }
+  }
+  const completed = currentCount >= campaign.ordersRequired;
+  const currentLevel = completed ? campaign.ordersRequired : currentCount;
+  const now = new Date();
+  await EnrollmentsRepo.updateEnrollmentProgress(
+    enrollmentId,
+    currentCount,
+    currentLevel,
+    completed ? now : null,
+    completed ? now : null
+  );
+  return { currentCount, currentLevel, updated: true };
+}
+
+/**
+ * Recalculează progresul pentru toate enrollment-urile (din streak_logs). Util după fix-uri când datele existente au rămas cu progres 0.
+ */
+export async function recalcAllEnrollmentsProgress(): Promise<{ processed: number; updated: number }> {
+  const campaigns = await CampaignsRepo.listCampaigns();
+  let processed = 0;
+  let updated = 0;
+  for (const c of campaigns) {
+    const enrollments = await EnrollmentsRepo.listEnrollmentsByCampaign(c.id);
+    for (const e of enrollments) {
+      processed++;
+      const result = await recalcEnrollmentProgressFromLogs(e.id);
+      if (result.updated) updated++;
+    }
+  }
+  return { processed, updated };
 }
 
 /* ─── Soft Decay (called by a cron/scheduler or on next order check) ── */

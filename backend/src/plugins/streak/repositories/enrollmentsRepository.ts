@@ -6,6 +6,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { query, queryOne } from '../../../config/database.js';
+import { getTodayBucharest } from './campaignsRepository.js';
 
 export interface UserStreakCampaignRow {
   id: string;
@@ -42,11 +43,6 @@ function mapRow(r: UserStreakCampaignRow): UserStreakCampaign {
   };
 }
 
-function getTodayLocal(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
 export async function getEnrollment(userId: string, campaignId: string): Promise<UserStreakCampaign | null> {
   const row = await queryOne<UserStreakCampaignRow>(
     'SELECT * FROM user_streak_campaigns WHERE user_id = ? AND campaign_id = ?',
@@ -56,7 +52,7 @@ export async function getEnrollment(userId: string, campaignId: string): Promise
 }
 
 export async function getEnrollmentByUserAndActive(userId: string): Promise<UserStreakCampaign | null> {
-  const today = getTodayLocal();
+  const today = getTodayBucharest();
   const row = await queryOne<UserStreakCampaignRow>(
     `SELECT usc.* FROM user_streak_campaigns usc
      JOIN streak_campaigns sc ON sc.id = usc.campaign_id
@@ -112,7 +108,7 @@ export async function listEnrollmentsByCampaign(campaignId: string): Promise<Use
 }
 
 export async function getActiveEnrollmentsForUser(userId: string): Promise<UserStreakCampaign[]> {
-  const today = getTodayLocal();
+  const today = getTodayBucharest();
   const rows = await query<UserStreakCampaignRow[]>(
     `SELECT usc.* FROM user_streak_campaigns usc
      JOIN streak_campaigns sc ON sc.id = usc.campaign_id

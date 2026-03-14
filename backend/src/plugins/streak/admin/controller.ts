@@ -7,6 +7,7 @@ import { Request, Response } from 'express';
 import { logError } from '../../../utils/safeErrorLogger.js';
 import * as CampaignsRepo from '../repositories/campaignsRepository.js';
 import * as EnrollmentsRepo from '../repositories/enrollmentsRepository.js';
+import * as StreakService from '../service.js';
 import { query } from '../../../config/database.js';
 
 /**
@@ -20,7 +21,6 @@ export async function getCampaigns(req: Request, res: Response): Promise<void> {
       campaigns.map(async (c) => ({
         ...c,
         rewardSteps: await CampaignsRepo.getRewardSteps(c.id),
-        excludedProducts: await CampaignsRepo.getExcludedProducts(c.id),
       }))
     );
     res.json(enriched);
@@ -42,8 +42,7 @@ export async function getCampaign(req: Request, res: Response): Promise<void> {
       return;
     }
     const rewardSteps = await CampaignsRepo.getRewardSteps(id);
-    const excludedProducts = await CampaignsRepo.getExcludedProducts(id);
-    res.json({ ...campaign, rewardSteps, excludedProducts });
+    res.json({ ...campaign, rewardSteps });
   } catch (error) {
     logError('citire campanie streak', error);
     res.status(500).json({ error: 'Eroare internă server' });
@@ -56,7 +55,7 @@ export async function getCampaign(req: Request, res: Response): Promise<void> {
 export async function createCampaign(req: Request, res: Response): Promise<void> {
   try {
     const body = req.body;
-    const today = new Date().toISOString().slice(0, 10);
+    const today = CampaignsRepo.getTodayBucharest();
 
     // Validate dates
     if (!body.startDate || !body.endDate) {
@@ -71,8 +70,6 @@ export async function createCampaign(req: Request, res: Response): Promise<void>
       res.status(400).json({ error: 'Data de sfârșit trebuie să fie după data de start.' });
       return;
     }
-
-
 
     const campaign = await CampaignsRepo.createCampaign({
       name: body.name,
@@ -96,14 +93,8 @@ export async function createCampaign(req: Request, res: Response): Promise<void>
       await CampaignsRepo.setRewardSteps(campaign.id, body.rewardSteps);
     }
 
-    // Set excluded products if provided
-    if (body.excludedProducts && Array.isArray(body.excludedProducts)) {
-      await CampaignsRepo.setExcludedProducts(campaign.id, body.excludedProducts);
-    }
-
     const rewardSteps = await CampaignsRepo.getRewardSteps(campaign.id);
-    const excludedProducts = await CampaignsRepo.getExcludedProducts(campaign.id);
-    res.status(201).json({ ...campaign, rewardSteps, excludedProducts });
+    res.status(201).json({ ...campaign, rewardSteps });
   } catch (error) {
     logError('creare campanie streak', error);
     res.status(500).json({ error: 'Eroare internă server' });
@@ -147,14 +138,8 @@ export async function updateCampaign(req: Request, res: Response): Promise<void>
       await CampaignsRepo.setRewardSteps(id, body.rewardSteps);
     }
 
-    // Update excluded products if provided
-    if (body.excludedProducts && Array.isArray(body.excludedProducts)) {
-      await CampaignsRepo.setExcludedProducts(id, body.excludedProducts);
-    }
-
     const rewardSteps = await CampaignsRepo.getRewardSteps(id);
-    const excludedProducts = await CampaignsRepo.getExcludedProducts(id);
-    res.json({ ...updated, rewardSteps, excludedProducts });
+    res.json({ ...updated, rewardSteps });
   } catch (error) {
     logError('actualizare campanie streak', error);
     res.status(500).json({ error: 'Eroare internă server' });
@@ -213,6 +198,21 @@ export async function getCampaignEnrollments(req: Request, res: Response): Promi
     res.json(list);
   } catch (error) {
     logError('listare înscrieri campanie streak', error);
+    res.status(500).json({ error: 'Eroare internă server' });
+  }
+}
+
+/**
+ * POST /admin/streak/recalc-progress
+ * Recalculează progresul (current_streak_count, current_level) pentru toate enrollment-urile din streak_logs.
+ * Util când comenzi au fost marcate livrate în trecut dar progresul nu s-a actualizat (ex. înainte de fix).
+ */
+export async function recalcProgress(req: Request, res: Response): Promise<void> {
+  try {
+    const result = await StreakService.recalcAllEnrollmentsProgress();
+    res.json({ message: 'Progres recalculat din streak_logs', ...result });
+  } catch (error) {
+    logError('recalc progres streak', error);
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }

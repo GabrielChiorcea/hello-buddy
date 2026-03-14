@@ -13,14 +13,15 @@ import { isPluginEnabled } from '../../utils/pluginFlags.js';
  */
 export async function onOrderDelivered(
   orderId: string,
-  order: { userId: string; total: number; pointsEarned: number; productIds?: string[] }
+  order: { userId: string; total: number; pointsEarned: number; productIds?: string[]; deliveredAt?: Date | null }
 ): Promise<void> {
   const enabled = await isPluginEnabled('streak');
   if (!enabled) return;
+  const orderDate = order.deliveredAt ?? new Date();
   await StreakService.recordOrderDelivered(
     order.userId,
     orderId,
-    new Date(),
+    orderDate,
     order.total,
     order.productIds
   );

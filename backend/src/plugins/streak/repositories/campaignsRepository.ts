@@ -60,12 +60,16 @@ export interface RewardStep {
 
 /* ─── Helpers ──────────────────────────────────────────────── */
 
+const APP_TIMEZONE = 'Europe/Bucharest';
+
 function toDateString(v: Date | string): string {
-  if (v instanceof Date) return v.toISOString().slice(0, 10);
+  if (v instanceof Date) {
+    return v.toLocaleDateString('en-CA', { timeZone: APP_TIMEZONE });
+  }
   const s = String(v);
   if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
   const d = new Date(s);
-  return isNaN(d.getTime()) ? s : d.toISOString().slice(0, 10);
+  return isNaN(d.getTime()) ? s : d.toLocaleDateString('en-CA', { timeZone: APP_TIMEZONE });
 }
 
 function toISOString(v: Date | string): string {
@@ -75,17 +79,19 @@ function toISOString(v: Date | string): string {
   return isNaN(d.getTime()) ? s : d.toISOString();
 }
 
-function getTodayBucharest(): string {
-  return new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Bucharest' });
+/** Azi în Europe/Bucharest – folosit peste tot pentru consistență (campanii active, enrollments). */
+export function getTodayBucharest(): string {
+  return new Date().toLocaleDateString('en-CA', { timeZone: APP_TIMEZONE });
 }
 
-function getTodayLocal(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+/** Data calendar (YYYY-MM-DD) în Europe/Bucharest pentru un Date – ex. pentru ziua livrării la streak. */
+export function getDateInBucharest(d: Date): string {
+  return d.toLocaleDateString('en-CA', { timeZone: APP_TIMEZONE });
 }
 
 function normalizeRecurrenceType(raw: string): RecurrenceType {
   if (raw === 'rolling' || raw === 'consecutive') return raw;
+  if (raw === 'consecutive_days') return 'consecutive';
   return 'rolling';
 }
 
@@ -116,7 +122,7 @@ function mapRow(r: StreakCampaignRow): StreakCampaign {
 
 export async function getActiveCampaign(): Promise<StreakCampaign | null> {
   const campaigns = await getActiveCampaigns();
-  const today = getTodayLocal();
+  const today = getTodayBucharest();
   return campaigns.find((c) => c.startDate <= today && c.endDate >= today) ?? null;
 }
 
@@ -143,7 +149,7 @@ export async function listCampaigns(): Promise<StreakCampaign[]> {
 }
 
 export function isCampaignActive(campaign: StreakCampaign): boolean {
-  const today = getTodayLocal();
+  const today = getTodayBucharest();
   return campaign.startDate <= today && campaign.endDate >= today;
 }
 
@@ -271,24 +277,4 @@ export async function setRewardSteps(campaignId: string, steps: { stepNumber: nu
     );
   }
   return getRewardSteps(campaignId);
-}
-
-/* ─── Excluded Products ────────────────────────────────────── */
-
-export async function getExcludedProducts(campaignId: string): Promise<string[]> {
-  const rows = await query<{ product_id: string }[]>(
-    'SELECT product_id FROM streak_excluded_products WHERE campaign_id = ?',
-    [campaignId]
-  );
-  return rows.map((r) => r.product_id);
-}
-
-export async function setExcludedProducts(campaignId: string, productIds: string[]): Promise<void> {
-  await query('DELETE FROM streak_excluded_products WHERE campaign_id = ?', [campaignId]);
-  for (const pid of productIds) {
-    await query(
-      'INSERT INTO streak_excluded_products (campaign_id, product_id) VALUES (?, ?)',
-      [campaignId, pid]
-    );
-  }
 }

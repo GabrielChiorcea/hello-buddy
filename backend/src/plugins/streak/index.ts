@@ -31,4 +31,5 @@ export function registerAdminRoutes(router: Router): void {
   router.put('/streak/campaigns/:id', StreakAdminController.updateCampaign);
   router.delete('/streak/campaigns/:id', StreakAdminController.deleteCampaign);
   router.get('/streak/campaigns/:id/enrollments', StreakAdminController.getCampaignEnrollments);
+  router.post('/streak/recalc-progress', StreakAdminController.recalcProgress);
 }
