@@ -100,7 +100,7 @@ export const CampaignJoinButton: React.FC<CampaignJoinButtonProps> = ({
   if (enrolledInOtherCampaign) {
     return (
       <div className={cn(baseClasses, isGamified
-        ? 'bg-reward-surface-foreground/5 text-reward-surface-foreground/30 border border-reward-surface-foreground/10 cursor-not-allowed'
+        ? 'bg-reward/20 text-gray-900 border border-reward/30 cursor-not-allowed font-semibold'
         : 'bg-muted text-muted-foreground border border-border cursor-not-allowed'
       )}>
         <Lock className="h-4 w-4" /> Înscris la altă campanie
@@ -108,19 +108,16 @@ export const CampaignJoinButton: React.FC<CampaignJoinButtonProps> = ({
     );
   }
 
-  // CTA — Join
+  // CTA — Join (casino: orange gradient + shimmer + Rajdhani)
   if (isGamified) {
     return (
-      <motion.button onClick={handleClick} disabled={loading} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-        className={cn(baseClasses,
-          'bg-gradient-to-r from-reward via-reward-light to-reward text-reward-foreground',
-          'hover:from-reward-light hover:via-reward hover:to-reward-light',
-          'shadow-lg shadow-reward/30 hover:shadow-xl hover:shadow-reward/40',
-          'streak-glow uppercase disabled:opacity-50 disabled:cursor-not-allowed'
-        )}>
-        <div className="absolute inset-0 overflow-hidden rounded-xl">
-          <div className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-reward-surface-foreground/30 to-transparent animate-streak-shine" />
-        </div>
+      <motion.button
+        onClick={handleClick}
+        disabled={loading}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        className={cn(baseClasses, 'gamified-cta-btn disabled:opacity-50 disabled:cursor-not-allowed')}
+      >
         <span className="relative z-10 flex items-center gap-2">
           {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Se înscrie...</> : <><Sparkles className="h-4 w-4" /> Participă acum</>}
         </span>

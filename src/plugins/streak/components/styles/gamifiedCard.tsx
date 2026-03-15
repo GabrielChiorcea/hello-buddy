@@ -1,6 +1,6 @@
 /**
  * Gamified style — Casino / Rewards look
- * Dark backgrounds, glow effects, shimmer text, sparkles
+ * Dark navy/purple gradient, orange accents, Rajdhani typography, step nodes.
  */
 import React from 'react';
 import { motion } from 'framer-motion';
@@ -29,30 +29,32 @@ export const GamifiedCard: React.FC<Props> = ({
   const hasValidation = campaign.minOrderValue > 0;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-reward-surface border border-reward/20 h-full flex flex-col shadow-2xl shadow-reward-accent/20">
-      {/* Ambient glow */}
-      <div className="absolute -top-20 -right-20 w-40 h-40 bg-reward/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-reward-accent/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="gamified-casino-card relative overflow-hidden rounded-2xl h-full flex flex-col">
+      {/* Diagonal line texture is applied via .gamified-casino-card::before in CSS */}
 
-      {/* Floating sparkles */}
-      <div className="absolute top-4 right-6 pointer-events-none">
-        <Sparkles className="h-4 w-4 text-reward/40 streak-sparkle" />
+      {/* Ambient glow — culori din temă */}
+      <div className="absolute -top-20 -right-20 w-40 h-40 bg-reward/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-reward-light/10 rounded-full blur-3xl pointer-events-none" />
+
+      {/* Floating sparkles — keep existing SVG */}
+      <div className="absolute top-4 right-6 pointer-events-none z-10">
+        <Sparkles className="h-4 w-4 text-reward/50 streak-sparkle" />
       </div>
-      <div className="absolute top-12 right-12 pointer-events-none">
+      <div className="absolute top-12 right-12 pointer-events-none z-10">
         <Sparkles className="h-3 w-3 text-reward-light/30 streak-sparkle" style={{ animationDelay: '0.7s' }} />
       </div>
 
       {/* Header */}
-      <div className="p-5 pb-3">
+      <div className="relative z-10 p-5 pb-3">
         <div className="flex items-center gap-3">
           <div className="relative">
-            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br from-reward to-reward-accent flex items-center justify-center shadow-lg shadow-reward/30 ${!completed ? 'streak-glow' : ''}`}>
-              <Flame className="h-5 w-5 text-reward-surface-foreground" />
+            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br from-reward to-reward-light flex items-center justify-center shadow-lg shadow-reward/40 ${!completed ? 'streak-glow' : ''}`}>
+              <Flame className="h-5 w-5 text-reward-foreground" />
             </div>
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-bold text-reward-surface-foreground truncate">{campaign.name}</h3>
-            <p className="text-xs text-reward/60 mt-0.5">
+            <h3 className="gamified-casino-title truncate">{campaign.name}</h3>
+            <p className="gamified-casino-body text-xs mt-0.5 opacity-90">
               {campaign.recurrenceType === 'consecutive' ? 'Zile consecutive' : campaign.recurrenceType === 'rolling' ? `Fereastră mobilă (${campaign.rollingWindowDays} zile)` : campaign.recurrenceType}
             </p>
           </div>
@@ -60,53 +62,53 @@ export const GamifiedCard: React.FC<Props> = ({
       </div>
 
       {/* Rule description */}
-      <div className="px-5 pb-2">
-        <p className="text-sm text-reward-surface-foreground/70 leading-relaxed">
+      <div className="relative z-10 px-5 pb-2">
+        <p className="gamified-casino-body leading-relaxed">
           {campaign.customText || buildRuleDescription(campaign)}
         </p>
       </div>
 
       {/* Period info */}
-      <div className="px-5 pb-2 flex items-center gap-2">
-        <Calendar className="h-3.5 w-3.5 text-reward/50 flex-shrink-0" />
-        <span className="text-xs text-reward/50">
+      <div className="relative z-10 px-5 pb-2 flex items-center gap-2 flex-wrap">
+        <span className="gamified-casino-body text-xs flex items-center gap-1.5">
+          <Calendar className="h-3.5 w-3.5 text-reward/90 flex-shrink-0" />
           {formatDate(campaign.startDate)} — {formatDate(campaign.endDate)}
         </span>
         {remaining > 0 && remaining <= 14 && (
-          <span className="text-[10px] bg-reward/15 text-reward rounded-full px-2 py-0.5 font-medium">
+          <span className="gamified-casino-badge-label bg-reward/30 text-reward-surface-foreground rounded-full px-2.5 py-0.5">
             {remaining} {remaining === 1 ? 'zi' : 'zile'} rămase
           </span>
         )}
       </div>
 
-      {/* Reward badges */}
-      <div className="px-5 pb-2 flex flex-wrap gap-2">
-        <div className="inline-flex items-center gap-2 bg-gradient-to-r from-reward/15 to-reward-light/10 border border-reward/20 rounded-full px-3.5 py-1.5">
-          <Gift className="h-3.5 w-3.5 text-reward" />
-          <span className="text-sm font-bold streak-shimmer">{campaign.bonusPoints} puncte</span>
-          <span className="text-xs text-reward/50">
+      {/* Reward badges — semantic colors */}
+      <div className="relative z-10 px-5 pb-2 flex flex-wrap gap-2">
+        <div className="gamified-badge-points inline-flex items-center gap-2 rounded-full px-3.5 py-1.5">
+          <Gift className="h-3.5 w-3.5 text-reward-foreground flex-shrink-0" />
+          <span className="gamified-casino-badge-label text-reward-foreground">{campaign.bonusPoints} puncte</span>
+          <span className="gamified-casino-badge-label text-reward-foreground/90 text-[11px]">
             {campaign.rewardType === 'single' ? 'la completare' : 'bonus final'}
           </span>
         </div>
-        <div className="inline-flex items-center gap-1.5 bg-reward-surface-foreground/5 border border-reward-surface-foreground/10 rounded-full px-2.5 py-1">
-          <Target className="h-3 w-3 text-reward/60" />
-          <span className="text-xs text-reward/60">{campaign.ordersRequired} comenzi necesare</span>
+        <div className="gamified-badge-orders inline-flex items-center gap-1.5 rounded-full px-2.5 py-1">
+          <Target className="h-3 w-3 text-reward flex-shrink-0" />
+          <span className="gamified-casino-badge-label text-reward-surface-foreground">{campaign.ordersRequired} comenzi necesare</span>
         </div>
         {campaign.resetType === 'soft_decay' && (
-          <div className="inline-flex items-center gap-1.5 bg-status-confirmed/10 border border-status-confirmed/20 rounded-full px-2.5 py-1">
-            <Shield className="h-3 w-3 text-status-confirmed" />
-            <span className="text-xs text-status-confirmed">Soft Decay</span>
+          <div className="gamified-badge-softdecay inline-flex items-center gap-1.5 rounded-full px-2.5 py-1">
+            <Shield className="h-3 w-3 text-status-confirmed flex-shrink-0" />
+            <span className="gamified-casino-badge-label text-reward-surface-foreground">Soft Decay</span>
           </div>
         )}
       </div>
 
-      {/* Steps ladder — only when not enrolled (progress bar already shows steps inline) */}
+      {/* Steps ladder — only when not enrolled */}
       {hasSteps && !isEnrolled && (
-        <div className="px-5 pb-3">
-          <div className="bg-reward-surface-foreground/5 rounded-xl p-3 border border-reward-surface-foreground/5">
+        <div className="relative z-10 px-5 pb-3">
+          <div className="rounded-xl p-3 bg-reward-surface-foreground/[0.04] border border-reward-surface-foreground/10">
             <div className="flex items-center gap-1.5 mb-2">
-              <TrendingUp className="h-3.5 w-3.5 text-reward/70" />
-              <span className="text-xs font-semibold text-reward/70 uppercase tracking-wider">Praguri recompensă</span>
+              <TrendingUp className="h-3.5 w-3.5 text-reward-surface-foreground/90" />
+              <span className="gamified-casino-badge-label text-reward-surface-foreground uppercase tracking-wider">Praguri recompensă</span>
             </div>
             <RewardStepsLadder
               steps={campaign.rewardSteps}
@@ -121,33 +123,33 @@ export const GamifiedCard: React.FC<Props> = ({
 
       {/* Multiplier info */}
       {campaign.rewardType === 'multiplier' && (
-        <div className="px-5 pb-3">
-          <div className="bg-reward-surface-foreground/5 rounded-xl p-3 border border-reward-surface-foreground/5">
+        <div className="relative z-10 px-5 pb-3">
+          <div className="rounded-xl p-3 bg-reward-surface-foreground/[0.04] border border-reward-surface-foreground/10">
             <div className="flex items-center gap-1.5 mb-1">
-              <TrendingUp className="h-3.5 w-3.5 text-reward/70" />
-              <span className="text-xs font-semibold text-reward/70 uppercase tracking-wider">Multiplicator</span>
+              <TrendingUp className="h-3.5 w-3.5 text-reward-surface-foreground/90" />
+              <span className="gamified-casino-badge-label text-reward-surface-foreground uppercase tracking-wider">Multiplicator</span>
             </div>
-            <p className="text-xs text-reward-surface-foreground/50">
+            <p className="gamified-casino-body text-xs">
               Baza {campaign.baseMultiplier}× · +{campaign.multiplierIncrement}× per pas · Aplicat la {campaign.bonusPoints} puncte
             </p>
           </div>
         </div>
       )}
 
-      {/* Validation */}
+      {/* Min. order — subtle dark pill */}
       {hasValidation && (
-        <div className="px-5 pb-2 flex flex-wrap gap-2">
-          <span className="text-[10px] text-reward/40 bg-reward-surface-foreground/5 rounded px-2 py-0.5">
+        <div className="relative z-10 px-5 pb-2 flex flex-wrap gap-2">
+          <span className="gamified-badge-min gamified-casino-badge-label text-reward-surface-foreground rounded-full px-3 py-1">
             Min. {campaign.minOrderValue} RON/comandă
           </span>
         </div>
       )}
 
-      {/* Progress */}
+      {/* Progress — step nodes when enrolled */}
       {isEnrolled && (
-        <div className="px-5 pb-4 flex-1 flex flex-col">
+        <div className="relative z-10 px-5 pb-4 flex-1 flex flex-col">
           {enrollmentLoading && !enrollment ? (
-            <Skeleton className="h-12 w-full bg-reward-surface-foreground/5" />
+            <Skeleton className="h-12 w-full bg-reward-surface-foreground/10 rounded-lg" />
           ) : (
             <StreakProgressBar
               current={enrollment!.currentStreakCount}
@@ -160,9 +162,9 @@ export const GamifiedCard: React.FC<Props> = ({
         </div>
       )}
 
-      <div className="mx-5 h-px bg-gradient-to-r from-transparent via-reward/30 to-transparent" />
+      <div className="relative z-10 mx-5 h-px bg-gradient-to-r from-transparent via-reward/30 to-transparent" />
 
-      <div className="p-5 pt-4 mt-auto">
+      <div className="relative z-10 p-5 pt-4 mt-auto">
         <CampaignJoinButton campaign={campaign} enrollment={enrollment ?? undefined} enrolledInOtherCampaign={enrolledInOtherCampaign} />
       </div>
     </div>
