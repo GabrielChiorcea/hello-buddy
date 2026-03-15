@@ -15,7 +15,6 @@ import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import { Loader, PageLoader } from '@/components/common/Loader';
 import { AddressManager } from '@/components/profile/AddressManager';
 import { AccountSettings } from '@/components/profile/AccountSettings';
-import { NotificationSettings } from '@/components/profile/NotificationSettings';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { fetchOrders, fetchCurrentUser, logout } from '@/store/slices/userSlice';
@@ -291,7 +290,6 @@ const Profile: React.FC = () => {
 
             {/* Settings Tab */}
             <TabsContent value="settings" className="space-y-6">
-              <NotificationSettings />
               <AccountSettings userId={user.id} userEmail={user.email} />
             </TabsContent>
           </Tabs>

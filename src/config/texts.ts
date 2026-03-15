@@ -213,20 +213,6 @@ export const texts = {
     goToProducts: 'Mergi la produse',
   },
 
-  // PWA install
-  pwa: {
-    installButton: 'Instalează aplicația',
-    installButtonIos: 'Instalează pe ecranul de start',
-    iosSheetTitle: 'Cum instalezi aplicația',
-    iosStep1: 'Apasă butonul Share (⎙) în bara Safari de jos.',
-    iosStep2: 'Alege „Adaugă pe ecranul de start".',
-    iosStep3: 'Apasă „Adaugă".',
-    takeMeThere: 'Du-mă acolo',
-    gotIt: 'Înțeles',
-    hintMessage: 'Apasă Share jos, apoi „Adaugă pe ecranul de start".',
-    androidChromeHint: 'Deschide această pagină în Chrome pentru a instala aplicația.',
-  },
-
   // Admin Analytics
   analytics: {
     title: 'Analitice',
