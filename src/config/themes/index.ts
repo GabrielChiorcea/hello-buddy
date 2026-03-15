@@ -58,15 +58,15 @@ export function applyTheme(name: ThemeName = DEFAULT_THEME): void {
 export type StyleName = 'gamified' | 'clean' | 'premium' | 'friendly';
 
 // ╔═══════════════════════════════════════════════════════════════════╗
-// ║  👇 CONFIGURARE STILURI VIZUALE — schimbă individual            ║
+// ║   CONFIGURARE STILURI VIZUALE — schimbă individual            ║
 // ╚═══════════════════════════════════════════════════════════════════╝
 
 export const STYLES = {
   /** Streak, Points, Rewards */
-  component: 'premium' as StyleName,
+  component: 'gamified' as StyleName,
 
   /** TierProgressBar (ranguri) */
-  tier: 'premium' as StyleName,
+  tier: 'gamified' as StyleName,
 
   /** Carduri de produse */
   productCard: 'gamified' as StyleName,

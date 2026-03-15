@@ -50,7 +50,7 @@ export const GamifiedHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
       </section>
 
       <section className="pb-4">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 mt-4">
           <div className="max-w-xl mx-auto">
             <TierProgressBar />
           </div>
