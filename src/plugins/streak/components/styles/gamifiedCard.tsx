@@ -100,8 +100,8 @@ export const GamifiedCard: React.FC<Props> = ({
         )}
       </div>
 
-      {/* Steps ladder */}
-      {hasSteps && (
+      {/* Steps ladder — only when not enrolled (progress bar already shows steps inline) */}
+      {hasSteps && !isEnrolled && (
         <div className="px-5 pb-3">
           <div className="bg-reward-surface-foreground/5 rounded-xl p-3 border border-reward-surface-foreground/5">
             <div className="flex items-center gap-1.5 mb-2">
@@ -110,10 +110,10 @@ export const GamifiedCard: React.FC<Props> = ({
             </div>
             <RewardStepsLadder
               steps={campaign.rewardSteps}
-              currentCount={isEnrolled ? enrollment!.currentStreakCount : null}
+              currentCount={null}
               styleName="gamified"
               bonusPoints={campaign.bonusPoints}
-              completed={completed}
+              completed={false}
             />
           </div>
         </div>

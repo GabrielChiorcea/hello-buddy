@@ -73,8 +73,8 @@ export const FriendlyCard: React.FC<Props> = ({
         </span>
       </div>
 
-      {/* Steps */}
-      {hasSteps && (
+      {/* Steps — only when not enrolled (progress bar handles it when enrolled) */}
+      {hasSteps && !isEnrolled && (
         <div className="px-4 pb-3">
           <div className="bg-card rounded-xl p-3 border border-border">
             <p className="text-xs font-semibold text-foreground/80 mb-2">
@@ -82,10 +82,10 @@ export const FriendlyCard: React.FC<Props> = ({
             </p>
             <RewardStepsLadder
               steps={campaign.rewardSteps}
-              currentCount={isEnrolled ? enrollment!.currentStreakCount : null}
+              currentCount={null}
               styleName="friendly"
               bonusPoints={campaign.bonusPoints}
-              completed={completed}
+              completed={false}
             />
           </div>
         </div>
