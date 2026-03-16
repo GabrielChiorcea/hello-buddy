@@ -355,7 +355,7 @@ export default function AdminTiers() {
                     <span className="font-medium">{tier.name}</span>
                     <span>{tier.xpThreshold}</span>
                     <span>x{tier.pointsMultiplier.toFixed(2)}</span>
-                    <span>{getTierBadgeIcon(tier.badgeIcon)}</span>
+                    <span><TierIcon badgeIcon={tier.badgeIcon} size={18} /></span>
                     <span>{tier.sortOrder}</span>
                     <span className="flex justify-end gap-2">
                       <Button
