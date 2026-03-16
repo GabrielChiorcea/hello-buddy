@@ -31,7 +31,7 @@ function getBadge(
   ruleId: string | number | null,
 ): { label: string; variant: 'primary' | 'success' | 'muted' } | null {
   if (subtotal + product.price >= FREE_DELIVERY_THRESHOLD && subtotal < FREE_DELIVERY_THRESHOLD) {
-    return { label: '🚚 Livrare gratuită', variant: 'success' };
+    return { label: 'Livrare gratuită', variant: 'success' };
   }
   if (ruleId) {
     return { label: 'Recomandat', variant: 'primary' };
