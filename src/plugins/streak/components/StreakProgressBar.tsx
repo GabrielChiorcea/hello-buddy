@@ -200,7 +200,7 @@ const FriendlyProgress: React.FC<StreakProgressBarProps> = ({
           {current} / {required} <span className="text-xs font-normal text-muted-foreground">{label}</span>
         </span>
         {completed && (
-          <span className="text-xs font-bold text-primary">🎉 Bravo!</span>
+          <span className="text-xs font-bold text-primary">Bravo!</span>
         )}
       </div>
       <div className="h-3 bg-secondary rounded-full overflow-hidden">
