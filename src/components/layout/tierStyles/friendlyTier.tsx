@@ -20,7 +20,7 @@ export const FriendlyTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
       {/* Warm header with accent background */}
       <div className="bg-primary/5 px-4 pt-4 pb-3 flex items-center gap-3">
         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 border-2 border-primary/20">
-          <span className="text-xl">{currentBadgeIcon}</span>
+          <span className="text-xl text-primary">{currentBadgeIcon}</span>
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-1.5">

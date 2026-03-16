@@ -16,7 +16,7 @@ export const CleanTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
       {/* Header row */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <span className="text-xl">{currentBadgeIcon}</span>
+          <span className="text-xl text-primary">{currentBadgeIcon}</span>
           <div>
             <span className="text-sm font-semibold text-foreground">{tierName}</span>
             {isMaxLevel && (
