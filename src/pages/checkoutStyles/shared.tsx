@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@apollo/client';
 import { z } from 'zod';
 import { CreditCard, Banknote, MapPin, CheckCircle, Plus, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
