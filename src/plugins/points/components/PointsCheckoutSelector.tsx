@@ -16,6 +16,8 @@ interface PointsCheckoutSelectorProps {
   formData: CheckoutData;
   onPointsChange: (pointsToUse: number | undefined) => void;
   currency?: string;
+  /** Totalul plătibil fără reducerea din puncte — pentru a filtra opțiunile irelevante */
+  payableBeforePoints?: number;
 }
 
 export function PointsCheckoutSelector(props: PointsCheckoutSelectorProps) {

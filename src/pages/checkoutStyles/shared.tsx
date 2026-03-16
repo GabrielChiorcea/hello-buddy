@@ -430,7 +430,7 @@ export const CheckoutTemplate: React.FC<{ data: CheckoutDisplayData; variant: St
                   <CardContent>
                     <PaymentSelector data={data} />
                     {data.pointsEnabled && (
-                      <PointsCheckoutSelector userPoints={data.userPoints} rewards={data.pointsRewards} formData={data.formData} onPointsChange={(p) => data.setFormData((prev) => ({ ...prev, pointsToUse: p }))} currency={texts.common.currency} />
+                      <PointsCheckoutSelector userPoints={data.userPoints} rewards={data.pointsRewards} formData={data.formData} onPointsChange={(p) => data.setFormData((prev) => ({ ...prev, pointsToUse: p }))} currency={texts.common.currency} payableBeforePoints={data.payableBeforePoints} />
                     )}
                   </CardContent>
                 </Card>
