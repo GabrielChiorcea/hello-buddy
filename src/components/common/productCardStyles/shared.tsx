@@ -2,7 +2,7 @@
  * Shared hook și tipuri pentru variantele ProductCard.
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Product } from '@/types';
 import { texts } from '@/config/texts';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -26,6 +26,8 @@ export interface ProductCardDisplayData {
   pointsInfo: string | null;
   imageUrl: string;
   categoryLabel: string;
+  /** Whether to show the "GRATIS" corner ribbon */
+  showFreeRibbon: boolean;
 }
 
 export interface CardVariantProps {
@@ -38,6 +40,7 @@ export function useProductCardData(product: Product): ProductCardDisplayData {
   const dispatch = useAppDispatch();
   const [isAdded, setIsAdded] = useState(false);
   const { isAuthenticated, user } = useAppSelector((s) => s.user);
+  const cartItems = useAppSelector((s) => s.cart.items);
   const { enabled: tiersEnabled } = usePluginEnabled('tiers');
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -58,11 +61,41 @@ export function useProductCardData(product: Product): ProductCardDisplayData {
         })()
       : null;
 
+  // Determine if this product should show the free ribbon
+  const showFreeRibbon = useMemo(() => {
+    const campaigns = user?.freeProductCampaignsSummary;
+    if (!campaigns || campaigns.length === 0) return false;
+
+    // Collect category names that have free products + specific free product IDs
+    const freeCategories = new Set<string>();
+    const freeProductIds = new Set<string>();
+    for (const c of campaigns) {
+      if (c.productDetails) {
+        for (const p of c.productDetails) {
+          freeCategories.add(p.categoryName);
+          freeProductIds.add(p.id);
+        }
+      }
+    }
+
+    // This product's category must match a free campaign category
+    if (!freeCategories.has(product.category)) return false;
+
+    // Check if cart already has a free product from this category
+    const cartHasFreeFromCategory = cartItems.some(
+      (ci) => freeProductIds.has(ci.product.id) && ci.product.category === product.category
+    );
+    if (cartHasFreeFromCategory) return false;
+
+    return true;
+  }, [user?.freeProductCampaignsSummary, product.category, cartItems]);
+
   return {
     handleAddToCart,
     isAdded,
     pointsInfo,
     imageUrl: getImageUrl(product.image),
     categoryLabel: categoryNames[product.category] ?? product.category,
+    showFreeRibbon,
   };
 }
