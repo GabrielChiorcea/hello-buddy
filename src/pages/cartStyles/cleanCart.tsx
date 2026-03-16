@@ -6,6 +6,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
+import { FreeProductProgressBanner } from './FreeProductProgressBanner';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Layout } from '@/components/layout/Layout';
@@ -18,7 +19,7 @@ import type { CartDisplayData } from './shared';
 import { FREE_DELIVERY_THRESHOLD } from './shared';
 
 export const CleanCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
-  const { items, subtotal, deliveryFee, total, orderPreview, handleRemoveItem, handleQuantityChange, handleCheckout } = data;
+  const { items, subtotal, deliveryFee, total, orderPreview, freeProductProgress, handleRemoveItem, handleQuantityChange, handleCheckout } = data;
   const summarySubtotal = orderPreview?.subtotal ?? subtotal;
   const summaryDelivery = orderPreview?.deliveryFee ?? deliveryFee;
   const summaryTotal = orderPreview?.total ?? total;
@@ -105,6 +106,7 @@ export const CleanCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                     <span>-{orderPreview!.discountFromFreeProducts.toFixed(2)} {texts.common.currency}</span>
                   </div>
                 )}
+                {freeProductProgress && <FreeProductProgressBanner progress={freeProductProgress} />}
               </div>
               <Separator />
               <div className="flex justify-between font-medium">

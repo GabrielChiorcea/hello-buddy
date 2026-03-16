@@ -2,6 +2,7 @@
  * Cart — shared hook & types
  */
 
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -22,6 +23,19 @@ export interface OrderPreviewData {
   total: number;
 }
 
+export interface FreeProductProgress {
+  /** Cel mai mic prag minim activ din campaniile userului */
+  minOrderValue: number;
+  /** Subtotalul produselor plătite (fără cele gratuite) */
+  paidSubtotal: number;
+  /** Cât mai trebuie adăugat */
+  remaining: number;
+  /** Dacă pragul a fost atins */
+  unlocked: boolean;
+  /** Numele produselor gratuite disponibile */
+  productNames: string[];
+}
+
 export interface CartDisplayData {
   items: Array<{ product: any; quantity: number }>;
   subtotal: number;
@@ -29,6 +43,7 @@ export interface CartDisplayData {
   total: number;
   isAuthenticated: boolean;
   orderPreview: OrderPreviewData | null;
+  freeProductProgress: FreeProductProgress | null;
   handleRemoveItem: (productId: string, productName: string) => void;
   handleQuantityChange: (productId: string, newQuantity: number) => void;
   handleCheckout: () => void;
@@ -38,7 +53,7 @@ export function useCartData(): CartDisplayData {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { items, subtotal, deliveryFee, total } = useAppSelector((s) => s.cart);
-  const { isAuthenticated } = useAppSelector((s) => s.user);
+  const { isAuthenticated, user } = useAppSelector((s) => s.user);
 
   const previewItems = items.map((i) => ({ productId: i.product.id, quantity: i.quantity }));
   const { data: previewData } = useQuery<{ orderPreview: OrderPreviewData }>(GET_ORDER_PREVIEW, {
@@ -47,6 +62,54 @@ export function useCartData(): CartDisplayData {
     fetchPolicy: 'cache-and-network',
   });
   const orderPreview = previewData?.orderPreview ?? null;
+
+  // Calculăm progresul spre produse gratuite
+  const freeProductProgress = useMemo<FreeProductProgress | null>(() => {
+    const campaigns = user?.freeProductCampaignsSummary;
+    if (!campaigns || campaigns.length === 0 || items.length === 0) return null;
+
+    // Găsim cel mai mic minOrderValue > 0 din campaniile active
+    let minThreshold = Infinity;
+    const allProductNames: string[] = [];
+    const freeProductIds = new Set<string>();
+
+    for (const c of campaigns) {
+      if (c.minOrderValue > 0 && c.minOrderValue < minThreshold) {
+        minThreshold = c.minOrderValue;
+      }
+      allProductNames.push(...c.products);
+      if (c.productDetails) {
+        for (const p of c.productDetails) {
+          freeProductIds.add(p.id);
+        }
+      }
+    }
+
+    if (minThreshold === Infinity || minThreshold === 0) return null;
+
+    // Calculăm subtotalul plătit (excluzând produsele gratuite din coș)
+    let paidSubtotal = 0;
+    for (const item of items) {
+      if (freeProductIds.has(item.product.id)) {
+        // Max 1 gratuit, restul plătit
+        const paidQty = item.quantity > 1 ? item.quantity - 1 : 0;
+        paidSubtotal += item.product.price * paidQty;
+      } else {
+        paidSubtotal += item.product.price * item.quantity;
+      }
+    }
+
+    const remaining = Math.max(0, minThreshold - paidSubtotal);
+    const unlocked = paidSubtotal >= minThreshold;
+
+    return {
+      minOrderValue: minThreshold,
+      paidSubtotal,
+      remaining,
+      unlocked,
+      productNames: [...new Set(allProductNames)].slice(0, 3),
+    };
+  }, [user?.freeProductCampaignsSummary, items]);
 
   const handleRemoveItem = (productId: string, productName: string) => {
     dispatch(removeItem(productId));
@@ -77,6 +140,7 @@ export function useCartData(): CartDisplayData {
     total,
     isAuthenticated,
     orderPreview,
+    freeProductProgress,
     handleRemoveItem,
     handleQuantityChange,
     handleCheckout,
