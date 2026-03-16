@@ -44,6 +44,8 @@ export const USER_FRAGMENT = gql`
       name
       customText
       minOrderValue
+      categoryId
+      categoryName
       products
       productDetails {
         id
