@@ -142,7 +142,6 @@ export function useCartData(): CartDisplayData {
     isAuthenticated,
     orderPreview,
     freeProductProgress,
-    freeProductIds,
     handleRemoveItem,
     handleQuantityChange,
     handleCheckout,
