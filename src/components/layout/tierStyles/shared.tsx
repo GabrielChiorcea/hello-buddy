@@ -1,6 +1,7 @@
 /**
  * Shared types & data hooks for all TierProgressBar variants
  */
+import React from 'react';
 import { useQuery } from '@apollo/client';
 import { useAppSelector } from '@/store';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
