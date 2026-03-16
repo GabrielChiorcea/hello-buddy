@@ -7,7 +7,7 @@ import { Sparkles, ChevronRight, Zap, Gift, Star, TrendingUp } from 'lucide-reac
 import { cn } from '@/lib/utils';
 import { texts } from '@/config/texts';
 import type { TierDisplayData } from './shared';
-import type { TierDisplayData } from './shared';
+import { FreeProductsTierGrid } from './FreeProductsTierGrid';
 import { FreeProductsTierGrid } from './FreeProductsTierGrid';
 
 const GradientProgressBar: React.FC<{ percent: number }> = ({ percent }) => (
