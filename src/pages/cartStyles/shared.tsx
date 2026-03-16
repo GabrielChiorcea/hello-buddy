@@ -135,6 +135,19 @@ export function useCartData(): CartDisplayData {
     navigate(routes.checkout);
   };
 
+  // Expose free product IDs for badge rendering
+  const freeProductIds = useMemo<Set<string>>(() => {
+    const campaigns = user?.freeProductCampaignsSummary;
+    if (!campaigns) return new Set();
+    const ids = new Set<string>();
+    for (const c of campaigns) {
+      if (c.productDetails) {
+        for (const p of c.productDetails) ids.add(p.id);
+      }
+    }
+    return ids;
+  }, [user?.freeProductCampaignsSummary]);
+
   return {
     items,
     subtotal,
@@ -143,6 +156,7 @@ export function useCartData(): CartDisplayData {
     isAuthenticated,
     orderPreview,
     freeProductProgress,
+    freeProductIds,
     handleRemoveItem,
     handleQuantityChange,
     handleCheckout,
