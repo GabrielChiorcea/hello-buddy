@@ -344,6 +344,7 @@ export const OrderSummaryContent: React.FC<{ data: CheckoutDisplayData }> = ({ d
         <span className="text-muted-foreground">{texts.cart.delivery}</span>
         <span className="font-medium">{data.effectiveDeliveryFee === 0 ? <span className="text-primary">{texts.cart.freeDelivery}</span> : `${data.deliveryFee} ${texts.common.currency}`}</span>
       </div>
+      {data.discountFromFreeProducts > 0 && <div className="flex justify-between text-sm text-primary"><span>Produse gratuite</span><span>-{data.discountFromFreeProducts} {texts.common.currency}</span></div>}
       {data.discountFromPoints > 0 && <div className="flex justify-between text-sm text-primary"><span>Reducere puncte</span><span>-{data.discountFromPoints} {texts.common.currency}</span></div>}
       <Separator />
       <div className="flex justify-between text-lg font-bold"><span>{texts.cart.total}</span><span className="text-primary">{data.displayTotal} {texts.common.currency}</span></div>
