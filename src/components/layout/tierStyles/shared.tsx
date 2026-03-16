@@ -4,7 +4,7 @@
 import { useQuery } from '@apollo/client';
 import { useAppSelector } from '@/store';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
-import { getTierBadgeIcon } from '@/config/tierIcons';
+import { TierIcon } from '@/config/tierIcons';
 import { GET_TIERS_ECONOMY_SETTINGS } from '@/graphql/queries';
 
 export interface TierDisplayData {
