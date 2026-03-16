@@ -65,6 +65,7 @@ export interface CheckoutDisplayData {
   pointsEnabled: boolean;
   userPoints: number;
   pointsRewards: any[];
+  payableBeforePoints: number;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleSubmit: (e: React.FormEvent) => void;
   handleFulfillmentChange: (value: FulfillmentType) => void;
