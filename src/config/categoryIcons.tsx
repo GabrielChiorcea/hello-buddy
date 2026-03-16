@@ -21,7 +21,6 @@ import {
   Candy,
   Coffee,
   CupSoda,
-  CupSoda,
   Beer,
   Wine,
   Martini,
