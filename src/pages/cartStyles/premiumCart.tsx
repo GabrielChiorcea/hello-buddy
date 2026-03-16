@@ -19,11 +19,18 @@ import type { CartDisplayData } from './shared';
 import { FREE_DELIVERY_THRESHOLD } from './shared';
 
 export const PremiumCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
-  const { items, subtotal, deliveryFee, total, handleRemoveItem, handleQuantityChange, handleCheckout } = data;
+  const { items, subtotal, deliveryFee, total, orderPreview, handleRemoveItem, handleQuantityChange, handleCheckout } = data;
+  const summarySubtotal = orderPreview?.subtotal ?? subtotal;
+  const summaryDelivery = orderPreview?.deliveryFee ?? deliveryFee;
+  const summaryTotal = orderPreview?.total ?? total;
 
   if (items.length === 0) {
     return (
       <Layout>
+        <div className="container mx-auto px-4 py-8">
+          <h1 className="text-3xl font-semibold mb-4 text-foreground tracking-tight">{texts.cart.title}</h1>
+        </div>
+        <TierProgressBar />
         <div className="container mx-auto px-4 py-20">
           <div className="max-w-md mx-auto text-center">
             <div className="mb-8 flex justify-center">
@@ -31,7 +38,7 @@ export const PremiumCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                 <ShoppingBag className="h-10 w-10 text-muted-foreground/60" />
               </div>
             </div>
-            <h1 className="text-2xl font-semibold mb-3 text-foreground tracking-tight">{texts.cart.empty}</h1>
+            <h2 className="text-2xl font-semibold mb-3 text-foreground tracking-tight">{texts.cart.empty}</h2>
             <p className="text-muted-foreground mb-10 text-sm">{texts.cart.emptySubtitle}</p>
             <Button asChild className="rounded-xl px-8">
               <Link to={routes.catalog}>
@@ -101,16 +108,22 @@ export const PremiumCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">{texts.cart.subtotal}</span><span className="font-medium">{subtotal} {texts.common.currency}</span></div>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">{texts.cart.subtotal}</span><span className="font-medium">{summarySubtotal} {texts.common.currency}</span></div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">{texts.cart.delivery}</span>
-                  <span className="font-medium">{deliveryFee === 0 ? <span className="text-primary">{texts.cart.freeDelivery}</span> : `${deliveryFee} ${texts.common.currency}`}</span>
+                  <span className="font-medium">{summaryDelivery === 0 ? <span className="text-primary">{texts.cart.freeDelivery}</span> : `${summaryDelivery} ${texts.common.currency}`}</span>
                 </div>
-                {deliveryFee > 0 && <p className="text-xs text-muted-foreground">Gratuit peste {FREE_DELIVERY_THRESHOLD} {texts.common.currency}</p>}
+                {summaryDelivery > 0 && <p className="text-xs text-muted-foreground">Gratuit peste {FREE_DELIVERY_THRESHOLD} {texts.common.currency}</p>}
+                {(orderPreview?.discountFromFreeProducts ?? 0) > 0 && (
+                  <div className="flex justify-between text-sm text-primary">
+                    <span>{texts.freeProducts.cartDiscountLabel}</span>
+                    <span className="font-medium">-{orderPreview!.discountFromFreeProducts.toFixed(2)} {texts.common.currency}</span>
+                  </div>
+                )}
                 <Separator className="bg-border/30" />
                 <div className="flex justify-between text-lg font-semibold">
                   <span>{texts.cart.total}</span>
-                  <span className="text-primary">{total} {texts.common.currency}</span>
+                  <span className="text-primary">{summaryTotal} {texts.common.currency}</span>
                 </div>
               </CardContent>
               <CardFooter>

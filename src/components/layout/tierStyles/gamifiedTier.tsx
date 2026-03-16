@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { texts } from '@/config/texts';
 import { getTierBadgeIcon } from '@/config/tierIcons';
 import type { TierDisplayData } from './shared';
+import { FreeProductsTierGrid } from './FreeProductsTierGrid';
 
 const GradientProgressBar: React.FC<{ percent: number }> = ({ percent }) => (
   <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-muted/60">
@@ -105,12 +106,15 @@ export const GamifiedTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
           <span className="font-medium">Cum câștigi XP:</span> {xpFormulaText}
         </InfoPill>
         {hasFreeProductBenefits ? (
-          <p className="text-[10px] text-success mt-1">
-            {texts.freeProducts.rankInfoActivePrefix}{' '}
-            {freeProductCampaignsSummary.length > 0
-              ? freeProductCampaignsSummary.map((c) => c.name).join(', ')
-              : ''}
-          </p>
+          <div className="mt-1">
+            <p className="text-[10px] text-success">
+              {texts.freeProducts.rankInfoActivePrefix}{' '}
+              {freeProductCampaignsSummary.length > 0
+                ? freeProductCampaignsSummary.map((c) => c.name).join(', ')
+                : ''}
+            </p>
+            <FreeProductsTierGrid summaries={freeProductCampaignsSummary} />
+          </div>
         ) : (
           <p className="text-[10px] text-muted-foreground mt-1">
             {texts.freeProducts.rankInfoNone}

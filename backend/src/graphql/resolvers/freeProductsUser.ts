@@ -10,12 +10,20 @@ import {
 } from '../../plugins/free-products/repositories/campaignsRepository.js';
 import { query } from '../../config/database.js';
 
+interface FreeProductItem {
+  id: string;
+  name: string;
+  categoryName: string;
+  categoryIcon: string | null;
+}
+
 interface FreeProductCampaignSummary {
   id: string;
   name: string;
   customText: string | null;
   minOrderValue: number;
   products: string[];
+  productDetails: FreeProductItem[];
 }
 
 export const freeProductsUserResolvers = {
@@ -43,13 +51,26 @@ export const freeProductsUserResolvers = {
       for (const campaign of campaigns) {
         const productIds = await getCampaignProducts(campaign.id);
         let productNames: string[] = [];
+        const productDetails: FreeProductItem[] = [];
+
         if (productIds.length > 0) {
           const placeholders = productIds.map(() => '?').join(', ');
-          const rows = await query<{ name: string }[]>(
-            `SELECT name FROM products WHERE id IN (${placeholders})`,
+          const rows = await query<{ id: string; name: string; display_name: string; icon: string | null }[]>(
+            `SELECT p.id, p.name, c.display_name, c.icon
+             FROM products p
+             JOIN categories c ON c.id = p.category_id
+             WHERE p.id IN (${placeholders})`,
             productIds
           );
           productNames = rows.map((r) => r.name);
+          for (const r of rows) {
+            productDetails.push({
+              id: r.id,
+              name: r.name,
+              categoryName: r.display_name,
+              categoryIcon: r.icon,
+            });
+          }
         }
 
         summaries.push({
@@ -58,6 +79,7 @@ export const freeProductsUserResolvers = {
           customText: campaign.customText,
           minOrderValue: campaign.minOrderValue,
           products: productNames.slice(0, 5),
+          productDetails,
         });
       }
 

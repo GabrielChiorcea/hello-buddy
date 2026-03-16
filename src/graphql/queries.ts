@@ -45,6 +45,12 @@ export const USER_FRAGMENT = gql`
       customText
       minOrderValue
       products
+      productDetails {
+        id
+        name
+        categoryName
+        categoryIcon
+      }
     }
   }
 `;
@@ -298,6 +304,18 @@ export const GET_ORDER_BY_ID = gql`
     }
   }
   ${ORDER_FRAGMENT_LITE}
+`;
+
+export const GET_ORDER_PREVIEW = gql`
+  query OrderPreview($items: [OrderItemInput!]!) {
+    orderPreview(items: $items) {
+      subtotal
+      deliveryFee
+      discountFromFreeProducts
+      discountFromPoints
+      total
+    }
+  }
 `;
 
 // ============================================================================

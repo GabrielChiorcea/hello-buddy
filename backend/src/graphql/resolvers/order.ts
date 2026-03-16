@@ -5,6 +5,7 @@
 
 import { GraphQLContext, requireAuth } from '../context.js';
 import * as OrderModel from '../../models/Order.js';
+import { pool } from '../../config/database.js';
 import { logOrderPlaced, logOrderRateLimited } from '../../utils/securityLogger.js';
 
 interface OrderItemInput {
@@ -94,6 +95,59 @@ export const orderResolvers = {
       }
       
       return order;
+    },
+
+    /**
+     * Preview breakdown pentru coș (subtotal, livrare, discount produse gratuite, total).
+     * Necesită autentificare. Folosește doar items; adresă/telefon placeholder pentru calcul livrare.
+     */
+    async orderPreview(
+      _: unknown,
+      { items }: { items: OrderItemInput[] },
+      context: GraphQLContext
+    ) {
+      const user = requireAuth(context);
+      if (!items || items.length === 0) {
+        return {
+          subtotal: 0,
+          deliveryFee: 0,
+          discountFromFreeProducts: 0,
+          discountFromPoints: 0,
+          total: 0,
+        };
+      }
+      if (items.length > 50) {
+        throw new Error('Prea multe articole în coș');
+      }
+      for (const item of items) {
+        if (item.quantity < 1 || item.quantity > 100) {
+          throw new Error('Cantitatea trebuie să fie între 1 și 100');
+        }
+      }
+      const orderInput = {
+        userId: user.id,
+        items,
+        fulfillmentType: 'delivery' as const,
+        deliveryAddress: 'Preview',
+        deliveryCity: 'Preview',
+        phone: '0000000000',
+        notes: null,
+        paymentMethod: 'cash' as const,
+        pointsToUse: 0,
+      };
+      const connection = await pool.getConnection();
+      try {
+        const totals = await OrderModel.computeOrderTotal(connection, orderInput);
+        return {
+          subtotal: totals.subtotal,
+          deliveryFee: totals.deliveryFee,
+          discountFromFreeProducts: totals.discountFromFreeProducts,
+          discountFromPoints: totals.discountFromPoints,
+          total: totals.total,
+        };
+      } finally {
+        connection.release();
+      }
     },
   },
 

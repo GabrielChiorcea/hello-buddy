@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { Heart, Sparkles, ArrowUp } from 'lucide-react';
 import { texts } from '@/config/texts';
 import type { TierDisplayData } from './shared';
+import { FreeProductsTierGrid } from './FreeProductsTierGrid';
 
 export const FriendlyTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
   const { tierName, currentBadgeIcon, multiplier, currentXp, progressPercent, isMaxLevel, xpToNextLevel, nextTierThreshold, currentBenefit, xpFormulaText, nextTier, nextBenefitText, nextMultiplier, hasFreeProductBenefits, freeProductCampaignsSummary } = data;
@@ -61,10 +62,13 @@ export const FriendlyTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
           ✨ {currentBenefit}
         </p>
         {hasFreeProductBenefits ? (
-          <p className="text-[10px] text-success mt-1">
-            {texts.freeProducts.rankInfoActivePrefix}{' '}
-            {freeProductCampaignsSummary.length > 0 ? freeProductCampaignsSummary.map((c) => c.name).join(', ') : ''}
-          </p>
+          <div className="mt-1">
+            <p className="text-[10px] text-success">
+              {texts.freeProducts.rankInfoActivePrefix}{' '}
+              {freeProductCampaignsSummary.length > 0 ? freeProductCampaignsSummary.map((c) => c.name).join(', ') : ''}
+            </p>
+            <FreeProductsTierGrid summaries={freeProductCampaignsSummary} />
+          </div>
         ) : (
           <p className="text-[10px] text-muted-foreground mt-1">{texts.freeProducts.rankInfoNone}</p>
         )}

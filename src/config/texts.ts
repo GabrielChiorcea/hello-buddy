@@ -329,6 +329,13 @@ export const texts = {
     rankInfoNone:
       'Momentan nu ai produse gratuite pentru acest nivel, dar pot apărea campanii speciale pentru tine în orice moment.',
     rankInfoActivePrefix: 'Ai produse gratuite active pentru nivelul tău:',
+    rankInfoMinOrder:
+      'Comandă minim {amount} RON în coș și primești 1 buc. gratuit din fiecare produs de mai jos.',
+    rankInfoNoMinOrder:
+      'Adaugă în coș un produs din lista de mai jos și îl primești gratuit (1 buc.).',
+    rankInfoCta: 'Adaugă în coș pentru a beneficia.',
+    cartGridTitle: 'Produse gratuite pentru nivelul tău',
+    cartDiscountLabel: 'Produse gratuite',
     cartInfoNone:
       'Uneori poți primi produse gratuite pentru nivelul tău de loialitate — urmărește ofertele speciale.',
   },

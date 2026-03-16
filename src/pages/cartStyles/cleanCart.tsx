@@ -18,15 +18,22 @@ import type { CartDisplayData } from './shared';
 import { FREE_DELIVERY_THRESHOLD } from './shared';
 
 export const CleanCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
-  const { items, subtotal, deliveryFee, total, handleRemoveItem, handleQuantityChange, handleCheckout } = data;
+  const { items, subtotal, deliveryFee, total, orderPreview, handleRemoveItem, handleQuantityChange, handleCheckout } = data;
+  const summarySubtotal = orderPreview?.subtotal ?? subtotal;
+  const summaryDelivery = orderPreview?.deliveryFee ?? deliveryFee;
+  const summaryTotal = orderPreview?.total ?? total;
 
   if (items.length === 0) {
     return (
       <Layout>
+        <div className="container mx-auto px-4 py-8">
+          <h1 className="text-2xl font-medium mb-4 text-foreground">{texts.cart.title}</h1>
+        </div>
+        <TierProgressBar />
         <div className="container mx-auto px-4 py-20">
           <div className="max-w-sm mx-auto text-center">
             <ShoppingBag className="h-10 w-10 text-muted-foreground/40 mx-auto mb-6" />
-            <h1 className="text-xl font-medium mb-2 text-foreground">{texts.cart.empty}</h1>
+            <h2 className="text-xl font-medium mb-2 text-foreground">{texts.cart.empty}</h2>
             <p className="text-sm text-muted-foreground mb-8">{texts.cart.emptySubtitle}</p>
             <Button variant="outline" asChild size="sm">
               <Link to={routes.catalog}>{texts.cart.continueShopping}</Link>
@@ -86,17 +93,23 @@ export const CleanCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
             <div className="sticky top-24 space-y-4">
               <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Sumar</h2>
               <div className="space-y-3 text-sm">
-                <div className="flex justify-between"><span className="text-muted-foreground">{texts.cart.subtotal}</span><span>{subtotal} {texts.common.currency}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">{texts.cart.subtotal}</span><span>{summarySubtotal} {texts.common.currency}</span></div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{texts.cart.delivery}</span>
-                  <span>{deliveryFee === 0 ? texts.cart.freeDelivery : `${deliveryFee} ${texts.common.currency}`}</span>
+                  <span>{summaryDelivery === 0 ? texts.cart.freeDelivery : `${summaryDelivery} ${texts.common.currency}`}</span>
                 </div>
-                {deliveryFee > 0 && <p className="text-xs text-muted-foreground">Gratuit peste {FREE_DELIVERY_THRESHOLD} {texts.common.currency}</p>}
+                {summaryDelivery > 0 && <p className="text-xs text-muted-foreground">Gratuit peste {FREE_DELIVERY_THRESHOLD} {texts.common.currency}</p>}
+                {(orderPreview?.discountFromFreeProducts ?? 0) > 0 && (
+                  <div className="flex justify-between text-success text-sm">
+                    <span>{texts.freeProducts.cartDiscountLabel}</span>
+                    <span>-{orderPreview!.discountFromFreeProducts.toFixed(2)} {texts.common.currency}</span>
+                  </div>
+                )}
               </div>
               <Separator />
               <div className="flex justify-between font-medium">
                 <span>{texts.cart.total}</span>
-                <span>{total} {texts.common.currency}</span>
+                <span>{summaryTotal} {texts.common.currency}</span>
               </div>
               <Button className="w-full mt-4" size="default" onClick={handleCheckout}>
                 {texts.cart.checkout}

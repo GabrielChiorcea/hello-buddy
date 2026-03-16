@@ -102,12 +102,20 @@ const coreTypeDefs = `#graphql
     deliveredAt: String
   }
 
+  type FreeProductItem {
+    id: ID!
+    name: String!
+    categoryName: String!
+    categoryIcon: String
+  }
+
   type FreeProductCampaignSummary {
     id: ID!
     name: String!
     customText: String
     minOrderValue: Float!
     products: [String!]!
+    productDetails: [FreeProductItem!]!
   }
 
   enum FulfillmentType {
@@ -192,6 +200,14 @@ const coreTypeDefs = `#graphql
     pointsToUse: Int
   }
 
+  type OrderPreview {
+    subtotal: Float!
+    deliveryFee: Float!
+    discountFromFreeProducts: Float!
+    discountFromPoints: Float!
+    total: Float!
+  }
+
   # ============================================
   # Queries
   # ============================================
@@ -215,7 +231,8 @@ const coreTypeDefs = `#graphql
     # Comenzi (necesită autentificare)
     orders: [Order!]!
     order(id: ID!): Order
-    
+    orderPreview(items: [OrderItemInput!]!): OrderPreview
+
     # Adrese (necesită autentificare)
     addresses: [Address!]!
     address(id: ID!): Address
