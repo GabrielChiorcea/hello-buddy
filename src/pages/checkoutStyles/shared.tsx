@@ -61,6 +61,7 @@ export interface CheckoutDisplayData {
   effectiveDeliveryFee: number;
   displayTotal: number;
   discountFromPoints: number;
+  discountFromFreeProducts: number;
   pointsEnabled: boolean;
   userPoints: number;
   pointsRewards: any[];
