@@ -350,6 +350,7 @@ export async function computeOrderTotal(
   }
 
   // Al doilea pas: aplicăm regulile de produse gratuite (max 1 buc. per produs, cu prag comandă).
+  // IMPORTANT: pragul se verifică pe subtotalul produselor PLĂTITE (fără cele gratuite).
   let discountFromFreeProducts = 0;
   const itemDetails: OrderItemDetail[] = [];
 
@@ -360,13 +361,24 @@ export async function computeOrderTotal(
   let minOrderByProduct = new Map<string, number>();
   if (freeProductsPluginEnabled) {
     const mappings = await getActiveProductIdsForTier(tierId);
-    // Pentru fiecare produs, folosim cel mai mic prag de comandă dintre campaniile active.
     for (const m of mappings) {
       const existing = minOrderByProduct.get(m.productId);
       const v = m.minOrderValue ?? 0;
       if (existing == null || v < existing) {
         minOrderByProduct.set(m.productId, v);
       }
+    }
+  }
+
+  // Calculăm subtotalul plătit (excluzând produsele care ar fi gratuite)
+  let paidSubtotal = 0;
+  for (const item of rawItems) {
+    if (!minOrderByProduct.has(item.productId)) {
+      paidSubtotal += item.price * item.quantity;
+    } else {
+      // Produsele gratuite contribuie cu quantity - 1 (max 1 gratuit)
+      const paidQty = item.quantity > 1 ? item.quantity - 1 : 0;
+      paidSubtotal += item.price * paidQty;
     }
   }
 
@@ -379,7 +391,7 @@ export async function computeOrderTotal(
     if (
       freeProductsPluginEnabled &&
       threshold !== undefined &&
-      baseSubtotal >= threshold &&
+      paidSubtotal >= threshold &&
       !grantedFreeForProduct.has(item.productId) &&
       item.quantity > 0
     ) {
@@ -388,7 +400,6 @@ export async function computeOrderTotal(
       discountFromFreeProducts += item.price * freeQty;
     }
 
-    // Prețul per unitate rămâne prețul de listă; discountul este separat.
     itemDetails.push({
       productId: item.productId,
       productName: item.productName,
