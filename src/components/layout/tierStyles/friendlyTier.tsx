@@ -50,7 +50,7 @@ export const FriendlyTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
           </div>
           {xpToNextLevel != null && (
             <p className="mt-1.5 text-[11px] text-muted-foreground">
-              Mai ai nevoie de <span className="font-semibold text-foreground">{xpToNextLevel} XP</span> 💪
+              Mai ai nevoie de <span className="font-semibold text-foreground">{xpToNextLevel} XP</span>
             </p>
           )}
         </div>
