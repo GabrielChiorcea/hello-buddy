@@ -103,7 +103,7 @@ export const orderResolvers = {
      */
     async orderPreview(
       _: unknown,
-      { items }: { items: OrderItemInput[] },
+      { items, pointsToUse }: { items: OrderItemInput[]; pointsToUse?: number },
       context: GraphQLContext
     ) {
       const user = requireAuth(context);
@@ -111,6 +111,7 @@ export const orderResolvers = {
         return {
           subtotal: 0,
           deliveryFee: 0,
+          freeDeliveryThreshold: 0,
           discountFromFreeProducts: 0,
           discountFromPoints: 0,
           total: 0,
@@ -133,7 +134,7 @@ export const orderResolvers = {
         phone: '0000000000',
         notes: null,
         paymentMethod: 'cash' as const,
-        pointsToUse: 0,
+        pointsToUse: pointsToUse ?? 0,
       };
       const connection = await pool.getConnection();
       try {

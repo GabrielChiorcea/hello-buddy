@@ -234,7 +234,7 @@ const coreTypeDefs = `#graphql
     # Comenzi (necesită autentificare)
     orders: [Order!]!
     order(id: ID!): Order
-    orderPreview(items: [OrderItemInput!]!): OrderPreview
+    orderPreview(items: [OrderItemInput!]!, pointsToUse: Int): OrderPreview
 
     # Adrese (necesită autentificare)
     addresses: [Address!]!

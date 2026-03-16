@@ -28,7 +28,9 @@ export interface ApplyAtCheckoutInput {
  */
 export async function applyAtCheckout(
   connection: Connection,
-  input: ApplyAtCheckoutInput
+  input: ApplyAtCheckoutInput,
+  /** Totalul plătibil ÎNAINTE de reducerea din puncte (subtotal + deliveryFee - discountFromFreeProducts) */
+  payableTotal?: number
 ): Promise<ApplyAtCheckoutResult> {
   let pointsUsed = 0;
   let discountFromPoints = 0;
@@ -51,7 +53,10 @@ export async function applyAtCheckout(
     if (balance < input.pointsToUse) {
       throw new Error('Puncte insuficiente');
     }
-    discountFromPoints = reward.discountAmount;
+    // Bug fix: Cap reducerea la totalul plătibil pentru a nu irosi puncte
+    discountFromPoints = payableTotal != null
+      ? Math.min(reward.discountAmount, payableTotal)
+      : reward.discountAmount;
     pointsUsed = input.pointsToUse;
   }
 
