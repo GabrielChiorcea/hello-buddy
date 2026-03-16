@@ -34,7 +34,7 @@ function getBadge(
     return { label: '🚚 Livrare gratuită', variant: 'success' };
   }
   if (ruleId) {
-    return { label: '✨ Recomandat', variant: 'primary' };
+    return { label: 'Recomandat', variant: 'primary' };
   }
   if (product.price <= 10) {
     return { label: 'Preț mic', variant: 'muted' };
