@@ -65,6 +65,7 @@ export interface CheckoutDisplayData {
   pointsEnabled: boolean;
   userPoints: number;
   pointsRewards: any[];
+  payableBeforePoints: number;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleSubmit: (e: React.FormEvent) => void;
   handleFulfillmentChange: (value: FulfillmentType) => void;
@@ -97,10 +98,11 @@ export function useCheckoutData(): CheckoutDisplayData {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess] = useState(false);
 
-  // Query backend orderPreview for accurate totals (delivery fee, free products discount, etc.)
+  // Query backend orderPreview for accurate totals (delivery fee, free products discount, points, etc.)
   const previewItems = items.map((i) => ({ productId: i.product.id, quantity: i.quantity }));
+  const pointsToUseVar = formData.pointsToUse ?? 0;
   const { data: previewData } = useQuery<{ orderPreview: { subtotal: number; deliveryFee: number; freeDeliveryThreshold: number; discountFromFreeProducts: number; discountFromPoints: number; total: number } }>(GET_ORDER_PREVIEW, {
-    variables: { items: previewItems },
+    variables: { items: previewItems, pointsToUse: pointsToUseVar },
     skip: items.length === 0,
     fetchPolicy: 'cache-and-network',
   });
@@ -111,14 +113,17 @@ export function useCheckoutData(): CheckoutDisplayData {
   const userPoints = pointsEnabled ? (user?.pointsBalance ?? 0) : 0;
 
   const selectedReward = formData.pointsToUse ? pointsRewards.find((r) => r.pointsCost === formData.pointsToUse) : null;
-  const discountFromPoints = selectedReward?.discountAmount ?? 0;
+  const discountFromPoints = orderPreview?.discountFromPoints ?? (selectedReward?.discountAmount ?? 0);
   const isInLocation = formData.fulfillmentType === 'in_location';
 
   // Use backend preview values when available, fallback to local cart values
   const effectiveDeliveryFee = isInLocation ? 0 : (orderPreview?.deliveryFee ?? deliveryFee);
   const discountFromFreeProducts = orderPreview?.discountFromFreeProducts ?? 0;
-  const displayTotal = Math.max(0, subtotal + effectiveDeliveryFee - discountFromPoints - discountFromFreeProducts);
+  const displayTotal = orderPreview?.total ?? Math.max(0, subtotal + effectiveDeliveryFee - discountFromPoints - discountFromFreeProducts);
   const isCartEmpty = items.length === 0;
+
+  // Totalul plătibil fără reducerea din puncte — folosit pentru a filtra opțiunile de puncte irelevante
+  const payableBeforePoints = Math.max(0, subtotal + effectiveDeliveryFee - discountFromFreeProducts);
 
   const selectAddress = useCallback((address: DeliveryAddress) => {
     setSelectedAddressId(address.id);
@@ -216,7 +221,7 @@ export function useCheckoutData(): CheckoutDisplayData {
     formData, errors, isLoading, isSuccess, isInLocation, isCartEmpty,
     savedAddresses, selectedAddressId, isLoadingAddresses, showManualForm, manualFormRef,
     items, subtotal, deliveryFee, effectiveDeliveryFee, displayTotal, discountFromPoints, discountFromFreeProducts,
-    pointsEnabled, userPoints, pointsRewards,
+    pointsEnabled, userPoints, pointsRewards, payableBeforePoints,
     handleChange, handleSubmit, handleFulfillmentChange, handlePaymentChange,
     selectAddress, handleManualEntry, setFormData, navigate: (p: string) => navigate(p),
   };
@@ -425,7 +430,7 @@ export const CheckoutTemplate: React.FC<{ data: CheckoutDisplayData; variant: St
                   <CardContent>
                     <PaymentSelector data={data} />
                     {data.pointsEnabled && (
-                      <PointsCheckoutSelector userPoints={data.userPoints} rewards={data.pointsRewards} formData={data.formData} onPointsChange={(p) => data.setFormData((prev) => ({ ...prev, pointsToUse: p }))} currency={texts.common.currency} />
+                      <PointsCheckoutSelector userPoints={data.userPoints} rewards={data.pointsRewards} formData={data.formData} onPointsChange={(p) => data.setFormData((prev) => ({ ...prev, pointsToUse: p }))} currency={texts.common.currency} payableBeforePoints={data.payableBeforePoints} />
                     )}
                   </CardContent>
                 </Card>

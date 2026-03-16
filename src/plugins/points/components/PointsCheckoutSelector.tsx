@@ -16,6 +16,8 @@ interface PointsCheckoutSelectorProps {
   formData: CheckoutData;
   onPointsChange: (pointsToUse: number | undefined) => void;
   currency?: string;
+  /** Totalul plătibil fără reducerea din puncte — pentru a filtra opțiunile irelevante */
+  payableBeforePoints?: number;
 }
 
 export function PointsCheckoutSelector(props: PointsCheckoutSelectorProps) {
@@ -29,9 +31,9 @@ export function PointsCheckoutSelector(props: PointsCheckoutSelectorProps) {
 }
 
 /* ═══ Gamified (original casino style) ═══ */
-function GamifiedSelector({ userPoints, rewards, formData, onPointsChange, currency = 'RON' }: PointsCheckoutSelectorProps) {
+function GamifiedSelector({ userPoints, rewards, formData, onPointsChange, currency = 'RON', payableBeforePoints }: PointsCheckoutSelectorProps) {
   if (rewards.length === 0 || userPoints <= 0) return null;
-  const availableRewards = rewards.filter((r) => r.pointsCost <= userPoints);
+  const availableRewards = rewards.filter((r) => r.pointsCost <= userPoints && (payableBeforePoints == null || r.discountAmount <= payableBeforePoints));
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
@@ -65,9 +67,9 @@ function GamifiedSelector({ userPoints, rewards, formData, onPointsChange, curre
 }
 
 /* ═══ Clean ═══ */
-function CleanSelector({ userPoints, rewards, formData, onPointsChange, currency = 'RON' }: PointsCheckoutSelectorProps) {
+function CleanSelector({ userPoints, rewards, formData, onPointsChange, currency = 'RON', payableBeforePoints }: PointsCheckoutSelectorProps) {
   if (rewards.length === 0 || userPoints <= 0) return null;
-  const availableRewards = rewards.filter((r) => r.pointsCost <= userPoints);
+  const availableRewards = rewards.filter((r) => r.pointsCost <= userPoints && (payableBeforePoints == null || r.discountAmount <= payableBeforePoints));
 
   return (
     <div className="mt-5 rounded-xl border border-border bg-card">
@@ -91,9 +93,9 @@ function CleanSelector({ userPoints, rewards, formData, onPointsChange, currency
 }
 
 /* ═══ Premium ═══ */
-function PremiumSelector({ userPoints, rewards, formData, onPointsChange, currency = 'RON' }: PointsCheckoutSelectorProps) {
+function PremiumSelector({ userPoints, rewards, formData, onPointsChange, currency = 'RON', payableBeforePoints }: PointsCheckoutSelectorProps) {
   if (rewards.length === 0 || userPoints <= 0) return null;
-  const availableRewards = rewards.filter((r) => r.pointsCost <= userPoints);
+  const availableRewards = rewards.filter((r) => r.pointsCost <= userPoints && (payableBeforePoints == null || r.discountAmount <= payableBeforePoints));
 
   return (
     <div className="mt-5 rounded-2xl bg-card border border-border/50 shadow-lg shadow-foreground/5 overflow-hidden">
@@ -118,9 +120,9 @@ function PremiumSelector({ userPoints, rewards, formData, onPointsChange, curren
 }
 
 /* ═══ Friendly ═══ */
-function FriendlySelector({ userPoints, rewards, formData, onPointsChange, currency = 'RON' }: PointsCheckoutSelectorProps) {
+function FriendlySelector({ userPoints, rewards, formData, onPointsChange, currency = 'RON', payableBeforePoints }: PointsCheckoutSelectorProps) {
   if (rewards.length === 0 || userPoints <= 0) return null;
-  const availableRewards = rewards.filter((r) => r.pointsCost <= userPoints);
+  const availableRewards = rewards.filter((r) => r.pointsCost <= userPoints && (payableBeforePoints == null || r.discountAmount <= payableBeforePoints));
 
   return (
     <div className="mt-5 rounded-2xl bg-accent/30 border-2 border-accent shadow-md">

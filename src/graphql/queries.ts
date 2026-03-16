@@ -309,8 +309,8 @@ export const GET_ORDER_BY_ID = gql`
 `;
 
 export const GET_ORDER_PREVIEW = gql`
-  query OrderPreview($items: [OrderItemInput!]!) {
-    orderPreview(items: $items) {
+  query OrderPreview($items: [OrderItemInput!]!, $pointsToUse: Int) {
+    orderPreview(items: $items, pointsToUse: $pointsToUse) {
       subtotal
       deliveryFee
       freeDeliveryThreshold

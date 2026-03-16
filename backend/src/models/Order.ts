@@ -425,12 +425,14 @@ export async function computeOrderTotal(
     // Aplicăm pragul de livrare gratuită pe subtotalul plătit
     deliveryFee = freeDeliveryThreshold > 0 && paidSubtotal >= freeDeliveryThreshold ? 0 : baseFee;
   }
+  const subtotal = baseSubtotal;
+  // Calculăm totalul plătibil ÎNAINTE de puncte, pentru a limita reducerea din puncte
+  const payableBeforePoints = Math.max(0, subtotal + deliveryFee - discountFromFreeProducts);
   const { pointsUsed, discountFromPoints } = await pointsPlugin.service.applyAtCheckout(connection, {
     userId: input.userId,
     pointsToUse: input.pointsToUse,
-  });
-  const subtotal = baseSubtotal;
-  const total = Math.max(0, subtotal + deliveryFee - discountFromPoints - discountFromFreeProducts);
+  }, payableBeforePoints);
+  const total = Math.max(0, payableBeforePoints - discountFromPoints);
   return {
     itemDetails,
     subtotal,
