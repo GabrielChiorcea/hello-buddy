@@ -44,8 +44,6 @@ export interface CartDisplayData {
   isAuthenticated: boolean;
   orderPreview: OrderPreviewData | null;
   freeProductProgress: FreeProductProgress | null;
-  /** IDs of products that are free via tier campaigns */
-  freeProductIds: Set<string>;
   handleRemoveItem: (productId: string, productName: string) => void;
   handleQuantityChange: (productId: string, newQuantity: number) => void;
   handleCheckout: () => void;
