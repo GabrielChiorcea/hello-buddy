@@ -1,112 +1,82 @@
 /**
- * Iconițe SVG pentru categorii (food-ordering)
- * Folosesc Lucide React — culorile se moștenesc prin text-current / tokens semantice.
+ * Iconițe emoji native pentru categorii (food-ordering)
+ * Colorate, vizuale, stil Glovo — zero overhead.
  */
 
 import React from 'react';
-import {
-  Pizza,
-  Utensils,
-  Sandwich,
-  Beef,
-  Drumstick,
-  Fish,
-  Salad,
-  Carrot,
-  Soup,
-  Cake,
-  CakeSlice,
-  IceCreamCone,
-  Cookie,
-  Candy,
-  Coffee,
-  CupSoda,
-  Beer,
-  Wine,
-  Martini,
-  Droplets,
-  Egg,
-  Croissant,
-  Wheat,
-  Popcorn,
-  Leaf,
-  Package,
-  Apple,
-  type LucideProps,
-} from 'lucide-react';
 
 export interface CategoryIcon {
   id: string;
   label: string;
-  icon: React.FC<LucideProps>;
+  emoji: string;
 }
 
 // Lista de iconițe disponibile pentru selecție
 export const CATEGORY_ICONS: CategoryIcon[] = [
   // Pizza & Paste
-  { id: 'pizza', icon: Pizza, label: 'Pizza' },
-  { id: 'pasta', icon: Utensils, label: 'Paste' },
-  { id: 'spaghetti', icon: Utensils, label: 'Spaghetti' },
+  { id: 'pizza', emoji: '🍕', label: 'Pizza' },
+  { id: 'pasta', emoji: '🍝', label: 'Paste' },
+  { id: 'spaghetti', emoji: '🍝', label: 'Spaghetti' },
 
   // Burgeri & Sandvișuri
-  { id: 'burger', icon: Sandwich, label: 'Burger' },
-  { id: 'hotdog', icon: Beef, label: 'Hot Dog' },
-  { id: 'sandwich', icon: Sandwich, label: 'Sandviș' },
-  { id: 'taco', icon: Utensils, label: 'Taco' },
-  { id: 'burrito', icon: Utensils, label: 'Burrito' },
+  { id: 'burger', emoji: '🍔', label: 'Burger' },
+  { id: 'hotdog', emoji: '🌭', label: 'Hot Dog' },
+  { id: 'sandwich', emoji: '🥪', label: 'Sandviș' },
+  { id: 'taco', emoji: '🌮', label: 'Taco' },
+  { id: 'burrito', emoji: '🌯', label: 'Burrito' },
 
   // Carne & Pui
-  { id: 'meat', icon: Beef, label: 'Carne' },
-  { id: 'poultry', icon: Drumstick, label: 'Pui' },
-  { id: 'bacon', icon: Beef, label: 'Bacon' },
+  { id: 'meat', emoji: '🥩', label: 'Carne' },
+  { id: 'poultry', emoji: '🍗', label: 'Pui' },
+  { id: 'bacon', emoji: '🥓', label: 'Bacon' },
 
   // Pește & Fructe de mare
-  { id: 'fish', icon: Fish, label: 'Pește' },
-  { id: 'shrimp', icon: Fish, label: 'Creveți' },
-  { id: 'sushi', icon: Fish, label: 'Sushi' },
+  { id: 'fish', emoji: '🐟', label: 'Pește' },
+  { id: 'shrimp', emoji: '🦐', label: 'Creveți' },
+  { id: 'sushi', emoji: '🍣', label: 'Sushi' },
 
   // Salate & Legume
-  { id: 'salad', icon: Salad, label: 'Salată' },
-  { id: 'vegetable', icon: Leaf, label: 'Legume' },
-  { id: 'carrot', icon: Carrot, label: 'Morcov' },
-  { id: 'avocado', icon: Apple, label: 'Avocado' },
+  { id: 'salad', emoji: '🥗', label: 'Salată' },
+  { id: 'vegetable', emoji: '🥬', label: 'Legume' },
+  { id: 'carrot', emoji: '🥕', label: 'Morcov' },
+  { id: 'avocado', emoji: '🥑', label: 'Avocado' },
 
   // Supe & Ciorbe
-  { id: 'soup', icon: Soup, label: 'Supă' },
-  { id: 'stew', icon: Soup, label: 'Tocană' },
+  { id: 'soup', emoji: '🍲', label: 'Supă' },
+  { id: 'stew', emoji: '🥘', label: 'Tocană' },
 
   // Deserturi
-  { id: 'cake', icon: Cake, label: 'Tort' },
-  { id: 'ice-cream', icon: IceCreamCone, label: 'Înghețată' },
-  { id: 'donut', icon: CakeSlice, label: 'Gogoașă' },
-  { id: 'cookie', icon: Cookie, label: 'Biscuit' },
-  { id: 'chocolate', icon: Candy, label: 'Ciocolată' },
-  { id: 'candy', icon: Candy, label: 'Bomboane' },
-  { id: 'pie', icon: CakeSlice, label: 'Plăcintă' },
-  { id: 'cupcake', icon: CakeSlice, label: 'Cupcake' },
+  { id: 'cake', emoji: '🎂', label: 'Tort' },
+  { id: 'ice-cream', emoji: '🍦', label: 'Înghețată' },
+  { id: 'donut', emoji: '🍩', label: 'Gogoașă' },
+  { id: 'cookie', emoji: '🍪', label: 'Biscuit' },
+  { id: 'chocolate', emoji: '🍫', label: 'Ciocolată' },
+  { id: 'candy', emoji: '🍬', label: 'Bomboane' },
+  { id: 'pie', emoji: '🥧', label: 'Plăcintă' },
+  { id: 'cupcake', emoji: '🧁', label: 'Cupcake' },
 
   // Băuturi
-  { id: 'coffee', icon: Coffee, label: 'Cafea' },
-  { id: 'tea', icon: Coffee, label: 'Ceai' },
-  { id: 'juice', icon: CupSoda, label: 'Suc' },
-  { id: 'soda', icon: CupSoda, label: 'Suc carbogazos' },
-  { id: 'beer', icon: Beer, label: 'Bere' },
-  { id: 'wine', icon: Wine, label: 'Vin' },
-  { id: 'cocktail', icon: Martini, label: 'Cocktail' },
-  { id: 'water', icon: Droplets, label: 'Apă' },
+  { id: 'coffee', emoji: '☕', label: 'Cafea' },
+  { id: 'tea', emoji: '🍵', label: 'Ceai' },
+  { id: 'juice', emoji: '🧃', label: 'Suc' },
+  { id: 'soda', emoji: '🥤', label: 'Suc carbogazos' },
+  { id: 'beer', emoji: '🍺', label: 'Bere' },
+  { id: 'wine', emoji: '🍷', label: 'Vin' },
+  { id: 'cocktail', emoji: '🍸', label: 'Cocktail' },
+  { id: 'water', emoji: '💧', label: 'Apă' },
 
   // Mic dejun
-  { id: 'egg', icon: Egg, label: 'Ouă' },
-  { id: 'bread', icon: Wheat, label: 'Pâine' },
-  { id: 'croissant', icon: Croissant, label: 'Croissant' },
-  { id: 'pancakes', icon: CakeSlice, label: 'Clătite' },
-  { id: 'waffle', icon: CakeSlice, label: 'Wafă' },
+  { id: 'egg', emoji: '🍳', label: 'Ouă' },
+  { id: 'bread', emoji: '🍞', label: 'Pâine' },
+  { id: 'croissant', emoji: '🥐', label: 'Croissant' },
+  { id: 'pancakes', emoji: '🥞', label: 'Clătite' },
+  { id: 'waffle', emoji: '🧇', label: 'Wafă' },
 
   // Altele
-  { id: 'fries', icon: Utensils, label: 'Cartofi prăjiți' },
-  { id: 'popcorn', icon: Popcorn, label: 'Popcorn' },
-  { id: 'cheese', icon: Utensils, label: 'Brânză' },
-  { id: 'default', icon: Package, label: 'General' },
+  { id: 'fries', emoji: '🍟', label: 'Cartofi prăjiți' },
+  { id: 'popcorn', emoji: '🍿', label: 'Popcorn' },
+  { id: 'cheese', emoji: '🧀', label: 'Brânză' },
+  { id: 'default', emoji: '📦', label: 'General' },
 ];
 
 // Mapare nume categorie -> icon id (pentru categorii existente)
@@ -124,27 +94,25 @@ const DEFAULT_CATEGORY_MAP: Record<string, string> = {
 };
 
 /**
- * Returnează componenta Lucide pentru o categorie.
+ * Returnează emoji-ul pentru o categorie.
  */
-export function getCategoryIconComponent(categoryName: string, iconId?: string | null): React.FC<LucideProps> {
-  // Direct match by icon id
+export function getCategoryEmoji(categoryName: string, iconId?: string | null): string {
   if (iconId) {
     const found = CATEGORY_ICONS.find((i) => i.id === iconId);
-    if (found) return found.icon;
+    if (found) return found.emoji;
   }
-  // Fallback by category name
   const normalizedName = categoryName.toLowerCase().replace(/[^a-z]/g, '_');
   const mappedId = DEFAULT_CATEGORY_MAP[normalizedName];
   if (mappedId) {
     const found = CATEGORY_ICONS.find((i) => i.id === mappedId);
-    if (found) return found.icon;
+    if (found) return found.emoji;
   }
-  return Package;
+  return '📦';
 }
 
 /**
- * Componentă helper care randează iconița de categorie.
- * Moștenește culoarea de la parent prin `text-current`.
+ * Componentă helper care randează emoji-ul de categorie.
+ * Păstrează interfața anterioară (size controlează font-size).
  */
 export const CategoryIconDisplay: React.FC<{
   categoryName: string;
@@ -152,6 +120,15 @@ export const CategoryIconDisplay: React.FC<{
   className?: string;
   size?: number;
 }> = ({ categoryName, iconId, className = '', size = 20 }) => {
-  const IconComponent = getCategoryIconComponent(categoryName, iconId);
-  return <IconComponent size={size} className={className} />;
+  const emoji = getCategoryEmoji(categoryName, iconId);
+  return (
+    <span
+      className={className}
+      style={{ fontSize: size, lineHeight: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+      role="img"
+      aria-label={categoryName}
+    >
+      {emoji}
+    </span>
+  );
 };
