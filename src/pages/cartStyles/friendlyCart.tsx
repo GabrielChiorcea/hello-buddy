@@ -70,12 +70,7 @@ export const FriendlyCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                       <img src={getImageUrl(product.image)} alt={product.name} className="h-24 w-24 rounded-2xl object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-foreground truncate">{product.name}</h3>
-                        {freeProductIds.has(product.id) && (
-                          <Badge className="bg-primary/15 text-primary border-0 text-[10px] px-1.5 py-0 rounded-full">+1 gratis</Badge>
-                        )}
-                      </div>
+                      <h3 className="font-semibold text-foreground truncate">{product.name}</h3>
                       <p className="text-sm text-muted-foreground line-clamp-1">{product.description}</p>
                       <p className="text-lg font-bold text-primary mt-2">{product.price} {texts.common.currency}</p>
                     </div>
