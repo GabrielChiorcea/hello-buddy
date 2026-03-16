@@ -87,7 +87,7 @@ export const CATEGORY_ICONS: CategoryIcon[] = [
 
   // Băuturi
   { id: 'coffee', icon: Coffee, label: 'Cafea' },
-  { id: 'tea', icon: Cup, label: 'Ceai' },
+  { id: 'tea', icon: Coffee, label: 'Ceai' },
   { id: 'juice', icon: CupSoda, label: 'Suc' },
   { id: 'soda', icon: CupSoda, label: 'Suc carbogazos' },
   { id: 'beer', icon: Beer, label: 'Bere' },
