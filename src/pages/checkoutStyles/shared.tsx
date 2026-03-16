@@ -19,6 +19,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { resetCart } from '@/store/slices/cartSlice';
 import { fetchAddresses, fetchCurrentUser } from '@/store/slices/userSlice';
 import { placeOrderApi, createPaymentSessionApi } from '@/api/api';
+import { GET_ORDER_PREVIEW } from '@/graphql/queries';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { toast } from '@/hooks/use-toast';
