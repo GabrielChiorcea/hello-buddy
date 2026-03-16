@@ -99,11 +99,16 @@ export const CleanCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                   <span>{summaryDelivery === 0 ? texts.cart.freeDelivery : `${summaryDelivery} ${texts.common.currency}`}</span>
                 </div>
                 {summaryDelivery > 0 && <p className="text-xs text-muted-foreground">Gratuit peste {FREE_DELIVERY_THRESHOLD} {texts.common.currency}</p>}
-                {(orderPreview?.discountFromFreeProducts ?? 0) > 0 && (
-                  <div className="flex justify-between text-success text-sm">
-                    <span>{texts.freeProducts.cartDiscountLabel}</span>
-                    <span>-{orderPreview!.discountFromFreeProducts.toFixed(2)} {texts.common.currency}</span>
+                {freeProductProgress && (
+                  <div className="flex justify-between text-sm">
+                    <span className={orderPreview?.discountFromFreeProducts ? 'text-success' : 'text-muted-foreground'}>{texts.freeProducts.cartDiscountLabel}</span>
+                    <span className={orderPreview?.discountFromFreeProducts ? 'text-success' : 'text-muted-foreground'}>
+                      -{(orderPreview?.discountFromFreeProducts ?? 0).toFixed(2)} {texts.common.currency}
+                    </span>
                   </div>
+                )}
+                {freeProductProgress && !freeProductProgress.unlocked && (
+                  <p className="text-xs text-muted-foreground">Mai adaugă {freeProductProgress.remaining.toFixed(2)} {texts.common.currency} pentru produse gratuite</p>
                 )}
                 
               </div>
