@@ -10,7 +10,7 @@ import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { Button } from '@/components/ui/button';
 import { routes } from '@/config/routes';
 import { GET_LOYALTY_TIERS } from '@/graphql/queries';
-import { getTierBadgeIcon } from '@/config/tierIcons';
+import { TierIcon } from '@/config/tierIcons';
 import { useTierStyle } from '@/config/componentStyle';
 import { useTierDisplayData } from './tierStyles/shared';
 import { GamifiedTier } from './tierStyles/gamifiedTier';
