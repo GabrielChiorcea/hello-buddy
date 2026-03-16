@@ -74,10 +74,10 @@ export const FreeProductsTierGrid: React.FC<{ summaries: Summary[] }> = ({ summa
           key={p.id}
           className="flex items-center gap-1.5 rounded-lg border border-primary/15 bg-primary/5 px-2 py-1.5"
         >
-          <span className="text-lg shrink-0 text-primary" title={p.categoryName || p.name}>
+          <span className="text-lg shrink-0" title={p.categoryName || p.name}>
             {p.categoryName || p.categoryIcon
               ? <CategoryIconDisplay categoryName={p.categoryName} iconId={p.categoryIcon} size={18} />
-              : <DefaultIcon size={18} />}
+              : <span style={{ fontSize: 18 }}>{DEFAULT_EMOJI}</span>}
           </span>
           <span className="text-[10px] font-medium text-foreground truncate" title={p.name}>
             {p.name}
