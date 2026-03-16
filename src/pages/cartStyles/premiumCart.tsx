@@ -126,7 +126,7 @@ export const PremiumCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                     <span className="font-medium">-{orderPreview!.discountFromFreeProducts.toFixed(2)} {texts.common.currency}</span>
                   </div>
                 )}
-                {freeProductProgress && <FreeProductProgressBanner progress={freeProductProgress} />}
+                
                 <Separator className="bg-border/30" />
                 <div className="flex justify-between text-lg font-semibold">
                   <span>{texts.cart.total}</span>
