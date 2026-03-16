@@ -19,7 +19,7 @@ import type { CartDisplayData } from './shared';
 import { FREE_DELIVERY_THRESHOLD } from './shared';
 
 export const CleanCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
-  const { items, subtotal, deliveryFee, total, orderPreview, handleRemoveItem, handleQuantityChange, handleCheckout } = data;
+  const { items, subtotal, deliveryFee, total, orderPreview, freeProductProgress, handleRemoveItem, handleQuantityChange, handleCheckout } = data;
   const summarySubtotal = orderPreview?.subtotal ?? subtotal;
   const summaryDelivery = orderPreview?.deliveryFee ?? deliveryFee;
   const summaryTotal = orderPreview?.total ?? total;
