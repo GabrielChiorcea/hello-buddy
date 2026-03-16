@@ -22,7 +22,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, Pencil, Trash2, GripVertical, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/hooks/use-toast';
-import { CATEGORY_ICONS, getCategoryIcon } from '@/config/categoryIcons';
+import { CATEGORY_ICONS, CategoryIconDisplay } from '@/config/categoryIcons';
 import { cn } from '@/lib/utils';
 
 interface AdminCategory {
@@ -217,7 +217,7 @@ export default function AdminCategories() {
                 
                 {/* Icon categorie */}
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-2xl">
-                  {getCategoryIcon(category.name, category.icon)}
+                  <CategoryIconDisplay categoryName={category.name} iconId={category.icon} size={22} className="text-primary" />
                 </div>
                 
                 <div className="flex-1">
@@ -330,7 +330,7 @@ export default function AdminCategories() {
                     onClick={() => setFormData((prev) => ({ ...prev, icon: icon.id }))}
                     title={icon.label}
                   >
-                    {icon.emoji}
+                    <icon.icon size={18} />
                   </button>
                 ))}
               </div>

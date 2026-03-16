@@ -127,7 +127,7 @@ function FriendlySelector({ userPoints, rewards, formData, onPointsChange, curre
       <div className="px-4 py-3 border-b border-accent flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Heart className="h-4 w-4 text-primary" />
-          <p className="text-sm font-bold text-foreground">🎁 Folosește punctele!</p>
+          <p className="text-sm font-bold text-foreground">Folosește punctele!</p>
         </div>
         <span className="bg-primary/15 text-primary rounded-full px-2.5 py-0.5 text-xs font-semibold">{userPoints} pt</span>
       </div>

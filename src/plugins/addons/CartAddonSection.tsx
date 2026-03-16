@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { Plus, Minus } from 'lucide-react';
+import { Plus, Minus, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -34,7 +34,7 @@ function getBadge(
     return { label: '🚚 Livrare gratuită', variant: 'success' };
   }
   if (ruleId) {
-    return { label: '✨ Recomandat', variant: 'primary' };
+    return { label: 'Recomandat', variant: 'primary' };
   }
   if (product.price <= 10) {
     return { label: 'Preț mic', variant: 'muted' };
@@ -138,7 +138,7 @@ export function CartAddonSection() {
 
   const sectionHeader = (
     <div className="flex items-center gap-2 mb-3">
-      <span className="text-base">🎁</span>
+      <span className="text-base text-primary"><Gift className="h-4 w-4" /></span>
       <h3 className="text-sm font-bold text-foreground">Adaugă la comandă</h3>
       <span className="ml-auto text-xs text-muted-foreground italic">Swipe →</span>
     </div>

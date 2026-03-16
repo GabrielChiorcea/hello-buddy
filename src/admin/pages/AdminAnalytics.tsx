@@ -139,10 +139,10 @@ export default function AdminAnalytics() {
       {/* Tabs */}
       <Tabs defaultValue="sales" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="sales" className="text-xs sm:text-sm">💰 Vânzări</TabsTrigger>
-          <TabsTrigger value="points" className="text-xs sm:text-sm">⭐ Puncte</TabsTrigger>
-          <TabsTrigger value="streaks" className="text-xs sm:text-sm">🔥 Streak</TabsTrigger>
-          <TabsTrigger value="tiers" className="text-xs sm:text-sm">🏆 Ranguri</TabsTrigger>
+          <TabsTrigger value="sales" className="text-xs sm:text-sm">Vânzări</TabsTrigger>
+          <TabsTrigger value="points" className="text-xs sm:text-sm">Puncte</TabsTrigger>
+          <TabsTrigger value="streaks" className="text-xs sm:text-sm">Streak</TabsTrigger>
+          <TabsTrigger value="tiers" className="text-xs sm:text-sm">Ranguri</TabsTrigger>
         </TabsList>
 
         {/* TAB: VÂNZĂRI */}

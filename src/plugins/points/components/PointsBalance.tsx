@@ -75,7 +75,7 @@ function FriendlyBalance({ points }: PointsBalanceProps) {
         <Heart className="h-5 w-5 text-primary-foreground" />
       </div>
       <div>
-        <p className="text-xs text-muted-foreground font-medium">⭐ Punctele tale</p>
+        <p className="text-xs text-muted-foreground font-medium">Punctele tale</p>
         <p className="text-2xl font-bold text-foreground">{points ?? 0}</p>
       </div>
     </div>

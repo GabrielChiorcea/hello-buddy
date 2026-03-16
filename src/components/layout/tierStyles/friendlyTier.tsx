@@ -20,7 +20,7 @@ export const FriendlyTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
       {/* Warm header with accent background */}
       <div className="bg-primary/5 px-4 pt-4 pb-3 flex items-center gap-3">
         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 border-2 border-primary/20">
-          <span className="text-xl">{currentBadgeIcon}</span>
+          <span className="text-xl text-primary">{currentBadgeIcon}</span>
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-1.5">
@@ -28,7 +28,7 @@ export const FriendlyTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
             {isMaxLevel && <Sparkles className="h-3 w-3 text-primary" />}
           </div>
           <p className="text-xs text-muted-foreground">
-            {isMaxLevel ? 'Ai atins nivelul maxim! 🎉' : `${currentXp} / ${nextTierThreshold} XP`}
+            {isMaxLevel ? 'Ai atins nivelul maxim!' : `${currentXp} / ${nextTierThreshold} XP`}
           </p>
         </div>
         <div className="flex items-center gap-1 bg-primary/10 text-primary rounded-full px-2.5 py-1">
@@ -50,7 +50,7 @@ export const FriendlyTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
           </div>
           {xpToNextLevel != null && (
             <p className="mt-1.5 text-[11px] text-muted-foreground">
-              Mai ai nevoie de <span className="font-semibold text-foreground">{xpToNextLevel} XP</span> 💪
+              Mai ai nevoie de <span className="font-semibold text-foreground">{xpToNextLevel} XP</span>
             </p>
           )}
         </div>
@@ -59,7 +59,7 @@ export const FriendlyTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
       {/* Benefit */}
       <div className="px-4 py-2.5">
         <p className="text-xs text-muted-foreground">
-          ✨ {currentBenefit}
+          {currentBenefit}
         </p>
         {hasFreeProductBenefits ? (
           <div className="mt-1">

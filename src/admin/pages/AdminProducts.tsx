@@ -376,7 +376,7 @@ export default function AdminProducts() {
       header: 'Rating',
       cell: (product) => (
         <span className="text-muted-foreground">
-          {product.rating ? `${product.rating.toFixed(1)} ⭐` : '-'}
+          {product.rating ? `${product.rating.toFixed(1)} ★` : '-'}
         </span>
       ),
     },

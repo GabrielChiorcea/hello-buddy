@@ -21,7 +21,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Loader2, Plus, Edit2, Trash2, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { TIER_BADGE_ICONS, getTierBadgeIcon } from '@/config/tierIcons';
+import { TIER_BADGE_ICONS, TierIcon } from '@/config/tierIcons';
 import { cn } from '@/lib/utils';
 
 interface TiersGlobalSettings {
@@ -355,7 +355,7 @@ export default function AdminTiers() {
                     <span className="font-medium">{tier.name}</span>
                     <span>{tier.xpThreshold}</span>
                     <span>x{tier.pointsMultiplier.toFixed(2)}</span>
-                    <span>{getTierBadgeIcon(tier.badgeIcon)}</span>
+                    <span><TierIcon badgeIcon={tier.badgeIcon} size={18} /></span>
                     <span>{tier.sortOrder}</span>
                     <span className="flex justify-end gap-2">
                       <Button
@@ -460,7 +460,7 @@ export default function AdminTiers() {
                       onClick={() => setFormData((prev) => ({ ...prev, badgeIcon: icon.id }))}
                       title={icon.label}
                     >
-                      {icon.emoji}
+                      <icon.icon size={18} />
                     </button>
                   ))}
                 </div>
@@ -479,7 +479,7 @@ export default function AdminTiers() {
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, badgeIcon: e.target.value || undefined }))
                     }
-                    placeholder="Ex: 🥇 sau crown-gold"
+                    placeholder="Ex: crown-gold"
                   />
                 </div>
               </div>

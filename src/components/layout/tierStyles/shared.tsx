@@ -1,15 +1,16 @@
 /**
  * Shared types & data hooks for all TierProgressBar variants
  */
+import React from 'react';
 import { useQuery } from '@apollo/client';
 import { useAppSelector } from '@/store';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
-import { getTierBadgeIcon } from '@/config/tierIcons';
+import { TierIcon } from '@/config/tierIcons';
 import { GET_TIERS_ECONOMY_SETTINGS } from '@/graphql/queries';
 
 export interface TierDisplayData {
   tierName: string;
-  currentBadgeIcon: string;
+  currentBadgeIcon: React.ReactNode;
   multiplier: number;
   currentXp: number;
   progressPercent: number;
@@ -77,7 +78,7 @@ export function useTierDisplayData(): TierDisplayData | null {
   }
 
   const tierName = user?.tier?.name ?? 'Începător';
-  const currentBadgeIcon = getTierBadgeIcon(user?.tier?.badgeIcon);
+  const currentBadgeIcon = <TierIcon badgeIcon={user?.tier?.badgeIcon} />;
   const multiplier = user?.tier?.pointsMultiplier ?? 1;
   const nextMultiplier = nextTier?.pointsMultiplier ?? 1;
 

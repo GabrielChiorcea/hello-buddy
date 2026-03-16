@@ -21,7 +21,7 @@ import {
 } from '@/store/slices/productsSlice';
 import { texts } from '@/config/texts';
 import { cn } from '@/lib/utils';
-import { getCategoryIcon } from '@/config/categoryIcons';
+import { CategoryIconDisplay } from '@/config/categoryIcons';
 import { StreakCampaignBlock } from '@/plugins/streak';
 
 const ITEMS_PER_PAGE = 12;
@@ -124,7 +124,7 @@ const Catalog: React.FC = () => {
                 )}
                 onClick={() => handleCategoryClick(category.name)}
               >
-                <span className="mr-1">{getCategoryIcon(category.name, (category as any).icon)}</span>
+                <span className="mr-1 inline-flex"><CategoryIconDisplay categoryName={category.name} iconId={(category as any).icon} size={14} /></span>
                 {category.displayName}
               </Badge>
             ))}

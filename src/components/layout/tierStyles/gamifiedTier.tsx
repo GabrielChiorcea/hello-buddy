@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { Sparkles, ChevronRight, Zap, Gift, Star, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { texts } from '@/config/texts';
-import { getTierBadgeIcon } from '@/config/tierIcons';
+import { TierIcon } from '@/config/tierIcons';
 import type { TierDisplayData } from './shared';
 import { FreeProductsTierGrid } from './FreeProductsTierGrid';
 
@@ -61,7 +61,7 @@ export const GamifiedTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
       <div className="flex items-center gap-3 px-4 pt-3 pb-2">
         <div className="relative flex-shrink-0">
           <div className={cn('flex h-12 w-12 items-center justify-center rounded-xl', 'bg-gradient-to-br from-primary/20 to-accent/40', 'ring-2 ring-primary/20')}>
-            <span className="text-2xl leading-none">{currentBadgeIcon}</span>
+            <span className="text-2xl leading-none text-primary">{currentBadgeIcon}</span>
           </div>
           <div className="absolute -bottom-1 -right-1 flex h-5 items-center rounded-full bg-primary px-1.5 shadow-sm">
             <Zap className="h-2.5 w-2.5 text-primary-foreground" />
@@ -79,7 +79,7 @@ export const GamifiedTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">
             {isMaxLevel ? (
-              <span className="text-primary font-medium">Nivel maxim atins! 🎉</span>
+              <span className="text-primary font-medium">Nivel maxim atins!</span>
             ) : (
               <><span className="font-semibold text-foreground tabular-nums">{currentXp}</span><span className="text-muted-foreground/60"> / {nextTierThreshold} XP</span></>
             )}
@@ -129,7 +129,7 @@ export const GamifiedTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
             <ChevronRight className="h-3.5 w-3.5 text-primary flex-shrink-0" />
             <span className="text-[11px] text-muted-foreground">La nivelul următor:</span>
             <span className="text-[11px] font-semibold text-foreground">
-              {nextTier && getTierBadgeIcon(nextTier.badgeIcon)} {nextTier.name}
+              <TierIcon badgeIcon={nextTier?.badgeIcon} size={14} className="inline text-primary" /> {nextTier.name}
             </span>
             <span className="ml-auto text-[10px] font-bold text-primary">x{nextMultiplier.toFixed(1)}</span>
           </div>

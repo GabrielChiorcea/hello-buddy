@@ -16,7 +16,7 @@ import { PageLoader } from '@/components/common/Loader';
 import { StreakCampaignBlock } from '@/plugins/streak';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
-import { getCategoryIcon } from '@/config/categoryIcons';
+import { CategoryIconDisplay } from '@/config/categoryIcons';
 import type { HomeDisplayData } from './shared';
 import { easeOut, fadeUp, staggerContainer, cardVariant } from './shared';
 
@@ -65,7 +65,7 @@ export const CleanHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
               {categories.map((category) => (
                 <motion.div key={category.id} variants={cardVariant} className="shrink-0">
                   <Link to={routes.catalog} onClick={() => handleCategoryClick(category.name)} className="flex items-center gap-2 px-4 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
-                    <span className="text-lg">{getCategoryIcon(category.name, category.icon)}</span>
+                    <span className="text-muted-foreground"><CategoryIconDisplay categoryName={category.name} iconId={category.icon} size={18} /></span>
                     <span>{category.displayName}</span>
                   </Link>
                 </motion.div>

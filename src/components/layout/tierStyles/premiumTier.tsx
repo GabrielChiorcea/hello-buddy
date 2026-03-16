@@ -25,7 +25,7 @@ export const PremiumTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
           'bg-gradient-to-br from-secondary to-muted',
           'border border-border/40',
         )}>
-          <span className="text-2xl">{currentBadgeIcon}</span>
+          <span className="text-2xl text-primary">{currentBadgeIcon}</span>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">

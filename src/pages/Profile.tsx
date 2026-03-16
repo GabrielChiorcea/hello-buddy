@@ -27,7 +27,7 @@ import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { cn } from '@/lib/utils';
 import { GET_LOYALTY_TIERS } from '@/graphql/queries';
 import { TierProgressBar } from '@/components/layout/TierProgressBar';
-import { getTierBadgeIcon } from '@/config/tierIcons';
+import { TierIcon } from '@/config/tierIcons';
 import { format, isValid } from 'date-fns';
 import { ro } from 'date-fns/locale';
 
@@ -182,7 +182,7 @@ const Profile: React.FC = () => {
                             <div className="flex flex-col gap-0.5">
                               <div className="flex items-center gap-2">
                                 <span className="font-medium">
-                                  <span className="mr-1">{getTierBadgeIcon(tier.badgeIcon)}</span>
+                                  <span className="mr-1 inline-flex text-primary"><TierIcon badgeIcon={tier.badgeIcon} size={16} /></span>
                                   {tier.name}
                                 </span>
                                 <Badge variant={unlocked ? 'default' : 'outline'} className="text-[10px]">

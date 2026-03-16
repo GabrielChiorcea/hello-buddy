@@ -16,7 +16,7 @@ import { PageLoader } from '@/components/common/Loader';
 import { StreakCampaignBlock } from '@/plugins/streak';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
-import { getCategoryIcon } from '@/config/categoryIcons';
+import { CategoryIconDisplay } from '@/config/categoryIcons';
 import type { HomeDisplayData } from './shared';
 import { easeOut, fadeUp, staggerContainer, cardVariant } from './shared';
 
@@ -68,7 +68,7 @@ export const FriendlyHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
               {categories.map((category) => (
                 <motion.div key={category.id} variants={cardVariant} className="shrink-0">
                   <Link to={routes.catalog} onClick={() => handleCategoryClick(category.name)} className="flex flex-col items-center justify-center w-[110px] p-4 rounded-2xl bg-card border hover:border-primary hover:shadow-md transition-all group">
-                    <span className="text-3xl mb-1.5">{getCategoryIcon(category.name, category.icon)}</span>
+                    <span className="text-primary mb-1.5"><CategoryIconDisplay categoryName={category.name} iconId={category.icon} size={28} /></span>
                     <span className="text-xs font-medium text-foreground group-hover:text-primary transition-colors text-center leading-tight">{category.displayName}</span>
                   </Link>
                 </motion.div>

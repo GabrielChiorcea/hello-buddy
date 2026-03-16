@@ -197,10 +197,10 @@ const FriendlyProgress: React.FC<StreakProgressBarProps> = ({
     <div className={cn('space-y-2', className)}>
       <div className="flex items-center justify-between">
         <span className="text-sm font-bold text-foreground">
-          🔥 {current} / {required} <span className="text-xs font-normal text-muted-foreground">{label}</span>
+          {current} / {required} <span className="text-xs font-normal text-muted-foreground">{label}</span>
         </span>
         {completed && (
-          <span className="text-xs font-bold text-primary">🎉 Bravo!</span>
+          <span className="text-xs font-bold text-primary">Bravo!</span>
         )}
       </div>
       <div className="h-3 bg-secondary rounded-full overflow-hidden">
@@ -208,7 +208,7 @@ const FriendlyProgress: React.FC<StreakProgressBarProps> = ({
       </div>
       {!completed && current > 0 && (
         <p className="text-xs text-muted-foreground">
-          💪 Încă {required - current} {required - current === 1 ? 'zi' : 'zile'} până la premiu!
+          Încă {required - current} {required - current === 1 ? 'zi' : 'zile'} până la premiu!
         </p>
       )}
     </div>
