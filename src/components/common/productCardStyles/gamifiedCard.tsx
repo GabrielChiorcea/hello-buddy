@@ -40,6 +40,13 @@ export const GamifiedCard: React.FC<CardVariantProps> = ({ product, className, d
           loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-foreground/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity hidden md:block" />
+        {showFreeRibbon && (
+          <div className="absolute top-0 right-0 overflow-hidden w-20 h-20 pointer-events-none hidden md:block">
+            <div className="absolute top-[10px] right-[-28px] w-[120px] text-center rotate-45 bg-primary text-primary-foreground text-[10px] font-bold py-0.5 shadow-sm">
+              GRATIS
+            </div>
+          </div>
+        )}
         {!product.isAvailable && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-[2px]">
             <span className="text-xs font-semibold text-muted-foreground">Indisponibil</span>
