@@ -61,7 +61,7 @@ export const GamifiedTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
       <div className="flex items-center gap-3 px-4 pt-3 pb-2">
         <div className="relative flex-shrink-0">
           <div className={cn('flex h-12 w-12 items-center justify-center rounded-xl', 'bg-gradient-to-br from-primary/20 to-accent/40', 'ring-2 ring-primary/20')}>
-            <span className="text-2xl leading-none">{currentBadgeIcon}</span>
+            <span className="text-2xl leading-none text-primary">{currentBadgeIcon}</span>
           </div>
           <div className="absolute -bottom-1 -right-1 flex h-5 items-center rounded-full bg-primary px-1.5 shadow-sm">
             <Zap className="h-2.5 w-2.5 text-primary-foreground" />
