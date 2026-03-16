@@ -300,6 +300,7 @@ export interface OrderTotals {
   itemDetails: OrderItemDetail[];
   subtotal: number;
   deliveryFee: number;
+  freeDeliveryThreshold: number;
   pointsUsed: number;
   discountFromPoints: number;
   discountFromFreeProducts: number;
