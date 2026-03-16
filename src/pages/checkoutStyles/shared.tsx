@@ -215,7 +215,7 @@ export function useCheckoutData(): CheckoutDisplayData {
   return {
     formData, errors, isLoading, isSuccess, isInLocation, isCartEmpty,
     savedAddresses, selectedAddressId, isLoadingAddresses, showManualForm, manualFormRef,
-    items, subtotal, deliveryFee, effectiveDeliveryFee, displayTotal, discountFromPoints,
+    items, subtotal, deliveryFee, effectiveDeliveryFee, displayTotal, discountFromPoints, discountFromFreeProducts,
     pointsEnabled, userPoints, pointsRewards,
     handleChange, handleSubmit, handleFulfillmentChange, handlePaymentChange,
     selectAddress, handleManualEntry, setFormData, navigate: (p: string) => navigate(p),
