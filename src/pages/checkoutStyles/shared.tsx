@@ -97,10 +97,11 @@ export function useCheckoutData(): CheckoutDisplayData {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess] = useState(false);
 
-  // Query backend orderPreview for accurate totals (delivery fee, free products discount, etc.)
+  // Query backend orderPreview for accurate totals (delivery fee, free products discount, points, etc.)
   const previewItems = items.map((i) => ({ productId: i.product.id, quantity: i.quantity }));
+  const pointsToUseVar = formData.pointsToUse ?? 0;
   const { data: previewData } = useQuery<{ orderPreview: { subtotal: number; deliveryFee: number; freeDeliveryThreshold: number; discountFromFreeProducts: number; discountFromPoints: number; total: number } }>(GET_ORDER_PREVIEW, {
-    variables: { items: previewItems },
+    variables: { items: previewItems, pointsToUse: pointsToUseVar },
     skip: items.length === 0,
     fetchPolicy: 'cache-and-network',
   });
