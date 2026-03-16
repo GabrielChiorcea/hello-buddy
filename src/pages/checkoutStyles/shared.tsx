@@ -112,14 +112,17 @@ export function useCheckoutData(): CheckoutDisplayData {
   const userPoints = pointsEnabled ? (user?.pointsBalance ?? 0) : 0;
 
   const selectedReward = formData.pointsToUse ? pointsRewards.find((r) => r.pointsCost === formData.pointsToUse) : null;
-  const discountFromPoints = selectedReward?.discountAmount ?? 0;
+  const discountFromPoints = orderPreview?.discountFromPoints ?? (selectedReward?.discountAmount ?? 0);
   const isInLocation = formData.fulfillmentType === 'in_location';
 
   // Use backend preview values when available, fallback to local cart values
   const effectiveDeliveryFee = isInLocation ? 0 : (orderPreview?.deliveryFee ?? deliveryFee);
   const discountFromFreeProducts = orderPreview?.discountFromFreeProducts ?? 0;
-  const displayTotal = Math.max(0, subtotal + effectiveDeliveryFee - discountFromPoints - discountFromFreeProducts);
+  const displayTotal = orderPreview?.total ?? Math.max(0, subtotal + effectiveDeliveryFee - discountFromPoints - discountFromFreeProducts);
   const isCartEmpty = items.length === 0;
+
+  // Totalul plătibil fără reducerea din puncte — folosit pentru a filtra opțiunile de puncte irelevante
+  const payableBeforePoints = Math.max(0, subtotal + effectiveDeliveryFee - discountFromFreeProducts);
 
   const selectAddress = useCallback((address: DeliveryAddress) => {
     setSelectedAddressId(address.id);
