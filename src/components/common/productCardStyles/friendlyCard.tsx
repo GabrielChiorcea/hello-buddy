@@ -51,6 +51,13 @@ export const FriendlyCard: React.FC<CardVariantProps> = ({ product, className, d
         >
           {categoryLabel}
         </Badge>
+        {showFreeRibbon && (
+          <div className="absolute top-0 right-0 overflow-hidden w-20 h-20 pointer-events-none hidden md:block">
+            <div className="absolute top-[10px] right-[-28px] w-[120px] text-center rotate-45 bg-primary text-primary-foreground text-[10px] font-bold py-0.5 shadow-sm">
+              GRATIS
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Info */}
