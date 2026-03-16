@@ -16,7 +16,7 @@ import { PageLoader } from '@/components/common/Loader';
 import { StreakCampaignBlock } from '@/plugins/streak';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
-import { getCategoryIcon } from '@/config/categoryIcons';
+import { CategoryIconDisplay } from '@/config/categoryIcons';
 import type { HomeDisplayData } from './shared';
 import { easeOut, fadeUp, staggerContainer, cardVariant } from './shared';
 
