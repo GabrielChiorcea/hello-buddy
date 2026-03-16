@@ -1,6 +1,8 @@
 /**
  * Admin controller pentru campanii de produse gratuite pe rank (tiers)
  * Plugin: plugins/free-products
+ *
+ * Campaniile se setează pe CATEGORIE, nu pe produse individuale.
  */
 
 import { Request, Response } from 'express';
@@ -9,11 +11,11 @@ import * as CampaignsRepo from '../repositories/campaignsRepository.js';
 
 /**
  * GET /admin/free-products/campaigns
- * Listează toate campaniile cu produsele asociate
+ * Listează toate campaniile
  */
 export async function getCampaigns(req: Request, res: Response): Promise<void> {
   try {
-    const campaigns = await CampaignsRepo.getCampaignsWithProducts();
+    const campaigns = await CampaignsRepo.listCampaigns();
     res.json(campaigns);
   } catch (error) {
     logError('listare campanii produse gratuite', error);
@@ -23,7 +25,7 @@ export async function getCampaigns(req: Request, res: Response): Promise<void> {
 
 /**
  * GET /admin/free-products/campaigns/:id
- * Returnează o campanie cu produsele asociate
+ * Returnează o campanie
  */
 export async function getCampaign(req: Request, res: Response): Promise<void> {
   try {
@@ -33,8 +35,7 @@ export async function getCampaign(req: Request, res: Response): Promise<void> {
       res.status(404).json({ error: 'Campania nu a fost găsită' });
       return;
     }
-    const productIds = await CampaignsRepo.getCampaignProducts(id);
-    res.json({ ...campaign, productIds });
+    res.json(campaign);
   } catch (error) {
     logError('citire campanie produse gratuite', error);
     res.status(500).json({ error: 'Eroare internă server' });
@@ -43,11 +44,11 @@ export async function getCampaign(req: Request, res: Response): Promise<void> {
 
 /**
  * POST /admin/free-products/campaigns
- * Creează o campanie nouă și asociază produse
+ * Creează o campanie nouă cu o categorie
  */
 export async function createCampaign(req: Request, res: Response): Promise<void> {
   try {
-    const { name, tierId, startDate, endDate, minOrderValue, customText, productIds } = req.body;
+    const { name, tierId, categoryId, startDate, endDate, minOrderValue, customText } = req.body;
 
     if (!name || typeof name !== 'string' || !name.trim()) {
       res.status(400).json({ error: 'Numele campaniei este obligatoriu' });
@@ -55,6 +56,10 @@ export async function createCampaign(req: Request, res: Response): Promise<void>
     }
     if (!tierId || typeof tierId !== 'string') {
       res.status(400).json({ error: 'tierId este obligatoriu' });
+      return;
+    }
+    if (!categoryId || typeof categoryId !== 'string') {
+      res.status(400).json({ error: 'categoryId este obligatoriu' });
       return;
     }
     if (!startDate || !endDate) {
@@ -77,18 +82,14 @@ export async function createCampaign(req: Request, res: Response): Promise<void>
     const campaign = await CampaignsRepo.createCampaign({
       name: name.trim(),
       tierId,
+      categoryId,
       startDate,
       endDate,
       minOrderValue: minOrderValue != null ? Number(minOrderValue) || 0 : 0,
       customText: customText ?? null,
     });
 
-    if (Array.isArray(productIds)) {
-      await CampaignsRepo.setCampaignProducts(campaign.id, productIds);
-    }
-
-    const productIdsFinal = await CampaignsRepo.getCampaignProducts(campaign.id);
-    res.status(201).json({ ...campaign, productIds: productIdsFinal });
+    res.status(201).json(campaign);
   } catch (error) {
     logError('creare campanie produse gratuite', error);
     res.status(500).json({ error: 'Eroare internă server' });
@@ -97,7 +98,7 @@ export async function createCampaign(req: Request, res: Response): Promise<void>
 
 /**
  * PUT /admin/free-products/campaigns/:id
- * Actualizează o campanie (în MVP permitem editarea oricând)
+ * Actualizează o campanie
  */
 export async function updateCampaign(req: Request, res: Response): Promise<void> {
   try {
@@ -108,7 +109,7 @@ export async function updateCampaign(req: Request, res: Response): Promise<void>
       return;
     }
 
-    const { name, tierId, startDate, endDate, customText, productIds } = req.body;
+    const { name, tierId, categoryId, startDate, endDate, customText } = req.body;
 
     const updates: Parameters<typeof CampaignsRepo.updateCampaign>[1] = {};
     if (name !== undefined) {
@@ -124,6 +125,13 @@ export async function updateCampaign(req: Request, res: Response): Promise<void>
         return;
       }
       (updates as any).tierId = tierId;
+    }
+    if (categoryId !== undefined) {
+      if (typeof categoryId !== 'string' || !categoryId) {
+        res.status(400).json({ error: 'categoryId este obligatoriu' });
+        return;
+      }
+      (updates as any).categoryId = categoryId;
     }
     if (startDate !== undefined) {
       (updates as any).startDate = startDate;
@@ -148,13 +156,7 @@ export async function updateCampaign(req: Request, res: Response): Promise<void>
     }
 
     const updated = await CampaignsRepo.updateCampaign(id, updates);
-
-    if (Array.isArray(productIds)) {
-      await CampaignsRepo.setCampaignProducts(id, productIds);
-    }
-
-    const productIdsFinal = await CampaignsRepo.getCampaignProducts(id);
-    res.json({ ...updated, productIds: productIdsFinal });
+    res.json(updated);
   } catch (error) {
     logError('actualizare campanie produse gratuite', error);
     res.status(500).json({ error: 'Eroare internă server' });
@@ -179,4 +181,3 @@ export async function deleteCampaign(req: Request, res: Response): Promise<void>
     res.status(500).json({ error: 'Eroare internă server' });
   }
 }
-

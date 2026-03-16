@@ -66,10 +66,14 @@ export function useProductCardData(product: Product): ProductCardDisplayData {
     const campaigns = user?.freeProductCampaignsSummary;
     if (!campaigns || campaigns.length === 0) return false;
 
-    // Collect category names that have free products + specific free product IDs
+    // Collect category names from campaigns + all free product IDs
     const freeCategories = new Set<string>();
     const freeProductIds = new Set<string>();
     for (const c of campaigns) {
+      // Use campaign-level categoryName (direct from campaign)
+      if (c.categoryName) {
+        freeCategories.add(c.categoryName);
+      }
       if (c.productDetails) {
         for (const p of c.productDetails) {
           freeCategories.add(p.categoryName);
@@ -81,7 +85,7 @@ export function useProductCardData(product: Product): ProductCardDisplayData {
     // This product's category must match a free campaign category
     if (!freeCategories.has(product.category)) return false;
 
-    // Check if cart already has a free product from this category
+    // Check if cart already has a product from this category that's in the free list
     const cartHasFreeFromCategory = cartItems.some(
       (ci) => freeProductIds.has(ci.product.id) && ci.product.category === product.category
     );

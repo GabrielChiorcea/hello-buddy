@@ -114,6 +114,8 @@ const coreTypeDefs = `#graphql
     name: String!
     customText: String
     minOrderValue: Float!
+    categoryId: ID
+    categoryName: String
     products: [String!]!
     productDetails: [FreeProductItem!]!
   }

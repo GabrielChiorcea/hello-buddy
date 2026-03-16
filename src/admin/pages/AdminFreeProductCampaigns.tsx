@@ -29,7 +29,7 @@ import {
   Trash2,
   Gift,
   Crown,
-  ShoppingBag,
+  Tag,
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { texts } from '@/config/texts';
@@ -38,16 +38,17 @@ interface FreeProductCampaign {
   id: string;
   name: string;
   tierId: string;
+  categoryId: string | null;
   startDate: string;
   endDate: string;
   minOrderValue?: number;
   customText: string | null;
-  productIds: string[];
 }
 
-interface SimpleProduct {
+interface SimpleCategory {
   id: string;
   name: string;
+  displayName: string;
 }
 
 interface SimpleTier {
@@ -59,20 +60,20 @@ interface FormData {
   id?: string;
   name: string;
   tierId: string;
+  categoryId: string;
   startDate: string;
   endDate: string;
   customText: string;
-  productIds: string[];
   minOrderValue?: number;
 }
 
 const defaultForm: FormData = {
   name: '',
   tierId: '',
+  categoryId: '',
   startDate: '',
   endDate: '',
   customText: '',
-  productIds: [],
   minOrderValue: 0,
 };
 
@@ -84,12 +85,12 @@ export default function AdminFreeProductCampaigns() {
     updateFreeProductCampaign,
     deleteFreeProductCampaign,
     getTiers,
-    getProducts,
+    getCategories,
   } = useAdminApi();
 
   const [campaigns, setCampaigns] = useState<FreeProductCampaign[]>([]);
   const [tiers, setTiers] = useState<SimpleTier[]>([]);
-  const [products, setProducts] = useState<SimpleProduct[]>([]);
+  const [categories, setCategories] = useState<SimpleCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -100,10 +101,10 @@ export default function AdminFreeProductCampaigns() {
   const fetchInitialData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const [campaignsData, tiersData, productsData] = await Promise.all([
+      const [campaignsData, tiersData, categoriesData] = await Promise.all([
         getFreeProductCampaigns(),
         getTiers(),
-        getProducts('limit=500'),
+        getCategories(),
       ]);
       setCampaigns(Array.isArray(campaignsData) ? campaignsData : []);
       setTiers(
@@ -111,9 +112,10 @@ export default function AdminFreeProductCampaigns() {
           ? tiersData.map((t: any) => ({ id: t.id, name: t.name }))
           : []
       );
-      setProducts(
-        Array.isArray(productsData?.products)
-          ? productsData.products.map((p: any) => ({ id: p.id, name: p.name }))
+      const cats = categoriesData?.categories ?? categoriesData;
+      setCategories(
+        Array.isArray(cats)
+          ? cats.map((c: any) => ({ id: c.id, name: c.name, displayName: c.displayName || c.display_name || c.name }))
           : []
       );
     } catch (error) {
@@ -125,7 +127,7 @@ export default function AdminFreeProductCampaigns() {
     } finally {
       setIsLoading(false);
     }
-  }, [getFreeProductCampaigns, getTiers, getProducts]);
+  }, [getFreeProductCampaigns, getTiers, getCategories]);
 
   useEffect(() => {
     fetchInitialData();
@@ -145,25 +147,13 @@ export default function AdminFreeProductCampaigns() {
       id: c.id,
       name: c.name,
       tierId: c.tierId,
+      categoryId: c.categoryId ?? '',
       startDate: c.startDate.slice(0, 10),
       endDate: c.endDate.slice(0, 10),
       customText: c.customText ?? '',
-      productIds: c.productIds ?? [],
       minOrderValue: c.minOrderValue ?? 0,
     });
     setShowDialog(true);
-  };
-
-  const handleToggleProduct = (productId: string) => {
-    setFormData((prev) => {
-      const exists = prev.productIds.includes(productId);
-      return {
-        ...prev,
-        productIds: exists
-          ? prev.productIds.filter((id) => id !== productId)
-          : [...prev.productIds, productId],
-      };
-    });
   };
 
   const validateForm = (): boolean => {
@@ -179,6 +169,14 @@ export default function AdminFreeProductCampaigns() {
       toast({
         title: texts.common.error,
         description: texts.freeProducts.validationTierRequired,
+        variant: 'destructive',
+      });
+      return false;
+    }
+    if (!formData.categoryId) {
+      toast({
+        title: texts.common.error,
+        description: 'Selectează o categorie',
         variant: 'destructive',
       });
       return false;
@@ -199,12 +197,6 @@ export default function AdminFreeProductCampaigns() {
       });
       return false;
     }
-    if (formData.productIds.length === 0) {
-      toast({
-        title: texts.common.error,
-        description: texts.freeProducts.warnNoProducts,
-      });
-    }
     return true;
   };
 
@@ -215,11 +207,11 @@ export default function AdminFreeProductCampaigns() {
       const payload = {
         name: formData.name.trim(),
         tierId: formData.tierId,
+        categoryId: formData.categoryId,
         startDate: formData.startDate,
         endDate: formData.endDate,
         minOrderValue: formData.minOrderValue,
         customText: formData.customText || null,
-        productIds: formData.productIds,
       };
       if (formData.id) {
         await updateFreeProductCampaign(formData.id, payload);
@@ -263,14 +255,13 @@ export default function AdminFreeProductCampaigns() {
   };
 
   const tierNameById = useMemo(
-    () =>
-      new Map<string, string>(
-        tiers.map((t) => [
-          t.id,
-          t.name,
-        ])
-      ),
+    () => new Map<string, string>(tiers.map((t) => [t.id, t.name])),
     [tiers]
+  );
+
+  const categoryNameById = useMemo(
+    () => new Map<string, string>(categories.map((c) => [c.id, c.displayName])),
+    [categories]
   );
 
   if (flagLoading) return null;
@@ -298,7 +289,7 @@ export default function AdminFreeProductCampaigns() {
         <CardHeader>
           <CardTitle>{texts.freeProducts.listTitle}</CardTitle>
           <CardDescription>
-            {texts.freeProducts.listDescription}
+            Fiecare campanie oferă gratuit un produs din categoria selectată pentru clienții cu nivelul ales.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -332,18 +323,15 @@ export default function AdminFreeProductCampaigns() {
                           <Crown className="h-3 w-3" />
                           {tierNameById.get(c.tierId) || 'Tier necunoscut'}
                         </span>
-                        <span>· {c.startDate.slice(0, 10)} – {c.endDate.slice(0, 10)}</span>
                         <span className="flex items-center gap-1">
-                          <ShoppingBag className="h-3 w-3" />
-                          {texts.freeProducts.productsCount.replace(
-                            '{count}',
-                            String(c.productIds?.length || 0)
-                          )}
+                          <Tag className="h-3 w-3" />
+                          {categoryNameById.get(c.categoryId ?? '') || 'Categorie nesetată'}
                         </span>
+                        <span>· {c.startDate.slice(0, 10)} – {c.endDate.slice(0, 10)}</span>
                       </div>
                       {c.customText && (
                         <div className="text-xs text-muted-foreground mt-1 italic">
-                          „{c.customText}”
+                          „{c.customText}"
                         </div>
                       )}
                     </div>
@@ -369,7 +357,7 @@ export default function AdminFreeProductCampaigns() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {formData.id
@@ -377,7 +365,7 @@ export default function AdminFreeProductCampaigns() {
                 : texts.freeProducts.createDialogTitle}
             </DialogTitle>
             <DialogDescription>
-              {texts.freeProducts.dialogSubtitle}
+              Alege nivelul țintă, categoria de produse gratuite și perioada campaniei.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -409,15 +397,25 @@ export default function AdminFreeProductCampaigns() {
                 </Select>
               </div>
               <div>
-                <Label>{texts.freeProducts.customTextLabel}</Label>
-                <Textarea
-                  value={formData.customText}
-                  onChange={(e) =>
-                    setFormData((p) => ({ ...p, customText: e.target.value }))
-                  }
-                  rows={2}
-                  placeholder={texts.freeProducts.customTextPlaceholder}
-                />
+                <Label>Categorie produse gratuite</Label>
+                <Select
+                  value={formData.categoryId}
+                  onValueChange={(value) => setFormData((p) => ({ ...p, categoryId: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Alege categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.displayName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Toate produsele din această categorie vor fi disponibile gratuit (1 buc. per comandă).
+                </p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -460,38 +458,16 @@ export default function AdminFreeProductCampaigns() {
                 {texts.freeProducts.minOrderValueHelp}
               </p>
             </div>
-            <div className="border rounded-lg p-3 space-y-2 bg-muted/30">
-              <Label>{texts.freeProducts.productsLabel}</Label>
-              <p className="text-xs text-muted-foreground">
-                {texts.freeProducts.productsHelp}
-              </p>
-              <div className="max-h-64 overflow-y-auto border rounded-md p-2 bg-background">
-                {products.length === 0 ? (
-                  <div className="text-xs text-muted-foreground">
-                    {texts.freeProducts.productsEmpty}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-1 text-sm">
-                    {products.map((p) => {
-                      const checked = formData.productIds.includes(p.id);
-                      return (
-                        <label
-                          key={p.id}
-                          className="flex items-center gap-2 cursor-pointer px-2 py-1 rounded hover:bg-muted/60"
-                        >
-                          <input
-                            type="checkbox"
-                            className="h-4 w-4"
-                            checked={checked}
-                            onChange={() => handleToggleProduct(p.id)}
-                          />
-                          <span className="truncate">{p.name}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+            <div>
+              <Label>{texts.freeProducts.customTextLabel}</Label>
+              <Textarea
+                value={formData.customText}
+                onChange={(e) =>
+                  setFormData((p) => ({ ...p, customText: e.target.value }))
+                }
+                rows={2}
+                placeholder={texts.freeProducts.customTextPlaceholder}
+              />
             </div>
           </div>
           <DialogFooter>
@@ -499,23 +475,20 @@ export default function AdminFreeProductCampaigns() {
               {texts.freeProducts.cancel}
             </Button>
             <Button onClick={handleSave} disabled={isSaving}>
-              {isSaving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+              {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {texts.freeProducts.save}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete confirm */}
-      <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{texts.freeProducts.deleteTitle}</DialogTitle>
             <DialogDescription>
-              {texts.freeProducts.deleteDescription.replace(
-                '{name}',
-                deleteConfirm?.name || ''
-              )}
+              {texts.freeProducts.deleteDescription.replace('{name}', deleteConfirm?.name || '')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -523,7 +496,7 @@ export default function AdminFreeProductCampaigns() {
               {texts.freeProducts.cancel}
             </Button>
             <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
-              {isDeleting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+              {isDeleting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {texts.freeProducts.deleteConfirm}
             </Button>
           </DialogFooter>
@@ -532,4 +505,3 @@ export default function AdminFreeProductCampaigns() {
     </div>
   );
 }
-
