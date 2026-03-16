@@ -98,7 +98,7 @@ export const CleanCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                   <span className="text-muted-foreground">{texts.cart.delivery}</span>
                   <span>{summaryDelivery === 0 ? texts.cart.freeDelivery : `${summaryDelivery} ${texts.common.currency}`}</span>
                 </div>
-                {summaryDelivery > 0 && <p className="text-xs text-muted-foreground">Gratuit peste {FREE_DELIVERY_THRESHOLD} {texts.common.currency}</p>}
+                {summaryDelivery > 0 && <p className="text-xs text-muted-foreground">Gratuit peste {orderPreview?.freeDeliveryThreshold ?? FREE_DELIVERY_THRESHOLD} {texts.common.currency}</p>}
                 {freeProductProgress && (
                   <div className="flex justify-between text-sm">
                     <span className={orderPreview?.discountFromFreeProducts ? 'text-success' : 'text-muted-foreground'}>{texts.freeProducts.cartDiscountLabel}</span>
