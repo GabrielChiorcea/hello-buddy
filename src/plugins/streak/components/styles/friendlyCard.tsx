@@ -37,7 +37,7 @@ export const FriendlyCard: React.FC<Props> = ({
           <div className="flex-1 min-w-0">
             <h3 className="text-base font-bold text-foreground truncate">{campaign.name}</h3>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {campaign.recurrenceType === 'consecutive' ? '🔥 Zile consecutive' : campaign.recurrenceType === 'rolling' ? '📅 Fereastră mobilă' : campaign.recurrenceType}
+              {campaign.recurrenceType === 'consecutive' ? 'Zile consecutive' : campaign.recurrenceType === 'rolling' ? 'Fereastră mobilă' : campaign.recurrenceType}
             </p>
           </div>
         </div>
