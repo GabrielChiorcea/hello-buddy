@@ -79,7 +79,7 @@ export const GamifiedTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">
             {isMaxLevel ? (
-              <span className="text-primary font-medium">Nivel maxim atins! 🎉</span>
+              <span className="text-primary font-medium">Nivel maxim atins!</span>
             ) : (
               <><span className="font-semibold text-foreground tabular-nums">{currentXp}</span><span className="text-muted-foreground/60"> / {nextTierThreshold} XP</span></>
             )}

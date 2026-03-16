@@ -330,7 +330,7 @@ export default function AdminCategories() {
                     onClick={() => setFormData((prev) => ({ ...prev, icon: icon.id }))}
                     title={icon.label}
                   >
-                    {icon.emoji}
+                    <icon.icon size={18} />
                   </button>
                 ))}
               </div>

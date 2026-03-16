@@ -460,7 +460,7 @@ export default function AdminTiers() {
                       onClick={() => setFormData((prev) => ({ ...prev, badgeIcon: icon.id }))}
                       title={icon.label}
                     >
-                      {icon.emoji}
+                      <icon.icon size={18} />
                     </button>
                   ))}
                 </div>

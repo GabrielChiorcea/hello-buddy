@@ -124,7 +124,7 @@ const Catalog: React.FC = () => {
                 )}
                 onClick={() => handleCategoryClick(category.name)}
               >
-                <span className="mr-1">{getCategoryIcon(category.name, (category as any).icon)}</span>
+                <span className="mr-1 inline-flex"><CategoryIconDisplay categoryName={category.name} iconId={(category as any).icon} size={14} /></span>
                 {category.displayName}
               </Badge>
             ))}

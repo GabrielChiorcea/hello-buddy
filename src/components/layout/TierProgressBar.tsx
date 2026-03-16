@@ -86,8 +86,8 @@ export const TierProgressBar: React.FC = () => {
                     className="relative rounded-xl border border-border/70 bg-background/70 p-3 flex flex-col items-center text-center gap-1 shadow-sm"
                   >
                     <div className="relative inline-flex">
-                      <span className="text-3xl leading-none">
-                        {getTierBadgeIcon(tier.badgeIcon)}
+                      <span className="text-3xl leading-none text-primary">
+                        <TierIcon badgeIcon={tier.badgeIcon} size={28} />
                       </span>
                       <span className="absolute -top-4 -right-12 bg-primary text-primary-foreground text-[9px] font-bold px-1.5 py-0.5 rounded-full border-2 border-background shadow-sm">
                         x{tier.pointsMultiplier.toFixed(1)}
