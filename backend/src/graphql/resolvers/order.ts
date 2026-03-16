@@ -141,6 +141,7 @@ export const orderResolvers = {
         return {
           subtotal: totals.subtotal,
           deliveryFee: totals.deliveryFee,
+          freeDeliveryThreshold: totals.freeDeliveryThreshold,
           discountFromFreeProducts: totals.discountFromFreeProducts,
           discountFromPoints: totals.discountFromPoints,
           total: totals.total,

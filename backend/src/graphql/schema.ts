@@ -205,6 +205,7 @@ const coreTypeDefs = `#graphql
   type OrderPreview {
     subtotal: Float!
     deliveryFee: Float!
+    freeDeliveryThreshold: Float!
     discountFromFreeProducts: Float!
     discountFromPoints: Float!
     total: Float!

@@ -313,6 +313,7 @@ export const GET_ORDER_PREVIEW = gql`
     orderPreview(items: $items) {
       subtotal
       deliveryFee
+      freeDeliveryThreshold
       discountFromFreeProducts
       discountFromPoints
       total

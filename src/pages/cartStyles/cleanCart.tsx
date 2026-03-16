@@ -15,7 +15,7 @@ import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { getImageUrl } from '@/lib/imageUrl';
 import type { CartDisplayData } from './shared';
-import { FREE_DELIVERY_THRESHOLD } from './shared';
+import { FREE_DELIVERY_THRESHOLD } from '@/config/cart';
 
 export const CleanCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
   const { items, subtotal, deliveryFee, total, orderPreview, freeProductProgress, handleRemoveItem, handleQuantityChange, handleCheckout } = data;
@@ -98,7 +98,7 @@ export const CleanCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                   <span className="text-muted-foreground">{texts.cart.delivery}</span>
                   <span>{summaryDelivery === 0 ? texts.cart.freeDelivery : `${summaryDelivery} ${texts.common.currency}`}</span>
                 </div>
-                {summaryDelivery > 0 && <p className="text-xs text-muted-foreground">Gratuit peste {FREE_DELIVERY_THRESHOLD} {texts.common.currency}</p>}
+                {summaryDelivery > 0 && <p className="text-xs text-muted-foreground">Gratuit peste {orderPreview?.freeDeliveryThreshold ?? FREE_DELIVERY_THRESHOLD} {texts.common.currency}</p>}
                 {freeProductProgress && (
                   <div className="flex justify-between text-sm">
                     <span className={orderPreview?.discountFromFreeProducts ? 'text-success' : 'text-muted-foreground'}>{texts.freeProducts.cartDiscountLabel}</span>

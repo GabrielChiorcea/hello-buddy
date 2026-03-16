@@ -300,6 +300,7 @@ export interface OrderTotals {
   itemDetails: OrderItemDetail[];
   subtotal: number;
   deliveryFee: number;
+  freeDeliveryThreshold: number;
   pointsUsed: number;
   discountFromPoints: number;
   discountFromFreeProducts: number;
@@ -412,11 +413,17 @@ export async function computeOrderTotal(
   const fulfillmentType = input.fulfillmentType ?? 'delivery';
   const isInLocation = fulfillmentType === 'in_location';
   let deliveryFee = 0;
+  let freeDeliveryThreshold = 0;
   if (!isInLocation) {
     const [settingsRows] = await connection.execute<any[]>(
-      'SELECT value FROM app_settings WHERE id = "delivery_fee"'
+      `SELECT id, value FROM app_settings WHERE id IN ('delivery_fee', 'free_delivery_threshold')`
     );
-    deliveryFee = settingsRows.length > 0 ? parseFloat(settingsRows[0].value) : 10;
+    const settingsMap = new Map<string, string>();
+    for (const row of settingsRows) settingsMap.set(row.id, row.value);
+    const baseFee = parseFloat(settingsMap.get('delivery_fee') ?? '10');
+    freeDeliveryThreshold = parseFloat(settingsMap.get('free_delivery_threshold') ?? '0');
+    // Aplicăm pragul de livrare gratuită pe subtotalul plătit
+    deliveryFee = freeDeliveryThreshold > 0 && paidSubtotal >= freeDeliveryThreshold ? 0 : baseFee;
   }
   const { pointsUsed, discountFromPoints } = await pointsPlugin.service.applyAtCheckout(connection, {
     userId: input.userId,
@@ -428,6 +435,7 @@ export async function computeOrderTotal(
     itemDetails,
     subtotal,
     deliveryFee,
+    freeDeliveryThreshold,
     pointsUsed,
     discountFromPoints,
     discountFromFreeProducts,

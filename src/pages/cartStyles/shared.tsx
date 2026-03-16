@@ -13,11 +13,10 @@ import { toast } from '@/hooks/use-toast';
 import { FREE_DELIVERY_THRESHOLD } from '@/config/cart';
 import { GET_ORDER_PREVIEW } from '@/graphql/queries';
 
-export { FREE_DELIVERY_THRESHOLD };
-
 export interface OrderPreviewData {
   subtotal: number;
   deliveryFee: number;
+  freeDeliveryThreshold: number;
   discountFromFreeProducts: number;
   discountFromPoints: number;
   total: number;
