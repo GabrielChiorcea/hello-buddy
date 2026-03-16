@@ -19,7 +19,7 @@ import type { CartDisplayData } from './shared';
 import { FREE_DELIVERY_THRESHOLD } from './shared';
 
 export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
-  const { items, subtotal, deliveryFee, total, orderPreview, handleRemoveItem, handleQuantityChange, handleCheckout } = data;
+  const { items, subtotal, deliveryFee, total, orderPreview, freeProductProgress, handleRemoveItem, handleQuantityChange, handleCheckout } = data;
   const summarySubtotal = orderPreview?.subtotal ?? subtotal;
   const summaryDelivery = orderPreview?.deliveryFee ?? deliveryFee;
   const summaryTotal = orderPreview?.total ?? total;
@@ -120,11 +120,16 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                   <span className="font-bold">{summaryDelivery === 0 ? <span className="text-success">{texts.cart.freeDelivery}</span> : `${summaryDelivery} ${texts.common.currency}`}</span>
                 </div>
                 {summaryDelivery > 0 && <p className="text-xs text-muted-foreground">Livrare gratuită peste {FREE_DELIVERY_THRESHOLD} {texts.common.currency}</p>}
-                {(orderPreview?.discountFromFreeProducts ?? 0) > 0 && (
-                  <div className="flex justify-between text-success">
-                    <span>{texts.freeProducts.cartDiscountLabel}</span>
-                    <span className="font-bold">-{orderPreview!.discountFromFreeProducts.toFixed(2)} {texts.common.currency}</span>
+                {freeProductProgress && (
+                  <div className="flex justify-between">
+                    <span className={orderPreview?.discountFromFreeProducts ? 'text-success' : 'text-muted-foreground'}>{texts.freeProducts.cartDiscountLabel}</span>
+                    <span className={orderPreview?.discountFromFreeProducts ? 'text-success font-bold' : 'text-muted-foreground font-bold'}>
+                      -{(orderPreview?.discountFromFreeProducts ?? 0).toFixed(2)} {texts.common.currency}
+                    </span>
                   </div>
+                )}
+                {freeProductProgress && !freeProductProgress.unlocked && (
+                  <p className="text-xs text-muted-foreground">Mai adaugă {freeProductProgress.remaining.toFixed(2)} {texts.common.currency} pentru produse gratuite</p>
                 )}
                 
                 <Separator />
