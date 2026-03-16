@@ -509,27 +509,6 @@ export async function create(input: CreateOrderInput): Promise<Order> {
     
     return order;
   } catch (error) {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/5b30d7ea-62d4-4fc8-b8b7-5a517226527b', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Debug-Session-Id': '19f6dc',
-      },
-      body: JSON.stringify({
-        sessionId: '19f6dc',
-        runId: 'pre-fix-1',
-        hypothesisId: 'H1',
-        location: 'backend/src/models/Order.ts:create:catch',
-        message: 'create order error',
-        data: {
-          name: (error as any)?.name,
-          message: (error as any)?.message,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
     await connection.rollback();
     connection.release();
     throw error;

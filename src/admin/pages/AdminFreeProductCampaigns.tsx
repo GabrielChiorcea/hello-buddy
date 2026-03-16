@@ -149,6 +149,7 @@ export default function AdminFreeProductCampaigns() {
       endDate: c.endDate.slice(0, 10),
       customText: c.customText ?? '',
       productIds: c.productIds ?? [],
+      minOrderValue: c.minOrderValue ?? 0,
     });
     setShowDialog(true);
   };
