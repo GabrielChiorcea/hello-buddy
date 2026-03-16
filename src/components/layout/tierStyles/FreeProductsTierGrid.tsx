@@ -5,7 +5,6 @@
  */
 import React from 'react';
 import { CategoryIconDisplay } from '@/config/categoryIcons';
-import { Gift } from 'lucide-react';
 import { texts } from '@/config/texts';
 
 type Summary = {
