@@ -21,7 +21,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Loader2, Plus, Edit2, Trash2, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { TIER_BADGE_ICONS, getTierBadgeIcon } from '@/config/tierIcons';
+import { TIER_BADGE_ICONS, TierIcon } from '@/config/tierIcons';
 import { cn } from '@/lib/utils';
 
 interface TiersGlobalSettings {
