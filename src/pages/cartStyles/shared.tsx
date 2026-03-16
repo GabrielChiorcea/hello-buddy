@@ -44,6 +44,8 @@ export interface CartDisplayData {
   isAuthenticated: boolean;
   orderPreview: OrderPreviewData | null;
   freeProductProgress: FreeProductProgress | null;
+  /** IDs of products that are free via tier campaigns */
+  freeProductIds: Set<string>;
   handleRemoveItem: (productId: string, productName: string) => void;
   handleQuantityChange: (productId: string, newQuantity: number) => void;
   handleCheckout: () => void;
@@ -133,6 +135,19 @@ export function useCartData(): CartDisplayData {
     navigate(routes.checkout);
   };
 
+  // Expose free product IDs for badge rendering
+  const freeProductIds = useMemo<Set<string>>(() => {
+    const campaigns = user?.freeProductCampaignsSummary;
+    if (!campaigns) return new Set();
+    const ids = new Set<string>();
+    for (const c of campaigns) {
+      if (c.productDetails) {
+        for (const p of c.productDetails) ids.add(p.id);
+      }
+    }
+    return ids;
+  }, [user?.freeProductCampaignsSummary]);
+
   return {
     items,
     subtotal,
@@ -141,6 +156,7 @@ export function useCartData(): CartDisplayData {
     isAuthenticated,
     orderPreview,
     freeProductProgress,
+    freeProductIds,
     handleRemoveItem,
     handleQuantityChange,
     handleCheckout,

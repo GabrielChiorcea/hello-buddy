@@ -6,7 +6,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Heart } from 'lucide-react';
-import { FreeProductProgressBanner } from './FreeProductProgressBanner';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -20,7 +20,7 @@ import type { CartDisplayData } from './shared';
 import { FREE_DELIVERY_THRESHOLD } from './shared';
 
 export const FriendlyCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
-  const { items, subtotal, deliveryFee, total, orderPreview, freeProductProgress, handleRemoveItem, handleQuantityChange, handleCheckout } = data;
+  const { items, subtotal, deliveryFee, total, orderPreview, freeProductIds, handleRemoveItem, handleQuantityChange, handleCheckout } = data;
   const summarySubtotal = orderPreview?.subtotal ?? subtotal;
   const summaryDelivery = orderPreview?.deliveryFee ?? deliveryFee;
   const summaryTotal = orderPreview?.total ?? total;
@@ -70,7 +70,12 @@ export const FriendlyCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                       <img src={getImageUrl(product.image)} alt={product.name} className="h-24 w-24 rounded-2xl object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-foreground truncate">{product.name}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-foreground truncate">{product.name}</h3>
+                        {freeProductIds.has(product.id) && (
+                          <Badge className="bg-primary/15 text-primary border-0 text-[10px] px-1.5 py-0 rounded-full">+1 gratis</Badge>
+                        )}
+                      </div>
                       <p className="text-sm text-muted-foreground line-clamp-1">{product.description}</p>
                       <p className="text-lg font-bold text-primary mt-2">{product.price} {texts.common.currency}</p>
                     </div>
@@ -121,7 +126,7 @@ export const FriendlyCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                     <span className="font-medium">-{orderPreview!.discountFromFreeProducts.toFixed(2)} {texts.common.currency}</span>
                   </div>
                 )}
-                {freeProductProgress && <FreeProductProgressBanner progress={freeProductProgress} />}
+                
                 <Separator />
                 <div className="flex justify-between text-lg font-bold">
                   <span>{texts.cart.total}</span>
