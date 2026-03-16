@@ -18,6 +18,7 @@ export { FREE_DELIVERY_THRESHOLD };
 export interface OrderPreviewData {
   subtotal: number;
   deliveryFee: number;
+  freeDeliveryThreshold: number;
   discountFromFreeProducts: number;
   discountFromPoints: number;
   total: number;
