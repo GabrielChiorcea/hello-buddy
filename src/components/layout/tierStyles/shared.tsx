@@ -9,7 +9,7 @@ import { GET_TIERS_ECONOMY_SETTINGS } from '@/graphql/queries';
 
 export interface TierDisplayData {
   tierName: string;
-  currentBadgeIcon: string;
+  currentBadgeIcon: React.ReactNode;
   multiplier: number;
   currentXp: number;
   progressPercent: number;
