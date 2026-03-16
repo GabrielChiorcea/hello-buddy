@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import type { CardVariantProps } from './shared';
 
 export const PremiumCard: React.FC<CardVariantProps> = ({ product, className, data }) => {
-  const { handleAddToCart, isAdded, pointsInfo, imageUrl, categoryLabel } = data;
+  const { handleAddToCart, isAdded, pointsInfo, imageUrl, categoryLabel, showFreeRibbon } = data;
 
   return (
     <div
