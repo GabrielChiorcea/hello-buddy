@@ -58,7 +58,14 @@ export const PremiumCard: React.FC<CardVariantProps> = ({ product, className, da
 
       {/* Info */}
       <div className={cn('flex flex-1 min-w-0 flex-col justify-between gap-1', 'md:px-5 md:pt-4 md:pb-5 md:flex-1')}>
-        <h3 className="font-light text-foreground text-sm md:text-base tracking-wide truncate md:whitespace-normal md:line-clamp-1">
+        <div className="flex items-center gap-1.5">
+          <h3 className="font-light text-foreground text-sm md:text-base tracking-wide truncate md:whitespace-normal md:line-clamp-1">
+            {product.name}
+          </h3>
+          {showFreeRibbon && (
+            <span className="shrink-0 text-[9px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded md:hidden">GRATIS</span>
+          )}
+        </div>
           {product.name}
         </h3>
         <p className="text-xs text-muted-foreground truncate md:hidden">

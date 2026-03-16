@@ -65,7 +65,12 @@ export const GamifiedCard: React.FC<CardVariantProps> = ({ product, className, d
 
       {/* Info */}
       <div className={cn('flex flex-1 min-w-0 flex-col justify-between gap-0.5', 'md:px-4 md:pt-3 md:pb-3.5 md:flex-1')}>
-        <h3 className="font-bold text-foreground text-sm md:text-[15px] truncate md:line-clamp-1">{product.name}</h3>
+        <div className="flex items-center gap-1.5">
+          <h3 className="font-bold text-foreground text-sm md:text-[15px] truncate md:line-clamp-1">{product.name}</h3>
+          {showFreeRibbon && (
+            <span className="shrink-0 text-[9px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded md:hidden">GRATIS</span>
+          )}
+        </div>
         <p className="text-xs text-muted-foreground truncate md:hidden">
           {product.ingredients?.length ? product.ingredients.map((i) => i.name).join(', ') : product.description}
         </p>
