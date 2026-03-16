@@ -8,7 +8,6 @@ import { cn } from '@/lib/utils';
 import { texts } from '@/config/texts';
 import type { TierDisplayData } from './shared';
 import { FreeProductsTierGrid } from './FreeProductsTierGrid';
-import { FreeProductsTierGrid } from './FreeProductsTierGrid';
 
 const GradientProgressBar: React.FC<{ percent: number }> = ({ percent }) => (
   <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-muted/60">
