@@ -208,7 +208,7 @@ const FriendlyProgress: React.FC<StreakProgressBarProps> = ({
       </div>
       {!completed && current > 0 && (
         <p className="text-xs text-muted-foreground">
-          💪 Încă {required - current} {required - current === 1 ? 'zi' : 'zile'} până la premiu!
+          Încă {required - current} {required - current === 1 ? 'zi' : 'zile'} până la premiu!
         </p>
       )}
     </div>

@@ -65,7 +65,7 @@ export const FriendlyCard: React.FC<Props> = ({
       <div className="px-4 pb-3 flex flex-wrap gap-1.5">
         <span className="inline-flex items-center gap-1.5 bg-primary/15 text-primary rounded-full px-3 py-1.5 text-xs font-semibold">
           <Gift className="h-3.5 w-3.5" />
-          🎉 {campaign.bonusPoints} puncte
+          {campaign.bonusPoints} puncte
         </span>
         <span className="inline-flex items-center gap-1.5 bg-secondary text-secondary-foreground rounded-full px-3 py-1.5 text-xs">
           <Target className="h-3 w-3" />

@@ -59,7 +59,7 @@ export const FriendlyTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
       {/* Benefit */}
       <div className="px-4 py-2.5">
         <p className="text-xs text-muted-foreground">
-          ✨ {currentBenefit}
+          {currentBenefit}
         </p>
         {hasFreeProductBenefits ? (
           <div className="mt-1">

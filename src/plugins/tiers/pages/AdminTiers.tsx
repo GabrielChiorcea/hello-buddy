@@ -479,7 +479,7 @@ export default function AdminTiers() {
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, badgeIcon: e.target.value || undefined }))
                     }
-                    placeholder="Ex: 🥇 sau crown-gold"
+                    placeholder="Ex: crown-gold"
                   />
                 </div>
               </div>

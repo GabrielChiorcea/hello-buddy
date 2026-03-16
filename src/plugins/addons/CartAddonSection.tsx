@@ -138,7 +138,7 @@ export function CartAddonSection() {
 
   const sectionHeader = (
     <div className="flex items-center gap-2 mb-3">
-      <span className="text-base">🎁</span>
+      <span className="text-base text-primary"><Gift className="h-4 w-4" /></span>
       <h3 className="text-sm font-bold text-foreground">Adaugă la comandă</h3>
       <span className="ml-auto text-xs text-muted-foreground italic">Swipe →</span>
     </div>
