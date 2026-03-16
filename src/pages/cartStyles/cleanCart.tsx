@@ -6,7 +6,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Layout } from '@/components/layout/Layout';
@@ -19,7 +18,7 @@ import type { CartDisplayData } from './shared';
 import { FREE_DELIVERY_THRESHOLD } from './shared';
 
 export const CleanCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
-  const { items, subtotal, deliveryFee, total, orderPreview, freeProductIds, handleRemoveItem, handleQuantityChange, handleCheckout } = data;
+  const { items, subtotal, deliveryFee, total, orderPreview, handleRemoveItem, handleQuantityChange, handleCheckout } = data;
   const summarySubtotal = orderPreview?.subtotal ?? subtotal;
   const summaryDelivery = orderPreview?.deliveryFee ?? deliveryFee;
   const summaryTotal = orderPreview?.total ?? total;
@@ -60,12 +59,7 @@ export const CleanCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                 <div className="flex gap-4 py-6">
                   <img src={getImageUrl(product.image)} alt={product.name} className="h-20 w-20 rounded-md object-cover" />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-medium text-foreground text-sm">{product.name}</h3>
-                      {freeProductIds.has(product.id) && (
-                        <Badge className="bg-primary/15 text-primary border-0 text-[10px] px-1.5 py-0">+1 gratis</Badge>
-                      )}
-                    </div>
+                    <h3 className="font-medium text-foreground text-sm">{product.name}</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">{product.description}</p>
                     <p className="text-sm font-medium text-foreground mt-2">{product.price} {texts.common.currency}</p>
                   </div>

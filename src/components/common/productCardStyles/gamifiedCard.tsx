@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import type { CardVariantProps } from './shared';
 
 export const GamifiedCard: React.FC<CardVariantProps> = ({ product, className, data }) => {
-  const { handleAddToCart, isAdded, pointsInfo, imageUrl, categoryLabel } = data;
+  const { handleAddToCart, isAdded, pointsInfo, imageUrl, categoryLabel, showFreeRibbon } = data;
 
   return (
     <div
@@ -40,6 +40,13 @@ export const GamifiedCard: React.FC<CardVariantProps> = ({ product, className, d
           loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-foreground/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity hidden md:block" />
+        {showFreeRibbon && (
+          <div className="absolute top-0 right-0 overflow-hidden w-20 h-20 pointer-events-none hidden md:block">
+            <div className="absolute top-[10px] right-[-28px] w-[120px] text-center rotate-45 bg-primary text-primary-foreground text-[10px] font-bold py-0.5 shadow-sm">
+              GRATIS
+            </div>
+          </div>
+        )}
         {!product.isAvailable && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-[2px]">
             <span className="text-xs font-semibold text-muted-foreground">Indisponibil</span>
@@ -58,7 +65,12 @@ export const GamifiedCard: React.FC<CardVariantProps> = ({ product, className, d
 
       {/* Info */}
       <div className={cn('flex flex-1 min-w-0 flex-col justify-between gap-0.5', 'md:px-4 md:pt-3 md:pb-3.5 md:flex-1')}>
-        <h3 className="font-bold text-foreground text-sm md:text-[15px] truncate md:line-clamp-1">{product.name}</h3>
+        <div className="flex items-center gap-1.5">
+          <h3 className="font-bold text-foreground text-sm md:text-[15px] truncate md:line-clamp-1">{product.name}</h3>
+          {showFreeRibbon && (
+            <span className="shrink-0 text-[9px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded md:hidden">GRATIS</span>
+          )}
+        </div>
         <p className="text-xs text-muted-foreground truncate md:hidden">
           {product.ingredients?.length ? product.ingredients.map((i) => i.name).join(', ') : product.description}
         </p>
