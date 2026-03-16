@@ -22,7 +22,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, Pencil, Trash2, GripVertical, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/hooks/use-toast';
-import { CATEGORY_ICONS, getCategoryIcon } from '@/config/categoryIcons';
+import { CATEGORY_ICONS, CategoryIconDisplay } from '@/config/categoryIcons';
 import { cn } from '@/lib/utils';
 
 interface AdminCategory {
