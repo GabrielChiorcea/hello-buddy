@@ -4,7 +4,8 @@
  * Include mesaj despre prag minim și ce trebuie făcut.
  */
 import React from 'react';
-import { getCategoryIcon } from '@/config/categoryIcons';
+import { CategoryIconDisplay } from '@/config/categoryIcons';
+import { Gift } from 'lucide-react';
 import { texts } from '@/config/texts';
 
 type Summary = {
