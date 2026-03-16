@@ -31,9 +31,9 @@ export function PointsCheckoutSelector(props: PointsCheckoutSelectorProps) {
 }
 
 /* ═══ Gamified (original casino style) ═══ */
-function GamifiedSelector({ userPoints, rewards, formData, onPointsChange, currency = 'RON' }: PointsCheckoutSelectorProps) {
+function GamifiedSelector({ userPoints, rewards, formData, onPointsChange, currency = 'RON', payableBeforePoints }: PointsCheckoutSelectorProps) {
   if (rewards.length === 0 || userPoints <= 0) return null;
-  const availableRewards = rewards.filter((r) => r.pointsCost <= userPoints);
+  const availableRewards = rewards.filter((r) => r.pointsCost <= userPoints && (payableBeforePoints == null || r.discountAmount <= payableBeforePoints));
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
