@@ -67,9 +67,9 @@ function GamifiedSelector({ userPoints, rewards, formData, onPointsChange, curre
 }
 
 /* ═══ Clean ═══ */
-function CleanSelector({ userPoints, rewards, formData, onPointsChange, currency = 'RON' }: PointsCheckoutSelectorProps) {
+function CleanSelector({ userPoints, rewards, formData, onPointsChange, currency = 'RON', payableBeforePoints }: PointsCheckoutSelectorProps) {
   if (rewards.length === 0 || userPoints <= 0) return null;
-  const availableRewards = rewards.filter((r) => r.pointsCost <= userPoints);
+  const availableRewards = rewards.filter((r) => r.pointsCost <= userPoints && (payableBeforePoints == null || r.discountAmount <= payableBeforePoints));
 
   return (
     <div className="mt-5 rounded-xl border border-border bg-card">
