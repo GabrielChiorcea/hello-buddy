@@ -217,7 +217,7 @@ export default function AdminCategories() {
                 
                 {/* Icon categorie */}
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-2xl">
-                  {getCategoryIcon(category.name, category.icon)}
+                  <CategoryIconDisplay categoryName={category.name} iconId={category.icon} size={22} className="text-primary" />
                 </div>
                 
                 <div className="flex-1">
