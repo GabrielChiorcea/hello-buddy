@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@apollo/client';
 import { z } from 'zod';
 import { CreditCard, Banknote, MapPin, CheckCircle, Plus, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { resetCart } from '@/store/slices/cartSlice';
 import { fetchAddresses, fetchCurrentUser } from '@/store/slices/userSlice';
 import { placeOrderApi, createPaymentSessionApi } from '@/api/api';
+import { GET_ORDER_PREVIEW } from '@/graphql/queries';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { toast } from '@/hooks/use-toast';
@@ -59,6 +61,7 @@ export interface CheckoutDisplayData {
   effectiveDeliveryFee: number;
   displayTotal: number;
   discountFromPoints: number;
+  discountFromFreeProducts: number;
   pointsEnabled: boolean;
   userPoints: number;
   pointsRewards: any[];
@@ -94,6 +97,15 @@ export function useCheckoutData(): CheckoutDisplayData {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess] = useState(false);
 
+  // Query backend orderPreview for accurate totals (delivery fee, free products discount, etc.)
+  const previewItems = items.map((i) => ({ productId: i.product.id, quantity: i.quantity }));
+  const { data: previewData } = useQuery<{ orderPreview: { subtotal: number; deliveryFee: number; freeDeliveryThreshold: number; discountFromFreeProducts: number; discountFromPoints: number; total: number } }>(GET_ORDER_PREVIEW, {
+    variables: { items: previewItems },
+    skip: items.length === 0,
+    fetchPolicy: 'cache-and-network',
+  });
+  const orderPreview = previewData?.orderPreview ?? null;
+
   const { enabled: pointsEnabled } = usePluginEnabled('points');
   const { pointsRewards } = usePointsRewards();
   const userPoints = pointsEnabled ? (user?.pointsBalance ?? 0) : 0;
@@ -101,8 +113,11 @@ export function useCheckoutData(): CheckoutDisplayData {
   const selectedReward = formData.pointsToUse ? pointsRewards.find((r) => r.pointsCost === formData.pointsToUse) : null;
   const discountFromPoints = selectedReward?.discountAmount ?? 0;
   const isInLocation = formData.fulfillmentType === 'in_location';
-  const effectiveDeliveryFee = isInLocation ? 0 : deliveryFee;
-  const displayTotal = Math.max(0, subtotal + effectiveDeliveryFee - discountFromPoints);
+
+  // Use backend preview values when available, fallback to local cart values
+  const effectiveDeliveryFee = isInLocation ? 0 : (orderPreview?.deliveryFee ?? deliveryFee);
+  const discountFromFreeProducts = orderPreview?.discountFromFreeProducts ?? 0;
+  const displayTotal = Math.max(0, subtotal + effectiveDeliveryFee - discountFromPoints - discountFromFreeProducts);
   const isCartEmpty = items.length === 0;
 
   const selectAddress = useCallback((address: DeliveryAddress) => {
@@ -200,7 +215,7 @@ export function useCheckoutData(): CheckoutDisplayData {
   return {
     formData, errors, isLoading, isSuccess, isInLocation, isCartEmpty,
     savedAddresses, selectedAddressId, isLoadingAddresses, showManualForm, manualFormRef,
-    items, subtotal, deliveryFee, effectiveDeliveryFee, displayTotal, discountFromPoints,
+    items, subtotal, deliveryFee, effectiveDeliveryFee, displayTotal, discountFromPoints, discountFromFreeProducts,
     pointsEnabled, userPoints, pointsRewards,
     handleChange, handleSubmit, handleFulfillmentChange, handlePaymentChange,
     selectAddress, handleManualEntry, setFormData, navigate: (p: string) => navigate(p),
@@ -329,6 +344,7 @@ export const OrderSummaryContent: React.FC<{ data: CheckoutDisplayData }> = ({ d
         <span className="text-muted-foreground">{texts.cart.delivery}</span>
         <span className="font-medium">{data.effectiveDeliveryFee === 0 ? <span className="text-primary">{texts.cart.freeDelivery}</span> : `${data.deliveryFee} ${texts.common.currency}`}</span>
       </div>
+      {data.discountFromFreeProducts > 0 && <div className="flex justify-between text-sm text-primary"><span>Produse gratuite</span><span>-{data.discountFromFreeProducts} {texts.common.currency}</span></div>}
       {data.discountFromPoints > 0 && <div className="flex justify-between text-sm text-primary"><span>Reducere puncte</span><span>-{data.discountFromPoints} {texts.common.currency}</span></div>}
       <Separator />
       <div className="flex justify-between text-lg font-bold"><span>{texts.cart.total}</span><span className="text-primary">{data.displayTotal} {texts.common.currency}</span></div>
