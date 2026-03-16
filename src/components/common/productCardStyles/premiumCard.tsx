@@ -66,8 +66,6 @@ export const PremiumCard: React.FC<CardVariantProps> = ({ product, className, da
             <span className="shrink-0 text-[9px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded md:hidden">GRATIS</span>
           )}
         </div>
-          {product.name}
-        </h3>
         <p className="text-xs text-muted-foreground truncate md:hidden">
           {product.ingredients?.length ? product.ingredients.map((i) => i.name).join(', ') : product.description}
         </p>
