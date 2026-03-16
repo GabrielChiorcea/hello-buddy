@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import type { CardVariantProps } from './shared';
 
 export const CleanCard: React.FC<CardVariantProps> = ({ product, className, data }) => {
-  const { handleAddToCart, isAdded, imageUrl } = data;
+  const { handleAddToCart, isAdded, imageUrl, showFreeRibbon } = data;
 
   return (
     <div
