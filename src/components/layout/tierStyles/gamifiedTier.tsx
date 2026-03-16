@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { Sparkles, ChevronRight, Zap, Gift, Star, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { texts } from '@/config/texts';
+import { TierIcon } from '@/config/tierIcons';
 import type { TierDisplayData } from './shared';
 import { FreeProductsTierGrid } from './FreeProductsTierGrid';
 
