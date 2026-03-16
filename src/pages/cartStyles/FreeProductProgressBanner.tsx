@@ -23,7 +23,7 @@ export const FreeProductProgressBanner: React.FC<Props> = ({ progress }) => {
       <div className="rounded-lg border border-success/30 bg-success/5 p-3 space-y-1">
         <div className="flex items-center gap-2 text-success text-sm font-medium">
           <Sparkles className="h-4 w-4" />
-          <span>🎉 Ai deblocat {productsLabel} gratuit!</span>
+          <span>Ai deblocat {productsLabel} gratuit!</span>
         </div>
       </div>
     );
