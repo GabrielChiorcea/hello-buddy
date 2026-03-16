@@ -435,6 +435,7 @@ export async function computeOrderTotal(
     itemDetails,
     subtotal,
     deliveryFee,
+    freeDeliveryThreshold,
     pointsUsed,
     discountFromPoints,
     discountFromFreeProducts,
