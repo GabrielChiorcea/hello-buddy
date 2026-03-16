@@ -1,12 +1,13 @@
 /**
  * Field resolvers pentru câmpurile legate de produse gratuite pe User
+ *
+ * Campaniile se bazează pe CATEGORIE — toate produsele din categoria campaniei sunt gratuite.
  */
 
 import type { User } from '../../models/User.js';
 import { isPluginEnabled } from '../../utils/pluginFlags.js';
 import {
   getActiveCampaignsForTier,
-  getCampaignProducts,
 } from '../../plugins/free-products/repositories/campaignsRepository.js';
 import { query } from '../../config/database.js';
 
@@ -22,6 +23,8 @@ interface FreeProductCampaignSummary {
   name: string;
   customText: string | null;
   minOrderValue: number;
+  categoryId: string | null;
+  categoryName: string | null;
   products: string[];
   productDetails: FreeProductItem[];
 }
@@ -49,36 +52,37 @@ export const freeProductsUserResolvers = {
       const summaries: FreeProductCampaignSummary[] = [];
 
       for (const campaign of campaigns) {
-        const productIds = await getCampaignProducts(campaign.id);
-        let productNames: string[] = [];
-        const productDetails: FreeProductItem[] = [];
+        if (!campaign.categoryId) continue;
 
-        if (productIds.length > 0) {
-          const placeholders = productIds.map(() => '?').join(', ');
-          const rows = await query<{ id: string; name: string; display_name: string; icon: string | null }[]>(
-            `SELECT p.id, p.name, c.display_name, c.icon
-             FROM products p
-             JOIN categories c ON c.id = p.category_id
-             WHERE p.id IN (${placeholders})`,
-            productIds
-          );
-          productNames = rows.map((r) => r.name);
-          for (const r of rows) {
-            productDetails.push({
-              id: r.id,
-              name: r.name,
-              categoryName: r.display_name,
-              categoryIcon: r.icon,
-            });
-          }
-        }
+        // Obținem numele categoriei
+        const catRow = await query<{ display_name: string; icon: string | null }[]>(
+          'SELECT display_name, icon FROM categories WHERE id = ?',
+          [campaign.categoryId]
+        );
+        const categoryName = catRow[0]?.display_name ?? null;
+        const categoryIcon = catRow[0]?.icon ?? null;
+
+        // Obținem toate produsele din această categorie
+        const products = await query<{ id: string; name: string }[]>(
+          'SELECT id, name FROM products WHERE category_id = ? AND is_available = 1 ORDER BY name',
+          [campaign.categoryId]
+        );
+
+        const productDetails: FreeProductItem[] = products.map((p) => ({
+          id: p.id,
+          name: p.name,
+          categoryName: categoryName ?? '',
+          categoryIcon,
+        }));
 
         summaries.push({
           id: campaign.id,
           name: campaign.name,
           customText: campaign.customText,
           minOrderValue: campaign.minOrderValue,
-          products: productNames.slice(0, 5),
+          categoryId: campaign.categoryId,
+          categoryName,
+          products: products.map((p) => p.name).slice(0, 5),
           productDetails,
         });
       }
@@ -87,4 +91,3 @@ export const freeProductsUserResolvers = {
     },
   },
 };
-
