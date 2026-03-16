@@ -20,7 +20,7 @@ import {
   Cookie,
   Candy,
   Coffee,
-  Cup,
+  CupSoda,
   CupSoda,
   Beer,
   Wine,
