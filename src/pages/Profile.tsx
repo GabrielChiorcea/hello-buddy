@@ -27,7 +27,7 @@ import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { cn } from '@/lib/utils';
 import { GET_LOYALTY_TIERS } from '@/graphql/queries';
 import { TierProgressBar } from '@/components/layout/TierProgressBar';
-import { getTierBadgeIcon } from '@/config/tierIcons';
+import { TierIcon } from '@/config/tierIcons';
 import { format, isValid } from 'date-fns';
 import { ro } from 'date-fns/locale';
 
