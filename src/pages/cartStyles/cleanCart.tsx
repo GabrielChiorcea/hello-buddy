@@ -6,7 +6,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Layout } from '@/components/layout/Layout';
