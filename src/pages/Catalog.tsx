@@ -21,7 +21,7 @@ import {
 } from '@/store/slices/productsSlice';
 import { texts } from '@/config/texts';
 import { cn } from '@/lib/utils';
-import { getCategoryIcon } from '@/config/categoryIcons';
+import { CategoryIconDisplay } from '@/config/categoryIcons';
 import { StreakCampaignBlock } from '@/plugins/streak';
 
 const ITEMS_PER_PAGE = 12;
