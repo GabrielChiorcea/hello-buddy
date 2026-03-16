@@ -28,7 +28,7 @@ export const FriendlyTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
             {isMaxLevel && <Sparkles className="h-3 w-3 text-primary" />}
           </div>
           <p className="text-xs text-muted-foreground">
-            {isMaxLevel ? 'Ai atins nivelul maxim! 🎉' : `${currentXp} / ${nextTierThreshold} XP`}
+            {isMaxLevel ? 'Ai atins nivelul maxim!' : `${currentXp} / ${nextTierThreshold} XP`}
           </p>
         </div>
         <div className="flex items-center gap-1 bg-primary/10 text-primary rounded-full px-2.5 py-1">
