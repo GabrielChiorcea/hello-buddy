@@ -47,6 +47,13 @@ export const PremiumCard: React.FC<CardVariantProps> = ({ product, className, da
         <span className="absolute left-3 bottom-3 text-[10px] font-light tracking-widest uppercase text-card bg-foreground/70 backdrop-blur-sm px-2.5 py-1 hidden md:inline-block">
           {categoryLabel}
         </span>
+        {showFreeRibbon && (
+          <div className="absolute top-0 right-0 overflow-hidden w-20 h-20 pointer-events-none hidden md:block">
+            <div className="absolute top-[10px] right-[-28px] w-[120px] text-center rotate-45 bg-primary text-primary-foreground text-[10px] font-bold py-0.5 shadow-sm">
+              GRATIS
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Info */}
