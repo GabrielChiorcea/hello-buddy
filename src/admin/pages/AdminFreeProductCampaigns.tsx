@@ -40,6 +40,7 @@ interface FreeProductCampaign {
   tierId: string;
   startDate: string;
   endDate: string;
+  minOrderValue?: number;
   customText: string | null;
   productIds: string[];
 }
