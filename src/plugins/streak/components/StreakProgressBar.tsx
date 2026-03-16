@@ -197,7 +197,7 @@ const FriendlyProgress: React.FC<StreakProgressBarProps> = ({
     <div className={cn('space-y-2', className)}>
       <div className="flex items-center justify-between">
         <span className="text-sm font-bold text-foreground">
-          🔥 {current} / {required} <span className="text-xs font-normal text-muted-foreground">{label}</span>
+          {current} / {required} <span className="text-xs font-normal text-muted-foreground">{label}</span>
         </span>
         {completed && (
           <span className="text-xs font-bold text-primary">🎉 Bravo!</span>
