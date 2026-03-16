@@ -16,7 +16,7 @@ import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { getImageUrl } from '@/lib/imageUrl';
 import type { CartDisplayData } from './shared';
-import { FREE_DELIVERY_THRESHOLD } from './shared';
+import { FREE_DELIVERY_THRESHOLD } from '@/config/cart';
 
 export const PremiumCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
   const { items, subtotal, deliveryFee, total, orderPreview, freeProductProgress, handleRemoveItem, handleQuantityChange, handleCheckout } = data;
