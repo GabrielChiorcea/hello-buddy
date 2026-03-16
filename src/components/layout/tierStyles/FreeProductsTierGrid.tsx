@@ -16,7 +16,7 @@ type Summary = {
   productDetails?: { id: string; name: string; categoryName: string; categoryIcon?: string | null }[];
 };
 
-const DEFAULT_ICON = '🎁';
+const DefaultIcon = Gift;
 
 function collectUniqueProducts(summaries: Summary[]): { id: string; name: string; categoryName: string; categoryIcon?: string | null }[] {
   const byId = new Map<string, { id: string; name: string; categoryName: string; categoryIcon?: string | null }>();
