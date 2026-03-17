@@ -97,5 +97,13 @@ router.get('/addon-rules/full', addonsController.getAddonRulesFull);
 router.get('/addon-rules', addonsController.getAddonRules);
 router.put('/addon-rules', addonsController.updateAddonRules);
 
+// Template-uri opțiuni per categorie
+router.get('/categories/:id/option-templates', optionTemplatesController.getTemplatesForCategory);
+router.post('/option-templates', optionTemplatesController.createTemplate);
+router.put('/option-templates/:id', optionTemplatesController.updateTemplate);
+router.delete('/option-templates/:id', optionTemplatesController.deleteTemplate);
+router.post('/option-templates/:id/apply', optionTemplatesController.applyTemplate);
+router.post('/option-templates/:id/sync', optionTemplatesController.syncTemplate);
+
   return router;
 }
