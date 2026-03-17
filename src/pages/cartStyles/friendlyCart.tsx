@@ -61,7 +61,7 @@ export const FriendlyCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
       <div className="container mx-auto px-4 py-8">
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-4 min-w-0">
-            {items.map(({ product, quantity }) => (
+            {items.map(({ product, quantity, configuration }) => (
               <Card key={product.id} className="rounded-2xl border-border/30 shadow-sm hover:shadow-md transition-shadow">
                 <CardContent className="p-4">
                   <div className="flex gap-4">
