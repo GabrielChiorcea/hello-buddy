@@ -46,7 +46,7 @@ export function useProductCardData(product: Product): ProductCardDisplayData {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    dispatch(addItem(product));
+    dispatch(addItem({ product }));
     setIsAdded(true);
     toast({ title: texts.notifications.addedToCart, description: product.name });
     setTimeout(() => setIsAdded(false), 2000);

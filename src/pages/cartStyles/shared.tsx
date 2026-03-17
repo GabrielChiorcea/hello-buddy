@@ -50,7 +50,7 @@ export interface CartDisplayData {
   orderPreview: OrderPreviewData | null;
   freeProductProgress: FreeProductProgress | null;
   handleRemoveItem: (productId: string, productName: string) => void;
-  handleQuantityChange: (productId: string, newQuantity: number) => void;
+  handleQuantityChange: (productId: string, newQuantity: number, configuration?: OrderItemConfigurationGroup[]) => void;
   handleCheckout: () => void;
 }
 
