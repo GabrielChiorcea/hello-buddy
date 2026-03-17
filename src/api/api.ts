@@ -469,6 +469,8 @@ export const createPaymentSessionApi = async (
       items: items.map(item => ({
         productId: item.product.id,
         quantity: item.quantity,
+        configuration: item.configuration,
+        unitPriceWithConfiguration: item.unitPriceWithConfiguration,
       })),
       fulfillmentType: checkoutData.fulfillmentType ?? 'delivery',
       tableNumber: isInLocation ? tableNumberValue : undefined,
