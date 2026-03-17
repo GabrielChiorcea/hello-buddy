@@ -49,7 +49,7 @@ export interface CartDisplayData {
   isAuthenticated: boolean;
   orderPreview: OrderPreviewData | null;
   freeProductProgress: FreeProductProgress | null;
-  handleRemoveItem: (productId: string, productName: string) => void;
+  handleRemoveItem: (productId: string, productName: string, configuration?: OrderItemConfigurationGroup[]) => void;
   handleQuantityChange: (productId: string, newQuantity: number, configuration?: OrderItemConfigurationGroup[]) => void;
   handleCheckout: () => void;
 }
