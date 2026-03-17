@@ -36,6 +36,18 @@ import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 import { toast } from '@/hooks/use-toast';
 
+interface OrderItemConfigOption {
+  optionId: number;
+  name: string;
+  priceDelta: number;
+}
+
+interface OrderItemConfigGroup {
+  groupId: number;
+  groupName: string;
+  options: OrderItemConfigOption[];
+}
+
 interface OrderItem {
   id: number;
   productId: string | null;
@@ -43,6 +55,8 @@ interface OrderItem {
   productImage?: string;
   quantity: number;
   priceAtOrder: number;
+  configuration?: OrderItemConfigGroup[];
+  unitPriceWithConfiguration?: number;
 }
 
 interface AdminOrder {
