@@ -89,6 +89,7 @@ import AdminSettings from "./admin/pages/AdminSettings";
 import AdminAnalytics from "./admin/pages/AdminAnalytics";
 import AdminAddonRules from "./admin/pages/AdminAddonRules";
 import AdminFreeProductCampaigns from "./admin/pages/AdminFreeProductCampaigns";
+import AdminProductOptions from "./admin/pages/AdminProductOptions";
 
 // ============================================================================
 // CONFIGURARE QUERY CLIENT
@@ -196,6 +197,7 @@ const App = () => (
                   <Route path="users" element={<AdminUsers />} />
                   <Route path="settings" element={<AdminSettings />} />
                   <Route path="addon-rules" element={<AdminAddonRules />} />
+                  <Route path="product-options" element={<AdminProductOptions />} />
                 </Route>
                 
                 {/* Rută catch-all pentru 404 */}
