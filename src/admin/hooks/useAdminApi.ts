@@ -488,6 +488,60 @@ export const useAdminApi = () => {
     [fetchWithAuth]
   );
 
+  // ========== Template-uri opțiuni categorie ==========
+  const getOptionTemplatesForCategory = useCallback(
+    (categoryId: string) =>
+      fetchWithAuth<{ templates: any[] }>(`/admin/categories/${categoryId}/option-templates`),
+    [fetchWithAuth]
+  );
+
+  const createOptionTemplate = useCallback(
+    (data: { categoryId: string; name: string; groups: any[] }) =>
+      fetchWithAuth<any>('/admin/option-templates', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    [fetchWithAuth]
+  );
+
+  const updateOptionTemplate = useCallback(
+    (id: number, data: { name: string; groups: any[] }) =>
+      fetchWithAuth<any>(`/admin/option-templates/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    [fetchWithAuth]
+  );
+
+  const deleteOptionTemplate = useCallback(
+    (id: number) =>
+      fetchWithAuth<{ success: boolean }>(`/admin/option-templates/${id}`, {
+        method: 'DELETE',
+      }),
+    [fetchWithAuth]
+  );
+
+  const applyOptionTemplate = useCallback(
+    (templateId: number, productIds: string[], setFollowsTemplate = true) =>
+      fetchWithAuth<{ success: boolean; affected: number }>(
+        `/admin/option-templates/${templateId}/apply`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ productIds, setFollowsTemplate }),
+        }
+      ),
+    [fetchWithAuth]
+  );
+
+  const syncOptionTemplate = useCallback(
+    (templateId: number) =>
+      fetchWithAuth<{ success: boolean; affected: number }>(
+        `/admin/option-templates/${templateId}/sync`,
+        { method: 'POST' }
+      ),
+    [fetchWithAuth]
+  );
+
   return {
     // Dashboard & Analytics
     getDashboard,
