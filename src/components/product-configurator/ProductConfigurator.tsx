@@ -8,6 +8,7 @@ import type {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { texts } from '@/config/texts';
 
 export interface ProductConfiguratorProps {
   product: Product;
@@ -126,12 +127,13 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
               {group.options.map((opt) => {
                 const selected = selectedIds.has(opt.id);
                 const delta = opt.priceDelta;
+                const currency = texts.common.currency;
                 const deltaLabel =
                   delta === 0
                     ? ''
                     : delta > 0
-                    ? `+${delta} ${/* currency from texts at call site */ 'RON'}`
-                    : `${delta} ${'RON'}`;
+                    ? `+${delta} ${currency}`
+                    : `${delta} ${currency}`;
                 return (
                   <Button
                     key={opt.id}
@@ -161,7 +163,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
       <div className="flex items-baseline gap-2">
         <span className="text-sm text-muted-foreground">Preț configurat:</span>
         <span className="text-xl font-semibold text-primary">
-          {unitPrice} {/* currency injected from parent label */}
+          {unitPrice} {texts.common.currency}
         </span>
       </div>
     </div>

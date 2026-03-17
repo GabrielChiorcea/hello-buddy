@@ -96,9 +96,23 @@ const cartSlice = createSlice({
       saveCartToStorage(state.items);
     },
     
-    removeItem: (state, action: PayloadAction<string>) => {
+    removeItem: (
+      state,
+      action: PayloadAction<{
+        productId: string;
+        configuration?: OrderItemConfigurationGroup[];
+      }>
+    ) => {
+      const { productId, configuration } = action.payload;
+      const isSameConfiguration = (a?: OrderItemConfigurationGroup[], b?: OrderItemConfigurationGroup[]) =>
+        JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+
       state.items = state.items.filter(
-        item => item.product.id !== action.payload
+        item =>
+          !(
+            item.product.id === productId &&
+            isSameConfiguration(item.configuration, configuration)
+          )
       );
       
       const totals = calculateTotals(state.items);
