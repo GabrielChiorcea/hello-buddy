@@ -33,6 +33,8 @@ export interface Product {
   recommendedOrder: number | null;
   ingredients: ProductIngredient[];
   optionGroups?: ProductOptionGroup[];
+  followsCategoryTemplate?: boolean;
+  categoryTemplateId?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -49,6 +51,8 @@ interface ProductRow {
   is_addon?: boolean;
   priority_drain?: boolean;
   preparation_time: number;
+  follows_category_template?: boolean;
+  category_template_id?: number | null;
   min_visibility_tier_id?: string | null;
   is_recommended?: boolean;
   recommended_order?: number | null;
@@ -76,6 +80,8 @@ export interface CreateProductInput {
   isRecommended?: boolean;
   recommendedOrder?: number | null;
   ingredients?: Array<{ name: string; isAllergen?: boolean }>;
+  followsCategoryTemplate?: boolean;
+  categoryTemplateId?: number | null;
 }
 
 export interface UpdateProductInput {
@@ -92,6 +98,8 @@ export interface UpdateProductInput {
   isRecommended?: boolean;
   recommendedOrder?: number | null;
   ingredients?: Array<{ name: string; isAllergen?: boolean }>;
+  followsCategoryTemplate?: boolean;
+  categoryTemplateId?: number | null;
 }
 
 // Mapper
@@ -117,6 +125,8 @@ function mapRowToProduct(
     recommendedOrder: row.recommended_order ?? null,
     ingredients,
     optionGroups,
+    followsCategoryTemplate: Boolean(row.follows_category_template),
+    categoryTemplateId: row.category_template_id ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -378,8 +388,23 @@ export async function create(input: CreateProductInput): Promise<Product> {
     const id = uuidv4();
     
     await connection.execute(
-      `INSERT INTO products (id, name, description, price, image, category_id, preparation_time, is_addon, priority_drain, min_visibility_tier_id, is_recommended, recommended_order)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO products (
+        id,
+        name,
+        description,
+        price,
+        image,
+        category_id,
+        preparation_time,
+        follows_category_template,
+        category_template_id,
+        is_addon,
+        priority_drain,
+        min_visibility_tier_id,
+        is_recommended,
+        recommended_order
+      )
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         input.name,
@@ -388,6 +413,8 @@ export async function create(input: CreateProductInput): Promise<Product> {
         input.image || null,
         input.categoryId,
         input.preparationTime || 30,
+        input.followsCategoryTemplate ? 1 : 0,
+        input.categoryTemplateId ?? null,
         input.isAddon ? 1 : 0,
         input.priorityDrain ? 1 : 0,
         input.minVisibilityTierId ?? null,
@@ -457,6 +484,14 @@ export async function update(id: string, input: UpdateProductInput): Promise<Pro
     if (input.preparationTime !== undefined) {
       updates.push('preparation_time = ?');
       values.push(input.preparationTime);
+    }
+    if (input.followsCategoryTemplate !== undefined) {
+      updates.push('follows_category_template = ?');
+      values.push(input.followsCategoryTemplate ? 1 : 0);
+    }
+    if (input.categoryTemplateId !== undefined) {
+      updates.push('category_template_id = ?');
+      values.push(input.categoryTemplateId ?? null);
     }
     if (input.isAddon !== undefined) {
       updates.push('is_addon = ?');
