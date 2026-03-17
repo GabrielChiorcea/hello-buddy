@@ -132,6 +132,16 @@ export const ORDER_ITEM_FRAGMENT = gql`
     productImage
     quantity
     priceAtOrder
+    configuration {
+      groupId
+      groupName
+      options {
+        optionId
+        name
+        priceDelta
+      }
+    }
+    unitPriceWithConfiguration
   }
 `;
 
