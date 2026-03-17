@@ -571,3 +571,102 @@ export async function hardDelete(id: string): Promise<boolean> {
   await query('DELETE FROM products WHERE id = ?', [id]);
   return true;
 }
+
+// ============================================================================
+// Template helpers (used by admin/controllers/optionTemplates)
+// ============================================================================
+
+import type { CategoryOptionTemplate } from './CategoryOptionTemplate.js';
+
+/**
+ * Aplică un template de opțiuni pe un singur produs: șterge grupurile/opțiunile
+ * existente și le recreează din template.
+ */
+export async function applyTemplateToProduct(
+  connection: any,
+  productId: string,
+  template: CategoryOptionTemplate,
+  setFollowsTemplate: boolean
+): Promise<boolean> {
+  // Verifică dacă produsul există
+  const [rows]: any[] = await connection.execute(
+    'SELECT id FROM products WHERE id = ?',
+    [productId]
+  );
+  if (!rows.length) return false;
+
+  // Șterge opțiunile existente
+  const [existingGroups]: any[] = await connection.execute(
+    'SELECT id FROM product_option_groups WHERE product_id = ?',
+    [productId]
+  );
+  const groupIds: number[] = existingGroups.map((g: any) => g.id);
+  if (groupIds.length > 0) {
+    const ph = groupIds.map(() => '?').join(',');
+    await connection.execute(
+      `DELETE FROM product_options WHERE group_id IN (${ph})`,
+      groupIds
+    );
+    await connection.execute(
+      'DELETE FROM product_option_groups WHERE product_id = ?',
+      [productId]
+    );
+  }
+
+  // Recreează din template
+  for (const g of template.groups) {
+    const [gResult]: any = await connection.execute(
+      `INSERT INTO product_option_groups (product_id, name, min_selected, max_selected, is_required)
+       VALUES (?, ?, ?, ?, ?)`,
+      [productId, g.name, g.minSelected, g.maxSelected, g.isRequired ? 1 : 0]
+    );
+    const newGroupId: number = gResult.insertId;
+    for (const o of g.options) {
+      await connection.execute(
+        `INSERT INTO product_options (group_id, name, price_delta, is_default, is_multiple, priority)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [newGroupId, o.name, o.priceDelta, o.isDefault ? 1 : 0, o.isMultiple ? 1 : 0, o.priority]
+      );
+    }
+  }
+
+  // Actualizează flag-urile de template
+  await connection.execute(
+    'UPDATE products SET follows_category_template = ?, category_template_id = ? WHERE id = ?',
+    [setFollowsTemplate ? 1 : 0, template.id, productId]
+  );
+
+  return true;
+}
+
+/**
+ * Sincronizează toate produsele care urmăresc un template (follows_category_template = true).
+ * Returnează numărul de produse actualizate.
+ */
+export async function syncProductsForTemplate(
+  connection: any,
+  templateId: number,
+  template: CategoryOptionTemplate
+): Promise<number> {
+  const [rows]: any[] = await connection.execute(
+    'SELECT id FROM products WHERE category_template_id = ? AND follows_category_template = TRUE',
+    [templateId]
+  );
+  let affected = 0;
+  for (const row of rows) {
+    const ok = await applyTemplateToProduct(connection, row.id, template, true);
+    if (ok) affected++;
+  }
+  return affected;
+}
+
+/**
+ * Detach: setează follows_category_template = false, category_template_id = NULL
+ * dar păstrează opțiunile locale.
+ */
+export async function detachProductsFromTemplate(templateId: number): Promise<void> {
+  await query(
+    'UPDATE products SET follows_category_template = FALSE, category_template_id = NULL WHERE category_template_id = ?',
+    [templateId]
+  );
+}

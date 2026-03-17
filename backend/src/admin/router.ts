@@ -20,6 +20,7 @@ import { streakPlugin } from '../plugins/streak/index.js';
 import { tiersPlugin } from '../plugins/tiers/index.js';
 import { freeProductsPlugin } from '../plugins/free-products/index.js';
 import * as addonsController from './controllers/addons.js';
+import * as optionTemplatesController from './controllers/optionTemplates.js';
 
 export type AdminRateLimiters = {
   adminAuthLimiter: RequestHandler;
