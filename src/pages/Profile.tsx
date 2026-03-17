@@ -259,14 +259,28 @@ const Profile: React.FC = () => {
                             </div>
                             
                             <div className="space-y-2 mb-4">
-                              {order.items.map((item, idx) => (
-                                <div key={item.id ?? `${order.id}-${item.productName}-${idx}`} className="flex justify-between text-sm">
-                                  <span>{item.productName} x {item.quantity}</span>
-                                  <span>
-                                    {(item.priceAtOrder * item.quantity).toFixed(2)} {texts.common.currency}
-                                  </span>
-                                </div>
-                              ))}
+                              {order.items.map((item, idx) => {
+                                const unitPrice = item.unitPriceWithConfiguration ?? item.priceAtOrder;
+                                return (
+                                  <div key={item.id ?? `${order.id}-${item.productName}-${idx}`} className="text-sm">
+                                    <div className="flex justify-between">
+                                      <span>{item.productName} x {item.quantity}</span>
+                                      <span>
+                                        {(unitPrice * item.quantity).toFixed(2)} {texts.common.currency}
+                                      </span>
+                                    </div>
+                                    {item.configuration && item.configuration.length > 0 && (
+                                      <p className="text-xs text-muted-foreground ml-2 mt-0.5">
+                                        {item.configuration.map(g =>
+                                          `${g.groupName}: ${g.options.map(o =>
+                                            o.priceDelta ? `${o.name} (+${o.priceDelta.toFixed(2)})` : o.name
+                                          ).join(', ')}`
+                                        ).join(' · ')}
+                                      </p>
+                                    )}
+                                  </div>
+                                );
+                              })}
                             </div>
                             {/* Breakdown costuri pentru claritate (similar cu Admin) */}
                             <div className="space-y-1 text-sm mb-4">

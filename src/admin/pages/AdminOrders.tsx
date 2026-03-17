@@ -36,6 +36,18 @@ import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 import { toast } from '@/hooks/use-toast';
 
+interface OrderItemConfigOption {
+  optionId: number;
+  name: string;
+  priceDelta: number;
+}
+
+interface OrderItemConfigGroup {
+  groupId: number;
+  groupName: string;
+  options: OrderItemConfigOption[];
+}
+
 interface OrderItem {
   id: number;
   productId: string | null;
@@ -43,6 +55,8 @@ interface OrderItem {
   productImage?: string;
   quantity: number;
   priceAtOrder: number;
+  configuration?: OrderItemConfigGroup[];
+  unitPriceWithConfiguration?: number;
 }
 
 interface AdminOrder {
@@ -610,14 +624,28 @@ export default function AdminOrders() {
               <div className="rounded-lg border border-border p-4">
                 <h4 className="mb-2 font-medium">Produse</h4>
                 <div className="space-y-2">
-                  {selectedOrder.items.map((item, index) => (
-                    <div key={index} className="flex justify-between text-sm">
-                      <span>
-                        {item.quantity}x {item.productName}
-                      </span>
-                      <span>{(item.priceAtOrder * item.quantity).toFixed(2)} RON</span>
-                    </div>
-                  ))}
+                  {selectedOrder.items.map((item, index) => {
+                    const unitPrice = item.unitPriceWithConfiguration ?? item.priceAtOrder;
+                    return (
+                      <div key={index} className="text-sm">
+                        <div className="flex justify-between">
+                          <span>
+                            {item.quantity}x {item.productName}
+                          </span>
+                          <span>{(unitPrice * item.quantity).toFixed(2)} RON</span>
+                        </div>
+                        {item.configuration && item.configuration.length > 0 && (
+                          <p className="text-xs text-muted-foreground ml-4 mt-0.5">
+                            {item.configuration.map((g: OrderItemConfigGroup) =>
+                              `${g.groupName}: ${g.options.map((o: OrderItemConfigOption) =>
+                                o.priceDelta ? `${o.name} (+${o.priceDelta.toFixed(2)})` : o.name
+                              ).join(', ')}`
+                            ).join(' · ')}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
