@@ -63,7 +63,7 @@ const renderCart = (products: Product[] = []) => {
   
   // Add products to cart
   products.forEach(product => {
-    store.dispatch(addItem(product));
+    store.dispatch(addItem({ product }));
   });
   
   return {
@@ -120,9 +120,9 @@ describe('Cart - Cu produse', () => {
   it('calculează corect subtotal-ul', () => {
     // Add productA twice and productB once = 32 + 32 + 28 = 92
     const store = createTestStore();
-    store.dispatch(addItem(productA));
-    store.dispatch(addItem(productA));
-    store.dispatch(addItem(productB));
+    store.dispatch(addItem({ product: productA }));
+    store.dispatch(addItem({ product: productA }));
+    store.dispatch(addItem({ product: productB }));
     
     render(
       <Provider store={store}>
@@ -139,9 +139,9 @@ describe('Cart - Cu produse', () => {
   it('afișează taxa de livrare gratuită pentru comenzi peste 75 RON', () => {
     // 32 * 3 = 96 RON
     const store = createTestStore();
-    store.dispatch(addItem(productA));
-    store.dispatch(addItem(productA));
-    store.dispatch(addItem(productA));
+    store.dispatch(addItem({ product: productA }));
+    store.dispatch(addItem({ product: productA }));
+    store.dispatch(addItem({ product: productA }));
     
     render(
       <Provider store={store}>
@@ -194,9 +194,9 @@ describe('Cart - Calcule totale', () => {
   it('calculează corect totalul peste pragul livrării gratuite', () => {
     // 32 * 3 = 96 RON + 0 livrare = 96 RON
     const store = createTestStore();
-    store.dispatch(addItem(productA));
-    store.dispatch(addItem(productA));
-    store.dispatch(addItem(productA));
+    store.dispatch(addItem({ product: productA }));
+    store.dispatch(addItem({ product: productA }));
+    store.dispatch(addItem({ product: productA }));
     
     render(
       <Provider store={store}>
