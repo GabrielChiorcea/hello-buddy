@@ -16,6 +16,7 @@ import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { getImageUrl } from '@/lib/imageUrl';
 import type { CartDisplayData } from './shared';
+import type { OrderItemConfigurationGroup } from '@/types';
 import { FREE_DELIVERY_THRESHOLD } from '@/config/cart';
 
 export const FriendlyCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
