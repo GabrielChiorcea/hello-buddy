@@ -49,9 +49,24 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
   const completed = enrollment?.completedAt != null;
   const isEnrolled = enrollment != null;
   const confettiFired = useRef(false);
+  const lastCelebratedKey = useRef<string | null>(null);
 
   useEffect(() => {
-    if (completed && !confettiFired.current && componentStyle === 'gamified') {
+    if (!completed || componentStyle !== 'gamified' || !campaignId) return;
+
+    const completionKey = `streak-confetti-${campaignId}-${enrollment?.completedAt ?? 'unknown'}`;
+
+    if (lastCelebratedKey.current === completionKey) return;
+    if (typeof window !== 'undefined') {
+      if (window.localStorage.getItem(completionKey)) {
+        lastCelebratedKey.current = completionKey;
+        return;
+      }
+      lastCelebratedKey.current = completionKey;
+      window.localStorage.setItem(completionKey, '1');
+    }
+
+    if (!confettiFired.current) {
       confettiFired.current = true;
       const gold = ['#f59e0b', '#fbbf24', '#d97706', '#fcd34d', '#ffffff'];
       confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: gold, scalar: 1.2 });
@@ -59,7 +74,7 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
         confetti({ particleCount: 60, spread: 100, origin: { y: 0.5, x: 0.4 }, colors: gold, scalar: 0.9 });
       }, 300);
     }
-  }, [completed, componentStyle]);
+  }, [completed, componentStyle, campaignId, enrollment?.completedAt]);
 
   if (campaignProp === undefined && (campaignLoading || !campaign)) return null;
   if (!campaign) return null;

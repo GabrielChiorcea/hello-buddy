@@ -22,7 +22,7 @@ import { texts } from '@/config/texts';
 import { routes } from '@/config/routes';
 import { toast } from '@/hooks/use-toast';
 import { OrderStatus } from '@/types';
-import { PointsBalance, PointsOrderBadge } from '@/plugins/points';
+import { PointsBalance, PointsOrderBadge, PointsOrderDetails } from '@/plugins/points';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { cn } from '@/lib/utils';
 import { GET_LOYALTY_TIERS } from '@/graphql/queries';
@@ -268,15 +268,48 @@ const Profile: React.FC = () => {
                                 </div>
                               ))}
                             </div>
-                            
+                            {/* Breakdown costuri pentru claritate (similar cu Admin) */}
+                            <div className="space-y-1 text-sm mb-4">
+                              <div className="flex justify-between">
+                                <span>Subtotal</span>
+                                <span>
+                                  {order.subtotal.toFixed(2)} {texts.common.currency}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>
+                                  Livrare
+                                  {order.deliveryFee === 0 && order.subtotal > 0 && (
+                                    <span className="text-xs text-muted-foreground ml-1">
+                                      (transport gratuit)
+                                    </span>
+                                  )}
+                                </span>
+                                <span>
+                                  {order.deliveryFee.toFixed(2)} {texts.common.currency}
+                                </span>
+                              </div>
+                              {typeof order.discountFromFreeProducts === 'number' && order.discountFromFreeProducts > 0 && (
+                                <div className="flex justify-between text-primary">
+                                  <span>Reducere produse gratuite</span>
+                                  <span>
+                                    -{order.discountFromFreeProducts.toFixed(2)} {texts.common.currency}
+                                  </span>
+                                </div>
+                              )}
+                              {pointsEnabled && (
+                                <PointsOrderDetails order={order} currency={texts.common.currency} />
+                              )}
+                            </div>
+
                             {pointsEnabled && <PointsOrderBadge order={order} />}
-                            
+
                             <Separator className="my-4" />
-                            
+
                             <div className="flex justify-between font-semibold">
                               <span>Total</span>
                               <span className="text-primary">
-                                {order.total} {texts.common.currency}
+                                {order.total.toFixed(2)} {texts.common.currency}
                               </span>
                             </div>
                           </CardContent>

@@ -28,6 +28,8 @@ export interface ProductCardDisplayData {
   categoryLabel: string;
   /** Whether to show the "GRATIS" corner ribbon */
   showFreeRibbon: boolean;
+  /** Produsul are opțiuni configurabile (optionGroups) */
+  hasOptions: boolean;
 }
 
 export interface CardVariantProps {
@@ -101,5 +103,6 @@ export function useProductCardData(product: Product): ProductCardDisplayData {
     imageUrl: getImageUrl(product.image),
     categoryLabel: categoryNames[product.category] ?? product.category,
     showFreeRibbon,
+    hasOptions: Array.isArray(product.optionGroups) && product.optionGroups.length > 0,
   };
 }

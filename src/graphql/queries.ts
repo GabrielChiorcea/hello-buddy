@@ -80,6 +80,21 @@ export const PRODUCT_FRAGMENT = gql`
     ingredients {
       ...IngredientFields
     }
+    optionGroups {
+      id
+      name
+      minSelected
+      maxSelected
+      isRequired
+      options {
+        id
+        name
+        priceDelta
+        isDefault
+        isMultiple
+        priority
+      }
+    }
     createdAt
   }
   ${INGREDIENT_FRAGMENT}

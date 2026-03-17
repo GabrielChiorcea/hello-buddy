@@ -4,6 +4,7 @@
 
 import * as ProductModel from '../../models/Product.js';
 import * as CategoryModel from '../../models/Category.js';
+import { findGroupsByProductId } from '../../models/ProductOptionGroup.js';
 
 export const productResolvers = {
   Query: {
@@ -103,8 +104,10 @@ export const productResolvers = {
     category(product: ProductModel.Product) {
       return product.categoryName || '';
     },
-    optionGroups(product: ProductModel.Product) {
-      return product.optionGroups || [];
+    async optionGroups(product: ProductModel.Product) {
+      // Întotdeauna citim grupurile de opțiuni actuale din DB,
+      // astfel încât și opțiunile definite în admin să fie vizibile în API-ul public.
+      return findGroupsByProductId(product.id);
     },
   },
 };

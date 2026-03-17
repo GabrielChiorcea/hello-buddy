@@ -4,13 +4,16 @@
  */
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Check, Plus } from 'lucide-react';
 import { texts } from '@/config/texts';
 import { cn } from '@/lib/utils';
+import { getProductUrl } from '@/config/routes';
 import type { CardVariantProps } from './shared';
 
 export const CleanCard: React.FC<CardVariantProps> = ({ product, className, data }) => {
-  const { handleAddToCart, isAdded, imageUrl, showFreeRibbon } = data;
+  const navigate = useNavigate();
+  const { handleAddToCart, isAdded, imageUrl, showFreeRibbon, hasOptions } = data;
 
   return (
     <div
@@ -64,17 +67,35 @@ export const CleanCard: React.FC<CardVariantProps> = ({ product, className, data
           <span className="text-sm font-semibold text-foreground">
             {product.price} {texts.common.currency}
           </span>
-          <button
-            onClick={handleAddToCart}
-            disabled={!product.isAvailable || isAdded}
-            className={cn(
-              'flex items-center justify-center w-7 h-7 rounded-md transition-colors',
-              isAdded ? 'bg-success/10 text-success' : 'bg-secondary text-foreground hover:bg-secondary/80',
-              (!product.isAvailable || isAdded) && 'opacity-50',
+          <div className="flex items-center gap-1.5">
+            {hasOptions && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  navigate(getProductUrl(product.id));
+                }}
+                className={cn(
+                  'px-2.5 h-7 rounded-full text-[11px] font-medium border border-primary/40 text-primary bg-primary/5',
+                  'hover:bg-primary/10 transition-colors'
+                )}
+              >
+                Alege extra
+              </button>
             )}
-          >
-            {isAdded ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
-          </button>
+            <button
+              onClick={handleAddToCart}
+              disabled={!product.isAvailable || isAdded}
+              className={cn(
+                'flex items-center justify-center w-7 h-7 rounded-md transition-colors',
+                isAdded ? 'bg-success/10 text-success' : 'bg-secondary text-foreground hover:bg-secondary/80',
+                (!product.isAvailable || isAdded) && 'opacity-50',
+              )}
+            >
+              {isAdded ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile bottom */}
@@ -82,17 +103,35 @@ export const CleanCard: React.FC<CardVariantProps> = ({ product, className, data
           <span className="text-sm font-semibold text-foreground">
             {product.price} {texts.common.currency}
           </span>
-          <button
-            onClick={handleAddToCart}
-            disabled={!product.isAvailable || isAdded}
-            className={cn(
-              'flex items-center justify-center w-7 h-7 rounded-md transition-colors',
-              isAdded ? 'bg-success/10 text-success' : 'bg-secondary text-foreground hover:bg-secondary/80',
-              (!product.isAvailable || isAdded) && 'opacity-50',
+          <div className="flex items-center gap-1.5">
+            {hasOptions && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  navigate(getProductUrl(product.id));
+                }}
+                className={cn(
+                  'px-2 h-7 rounded-full text-[11px] font-medium border border-primary/40 text-primary bg-primary/5',
+                  'hover:bg-primary/10 transition-colors'
+                )}
+              >
+                Alege extra
+              </button>
             )}
-          >
-            {isAdded ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
-          </button>
+            <button
+              onClick={handleAddToCart}
+              disabled={!product.isAvailable || isAdded}
+              className={cn(
+                'flex items-center justify-center w-7 h-7 rounded-md transition-colors',
+                isAdded ? 'bg-success/10 text-success' : 'bg-secondary text-foreground hover:bg-secondary/80',
+                (!product.isAvailable || isAdded) && 'opacity-50',
+              )}
+            >
+              {isAdded ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+            </button>
+          </div>
         </div>
       </div>
     </div>
