@@ -8,6 +8,7 @@ import type {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { texts } from '@/config/texts';
 
 export interface ProductConfiguratorProps {
   product: Product;
