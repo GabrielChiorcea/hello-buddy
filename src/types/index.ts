@@ -161,6 +161,24 @@ export interface ProductIngredient {
   isAllergen?: boolean;
 }
 
+export interface ProductOption {
+  id: number;
+  name: string;
+  priceDelta: number;
+  isDefault: boolean;
+  isMultiple: boolean;
+  priority: number;
+}
+
+export interface ProductOptionGroup {
+  id: number;
+  name: string;
+  minSelected: number;
+  maxSelected: number;
+  isRequired: boolean;
+  options: ProductOption[];
+}
+
 /** Produs complet */
 export interface Product {
   id: string;
@@ -175,6 +193,7 @@ export interface Product {
   isAvailable: boolean;
   preparationTime?: number; // în minute
   ingredients?: ProductIngredient[];
+  optionGroups?: ProductOptionGroup[];
 }
 
 /** Categorii de produse disponibile */
@@ -205,6 +224,10 @@ export interface ProductsState {
 export interface CartItem {
   product: Product;
   quantity: number;
+  /** Configurația aleasă pentru acest produs în coș */
+  configuration?: OrderItemConfigurationGroup[];
+  /** Prețul pe unitate după aplicarea configurării (fallback la product.price dacă lipsește) */
+  unitPriceWithConfiguration?: number;
 }
 
 /** Starea coșului în Redux */
@@ -220,6 +243,18 @@ export interface CartState {
 // =============================================================================
 
 /** Item dintr-o comandă (snapshot la momentul plasării) */
+export interface OrderItemConfigurationOption {
+  optionId: number;
+  name: string;
+  priceDelta: number;
+}
+
+export interface OrderItemConfigurationGroup {
+  groupId: number;
+  groupName: string;
+  options: OrderItemConfigurationOption[];
+}
+
 export interface OrderItem {
   id?: number;
   productId?: string | null;
@@ -228,6 +263,8 @@ export interface OrderItem {
   quantity: number;
   /** Prețul produsului la momentul comenzii */
   priceAtOrder: number;
+  configuration?: OrderItemConfigurationGroup[];
+  unitPriceWithConfiguration?: number;
 }
 
 /** Tip de îndeplinire a comenzii */

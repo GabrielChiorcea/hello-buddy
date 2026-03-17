@@ -15,6 +15,7 @@ import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { getImageUrl } from '@/lib/imageUrl';
 import type { CartDisplayData } from './shared';
+import type { OrderItemConfigurationGroup } from '@/types';
 import { FREE_DELIVERY_THRESHOLD } from '@/config/cart';
 
 export const CleanCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
@@ -53,7 +54,7 @@ export const CleanCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
       <div className="container mx-auto px-4 py-8">
         <div className="grid gap-12 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-0 min-w-0">
-            {items.map(({ product, quantity }, i) => (
+            {items.map(({ product, quantity, configuration }, i) => (
               <div key={product.id}>
                 {i > 0 && <Separator className="my-0" />}
                 <div className="flex gap-4 py-6">
@@ -61,18 +62,33 @@ export const CleanCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium text-foreground text-sm">{product.name}</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">{product.description}</p>
-                    <p className="text-sm font-medium text-foreground mt-2">{product.price} {texts.common.currency}</p>
+                    {configuration && configuration.length > 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {configuration
+                          .map(
+                            (g: OrderItemConfigurationGroup) =>
+                              `${g.groupName}: ${g.options.map((o) => o.name).join(', ')}`
+                          )
+                          .join(' • ')}
+                      </p>
+                    )}
+                    <p className="text-sm font-medium text-foreground mt-2">
+                      {(product.price + (configuration?.reduce(
+                        (sum, g) => sum + g.options.reduce((s, o) => s + (o.priceDelta || 0), 0),
+                        0
+                      ) ?? 0))} {texts.common.currency}
+                    </p>
                   </div>
                   <div className="flex flex-col items-end justify-between">
                     <button className="text-muted-foreground/50 hover:text-destructive transition-colors" onClick={() => handleRemoveItem(product.id, product.name)}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                     <div className="flex items-center gap-3">
-                      <button className="h-7 w-7 flex items-center justify-center border border-border/50 rounded text-xs" onClick={() => handleQuantityChange(product.id, quantity - 1)}>
+                      <button className="h-7 w-7 flex items-center justify-center border border-border/50 rounded text-xs" onClick={() => handleQuantityChange(product.id, quantity - 1, configuration)}>
                         <Minus className="h-3 w-3" />
                       </button>
                       <span className="w-6 text-center text-sm">{quantity}</span>
-                      <button className="h-7 w-7 flex items-center justify-center border border-border/50 rounded text-xs" onClick={() => handleQuantityChange(product.id, quantity + 1)}>
+                      <button className="h-7 w-7 flex items-center justify-center border border-border/50 rounded text-xs" onClick={() => handleQuantityChange(product.id, quantity + 1, configuration)}>
                         <Plus className="h-3 w-3" />
                       </button>
                     </div>

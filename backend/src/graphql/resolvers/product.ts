@@ -103,5 +103,8 @@ export const productResolvers = {
     category(product: ProductModel.Product) {
       return product.categoryName || '';
     },
+    optionGroups(product: ProductModel.Product) {
+      return product.optionGroups || [];
+    },
   },
 };

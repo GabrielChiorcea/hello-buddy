@@ -4,6 +4,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { query, queryOne, beginTransaction } from '../config/database.js';
+import { ProductOptionGroup, findGroupsByProductId } from './ProductOptionGroup.js';
 
 // Tipuri
 export interface ProductIngredient {
@@ -31,6 +32,7 @@ export interface Product {
   /** Ordinea în secțiunea recomandate (1 = primul); null = la final */
   recommendedOrder: number | null;
   ingredients: ProductIngredient[];
+  optionGroups?: ProductOptionGroup[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -93,7 +95,11 @@ export interface UpdateProductInput {
 }
 
 // Mapper
-function mapRowToProduct(row: ProductRow, ingredients: ProductIngredient[] = []): Product {
+function mapRowToProduct(
+  row: ProductRow,
+  ingredients: ProductIngredient[] = [],
+  optionGroups?: ProductOptionGroup[]
+): Product {
   return {
     id: row.id,
     name: row.name,
@@ -110,6 +116,7 @@ function mapRowToProduct(row: ProductRow, ingredients: ProductIngredient[] = [])
     isRecommended: Boolean(row.is_recommended),
     recommendedOrder: row.recommended_order ?? null,
     ingredients,
+    optionGroups,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

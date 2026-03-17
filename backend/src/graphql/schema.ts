@@ -44,6 +44,26 @@ const coreTypeDefs = `#graphql
     preparationTime: Int!
     ingredients: [Ingredient!]!
     createdAt: String!
+    # Configurare produs (ex: marime, sosuri, extra topping-uri)
+    optionGroups: [ProductOptionGroup!]
+  }
+
+  type ProductOptionGroup {
+    id: Int!
+    name: String!
+    minSelected: Int!
+    maxSelected: Int!
+    isRequired: Boolean!
+    options: [ProductOption!]!
+  }
+
+  type ProductOption {
+    id: Int!
+    name: String!
+    priceDelta: Float!
+    isDefault: Boolean!
+    isMultiple: Boolean!
+    priority: Int!
   }
 
   type Category {
@@ -77,6 +97,20 @@ const coreTypeDefs = `#graphql
     productImage: String
     quantity: Int!
     priceAtOrder: Float!
+    configuration: [OrderItemConfigurationGroup!]
+    unitPriceWithConfiguration: Float
+  }
+
+  type OrderItemConfigurationGroup {
+    groupId: Int!
+    groupName: String!
+    options: [OrderItemConfigurationOption!]!
+  }
+
+  type OrderItemConfigurationOption {
+    optionId: Int!
+    name: String!
+    priceDelta: Float!
   }
 
   type Order {
@@ -188,6 +222,20 @@ const coreTypeDefs = `#graphql
   input OrderItemInput {
     productId: ID!
     quantity: Int!
+    configuration: [OrderItemConfigurationGroupInput!]
+    unitPriceWithConfiguration: Float
+  }
+
+  input OrderItemConfigurationGroupInput {
+    groupId: Int!
+    groupName: String!
+    options: [OrderItemConfigurationOptionInput!]!
+  }
+
+  input OrderItemConfigurationOptionInput {
+    optionId: Int!
+    name: String!
+    priceDelta: Float!
   }
 
   input CreateOrderInput {

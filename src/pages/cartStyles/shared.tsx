@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { removeItem, changeQuantity } from '@/store/slices/cartSlice';
+import type { OrderItemConfigurationGroup } from '@/types';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { toast } from '@/hooks/use-toast';
@@ -36,7 +37,12 @@ export interface FreeProductProgress {
 }
 
 export interface CartDisplayData {
-  items: Array<{ product: any; quantity: number }>;
+  items: Array<{
+    product: any;
+    quantity: number;
+    configuration?: OrderItemConfigurationGroup[];
+    unitPriceWithConfiguration?: number;
+  }>;
   subtotal: number;
   deliveryFee: number;
   total: number;
@@ -54,7 +60,12 @@ export function useCartData(): CartDisplayData {
   const { items, subtotal, deliveryFee, total } = useAppSelector((s) => s.cart);
   const { isAuthenticated, user } = useAppSelector((s) => s.user);
 
-  const previewItems = items.map((i) => ({ productId: i.product.id, quantity: i.quantity }));
+  const previewItems = items.map((i) => ({
+    productId: i.product.id,
+    quantity: i.quantity,
+    configuration: i.configuration,
+    unitPriceWithConfiguration: i.unitPriceWithConfiguration,
+  }));
   const { data: previewData } = useQuery<{ orderPreview: OrderPreviewData }>(GET_ORDER_PREVIEW, {
     variables: { items: previewItems },
     skip: !isAuthenticated || items.length === 0,
@@ -115,8 +126,12 @@ export function useCartData(): CartDisplayData {
     toast({ title: texts.notifications.removedFromCart, description: productName });
   };
 
-  const handleQuantityChange = (productId: string, newQuantity: number) => {
-    dispatch(changeQuantity({ productId, quantity: newQuantity }));
+  const handleQuantityChange = (
+    productId: string,
+    newQuantity: number,
+    configuration?: OrderItemConfigurationGroup[]
+  ) => {
+    dispatch(changeQuantity({ productId, quantity: newQuantity, configuration }));
   };
 
   const handleCheckout = () => {

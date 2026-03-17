@@ -34,6 +34,8 @@ import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ProductCard } from '@/components/common/ProductCard';
 import { Loader } from '@/components/common/Loader';
+import { ProductConfigurator } from '@/components/product-configurator/ProductConfigurator';
+import type { OrderItemConfigurationGroup } from '@/types';
 
 const ProductDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -42,6 +44,8 @@ const ProductDetails: React.FC = () => {
   
   const { items: products, isLoading } = useAppSelector((state) => state.products);
   const [isAdded, setIsAdded] = useState(false);
+  const [configuration, setConfiguration] = useState<OrderItemConfigurationGroup[] | undefined>(undefined);
+  const [unitPrice, setUnitPrice] = useState<number | null>(null);
 
   const product = useMemo(() => {
     return products.find((p) => p.id === id);
@@ -57,7 +61,13 @@ const ProductDetails: React.FC = () => {
 
   const handleAddToCart = () => {
     if (!product) return;
-    dispatch(addItem(product));
+    dispatch(
+      addItem({
+        product,
+        configuration,
+        unitPriceWithConfiguration: unitPrice ?? product.price,
+      })
+    );
     setIsAdded(true);
     toast({
       title: texts.notifications.addedToCart,
@@ -150,10 +160,21 @@ const ProductDetails: React.FC = () => {
               {product.description}
             </p>
 
+            {/* Configurator opțiuni produs (dacă există) */}
+            {product.optionGroups && product.optionGroups.length > 0 && (
+              <ProductConfigurator
+                product={product}
+                onChange={(conf, price) => {
+                  setConfiguration(conf);
+                  setUnitPrice(price);
+                }}
+              />
+            )}
+
             {/* Price & Add to Cart */}
             <div className="flex items-center gap-4 mb-8">
               <span className="text-3xl font-bold text-primary">
-                {product.price} {texts.common.currency}
+                {(unitPrice ?? product.price)} {texts.common.currency}
               </span>
               <Button
                 size="lg"

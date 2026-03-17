@@ -13,6 +13,18 @@ export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'delivering' |
 export type PaymentMethod = 'cash' | 'card';
 export type FulfillmentType = 'delivery' | 'in_location';
 
+export interface OrderItemConfigurationOption {
+  optionId: number;
+  name: string;
+  priceDelta: number;
+}
+
+export interface OrderItemConfigurationGroup {
+  groupId: number;
+  groupName: string;
+  options: OrderItemConfigurationOption[];
+}
+
 export interface OrderItem {
   id: number;
   productId: string | null; // null când produsul a fost șters (comenzi livrate/anulate)
@@ -20,6 +32,8 @@ export interface OrderItem {
   productImage: string | null;
   quantity: number;
   priceAtOrder: number;
+  configuration?: OrderItemConfigurationGroup[];
+  unitPriceWithConfiguration?: number;
 }
 
 export interface Order {
@@ -85,6 +99,8 @@ interface OrderItemRow {
   product_image: string | null;
   quantity: number;
   price_at_order: string;
+  configuration: string | null;
+  unit_price_with_configuration: string | null;
 }
 
 export interface CreateOrderInput {
@@ -92,6 +108,8 @@ export interface CreateOrderInput {
   items: Array<{
     productId: string;
     quantity: number;
+    configuration?: OrderItemConfigurationGroup[];
+    unitPriceWithConfiguration?: number;
   }>;
   fulfillmentType?: FulfillmentType;
   tableNumber?: string | null;
@@ -149,6 +167,10 @@ async function getOrderItems(orderId: string): Promise<OrderItem[]> {
     productImage: r.product_image,
     quantity: r.quantity,
     priceAtOrder: parseFloat(r.price_at_order),
+    configuration: r.configuration ? JSON.parse(r.configuration) : undefined,
+    unitPriceWithConfiguration: r.unit_price_with_configuration
+      ? parseFloat(r.unit_price_with_configuration)
+      : undefined,
   }));
 }
 
@@ -294,6 +316,8 @@ export interface OrderItemDetail {
   productImage: string | null;
   quantity: number;
   price: number;
+  configuration?: OrderItemConfigurationGroup[];
+  unitPriceWithConfiguration?: number;
 }
 
 export interface OrderTotals {
@@ -325,6 +349,8 @@ export async function computeOrderTotal(
     productImage: string | null;
     quantity: number;
     price: number;
+    configuration?: OrderItemConfigurationGroup[];
+    unitPriceWithConfiguration?: number;
   }> = [];
 
   for (const item of input.items) {
@@ -339,14 +365,27 @@ export async function computeOrderTotal(
     if (!product.is_available) {
       throw new Error(`Produsul ${product.name} nu este disponibil`);
     }
-    const price = parseFloat(product.price);
-    baseSubtotal += price * item.quantity;
+    const basePrice = parseFloat(product.price);
+    const unitPriceWithConfiguration =
+      typeof item.unitPriceWithConfiguration === 'number'
+        ? item.unitPriceWithConfiguration
+        : basePrice +
+          (item.configuration?.reduce(
+            (sum, group) =>
+              sum +
+              group.options.reduce((s, opt) => s + (opt.priceDelta || 0), 0),
+            0
+          ) || 0);
+
+    baseSubtotal += unitPriceWithConfiguration * item.quantity;
     rawItems.push({
       productId: product.id,
       productName: product.name,
       productImage: product.image,
       quantity: item.quantity,
-      price,
+      price: unitPriceWithConfiguration,
+      configuration: item.configuration,
+      unitPriceWithConfiguration,
     });
   }
 
@@ -407,6 +446,8 @@ export async function computeOrderTotal(
       productImage: item.productImage,
       quantity: item.quantity,
       price: item.price,
+      configuration: item.configuration,
+      unitPriceWithConfiguration: item.unitPriceWithConfiguration,
     });
   }
 
@@ -499,9 +540,27 @@ export async function create(input: CreateOrderInput): Promise<Order> {
     // Inserează produsele comenzii
     for (const item of itemDetails) {
       await connection.execute(
-        `INSERT INTO order_items (order_id, product_id, product_name, product_image, quantity, price_at_order)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [id, item.productId, item.productName, item.productImage, item.quantity, item.price]
+        `INSERT INTO order_items (
+          order_id,
+          product_id,
+          product_name,
+          product_image,
+          quantity,
+          price_at_order,
+          configuration,
+          unit_price_with_configuration
+        )
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          id,
+          item.productId,
+          item.productName,
+          item.productImage,
+          item.quantity,
+          item.price,
+          item.configuration ? JSON.stringify(item.configuration) : null,
+          item.unitPriceWithConfiguration ?? item.price,
+        ]
       );
     }
     

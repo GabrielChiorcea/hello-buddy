@@ -300,4 +300,44 @@
     animation: casino-cta-shimmer 3s ease-in-out infinite;
     pointer-events: none;
   }
+
+  /* ═══ Points Checkout Selector — casino-aligned styles ═══ */
+  .points-casino-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: hsl(var(--reward-surface-foreground));
+  }
+  .points-casino-subtitle {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.55);
+  }
+  .points-balance-chip {
+    background: linear-gradient(135deg, #ff4500 0%, #ff6b00 100%);
+    box-shadow: 0 0 14px rgba(255, 110, 10, 0.55);
+    border: 1px solid rgba(255, 200, 120, 0.7);
+  }
+  .points-balance-value {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #ffffff;
+  }
+  .points-balance-unit {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .gamified-option-selected {
+    position: relative;
+  }
+  .gamified-option-selected::before {
+    content: '';
+    position: absolute;
+    inset: 4px auto 4px 0;
+    width: 3px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(255, 120, 40, 0.7), rgba(255, 80, 0, 0.15));
+    box-shadow: 0 0 14px rgba(255, 100, 30, 0.7);
+  }
 }

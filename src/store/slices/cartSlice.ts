@@ -4,13 +4,18 @@
  */
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { CartState, CartItem, Product } from '@/types';
+import { CartState, CartItem, Product, OrderItemConfigurationGroup } from '@/types';
 import { FREE_DELIVERY_THRESHOLD, DELIVERY_FEE } from '@/config/cart';
 
 // Helper to calculate cart totals
+const getUnitPrice = (item: CartItem) =>
+  typeof item.unitPriceWithConfiguration === 'number'
+    ? item.unitPriceWithConfiguration
+    : item.product.price;
+
 const calculateTotals = (items: CartItem[]) => {
   const subtotal = items.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
+    (sum, item) => sum + getUnitPrice(item) * item.quantity,
     0
   );
   const deliveryFee = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE;
@@ -54,15 +59,33 @@ const cartSlice = createSlice({
   name: 'cart',
   initialState,
   reducers: {
-    addItem: (state, action: PayloadAction<Product>) => {
+    addItem: (
+      state,
+      action: PayloadAction<{
+        product: Product;
+        configuration?: OrderItemConfigurationGroup[];
+        unitPriceWithConfiguration?: number;
+      }>
+    ) => {
+      const { product, configuration, unitPriceWithConfiguration } = action.payload;
+
+      const isSameConfiguration = (a?: OrderItemConfigurationGroup[], b?: OrderItemConfigurationGroup[]) => {
+        return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+      };
+
       const existingItem = state.items.find(
-        item => item.product.id === action.payload.id
+        item => item.product.id === product.id && isSameConfiguration(item.configuration, configuration)
       );
       
       if (existingItem) {
         existingItem.quantity += 1;
       } else {
-        state.items.push({ product: action.payload, quantity: 1 });
+        state.items.push({
+          product,
+          quantity: 1,
+          configuration,
+          unitPriceWithConfiguration,
+        });
       }
       
       const totals = calculateTotals(state.items);
@@ -88,17 +111,30 @@ const cartSlice = createSlice({
     
     changeQuantity: (
       state,
-      action: PayloadAction<{ productId: string; quantity: number }>
+      action: PayloadAction<{
+        productId: string;
+        quantity: number;
+        configuration?: OrderItemConfigurationGroup[];
+      }>
     ) => {
-      const { productId, quantity } = action.payload;
-      
+      const { productId, quantity, configuration } = action.payload;
+
+      const isSameConfiguration = (a?: OrderItemConfigurationGroup[], b?: OrderItemConfigurationGroup[]) =>
+        JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+
       if (quantity <= 0) {
         state.items = state.items.filter(
-          item => item.product.id !== productId
+          item =>
+            !(
+              item.product.id === productId &&
+              isSameConfiguration(item.configuration, configuration)
+            )
         );
       } else {
         const item = state.items.find(
-          item => item.product.id === productId
+          item =>
+            item.product.id === productId &&
+            isSameConfiguration(item.configuration, configuration)
         );
         if (item) {
           item.quantity = quantity;

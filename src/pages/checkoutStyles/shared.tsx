@@ -23,7 +23,13 @@ import { GET_ORDER_PREVIEW } from '@/graphql/queries';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { toast } from '@/hooks/use-toast';
-import { PaymentMethod, CheckoutData, DeliveryAddress, FulfillmentType } from '@/types';
+import {
+  PaymentMethod,
+  CheckoutData,
+  DeliveryAddress,
+  FulfillmentType,
+  OrderItemConfigurationGroup,
+} from '@/types';
 import { cn } from '@/lib/utils';
 import { PointsCheckoutSelector, usePointsRewards } from '@/plugins/points';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
@@ -55,7 +61,12 @@ export interface CheckoutDisplayData {
   isLoadingAddresses: boolean;
   showManualForm: boolean;
   manualFormRef: React.RefObject<HTMLDivElement | null>;
-  items: Array<{ product: any; quantity: number }>;
+  items: Array<{
+    product: any;
+    quantity: number;
+    configuration?: OrderItemConfigurationGroup[];
+    unitPriceWithConfiguration?: number;
+  }>;
   subtotal: number;
   deliveryFee: number;
   effectiveDeliveryFee: number;
@@ -99,7 +110,12 @@ export function useCheckoutData(): CheckoutDisplayData {
   const [isSuccess] = useState(false);
 
   // Query backend orderPreview for accurate totals (delivery fee, free products discount, points, etc.)
-  const previewItems = items.map((i) => ({ productId: i.product.id, quantity: i.quantity }));
+  const previewItems = items.map((i) => ({
+    productId: i.product.id,
+    quantity: i.quantity,
+    configuration: i.configuration,
+    unitPriceWithConfiguration: i.unitPriceWithConfiguration,
+  }));
   const pointsToUseVar = formData.pointsToUse ?? 0;
   const { data: previewData } = useQuery<{ orderPreview: { subtotal: number; deliveryFee: number; freeDeliveryThreshold: number; discountFromFreeProducts: number; discountFromPoints: number; total: number } }>(GET_ORDER_PREVIEW, {
     variables: { items: previewItems, pointsToUse: pointsToUseVar },
@@ -199,7 +215,14 @@ export function useCheckoutData(): CheckoutDisplayData {
         setIsLoading(false);
         return;
       }
-      const result = await placeOrderApi(user.id, items, formData, subtotal, effectiveDeliveryFee, displayTotal);
+      const result = await placeOrderApi(
+        user.id,
+        items,
+        formData,
+        subtotal,
+        effectiveDeliveryFee,
+        displayTotal
+      );
       if (result.success) {
         dispatch(resetCart());
         dispatch(fetchCurrentUser());
