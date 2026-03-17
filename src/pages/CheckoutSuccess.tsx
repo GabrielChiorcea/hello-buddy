@@ -146,9 +146,18 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ order }) => {
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-sm text-foreground truncate">{item.productName}</p>
                 <p className="text-xs text-muted-foreground">x{item.quantity}</p>
+                {item.configuration && item.configuration.length > 0 && (
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {item.configuration.map((g: any) =>
+                      `${g.groupName}: ${g.options.map((o: any) =>
+                        o.priceDelta ? `${o.name} (+${o.priceDelta.toFixed(2)})` : o.name
+                      ).join(', ')}`
+                    ).join(' · ')}
+                  </p>
+                )}
               </div>
               <p className="text-sm font-semibold text-foreground whitespace-nowrap">
-                {(item.priceAtOrder * item.quantity).toFixed(2)} RON
+                {((item.unitPriceWithConfiguration ?? item.priceAtOrder) * item.quantity).toFixed(2)} RON
               </p>
             </div>
           ))}
