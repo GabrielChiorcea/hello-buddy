@@ -89,11 +89,11 @@ export const FriendlyCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                         <Trash2 className="h-4 w-4" />
                       </Button>
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="icon" className="h-9 w-9 rounded-full" onClick={() => handleQuantityChange(product.id, quantity - 1)}>
+                        <Button variant="outline" size="icon" className="h-9 w-9 rounded-full" onClick={() => handleQuantityChange(product.id, quantity - 1, configuration)}>
                           <Minus className="h-4 w-4" />
                         </Button>
                         <span className="w-8 text-center font-semibold text-lg">{quantity}</span>
-                        <Button variant="outline" size="icon" className="h-9 w-9 rounded-full" onClick={() => handleQuantityChange(product.id, quantity + 1)}>
+                        <Button variant="outline" size="icon" className="h-9 w-9 rounded-full" onClick={() => handleQuantityChange(product.id, quantity + 1, configuration)}>
                           <Plus className="h-4 w-4" />
                         </Button>
                       </div>

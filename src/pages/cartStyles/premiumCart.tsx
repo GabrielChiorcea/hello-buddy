@@ -89,11 +89,11 @@ export const PremiumCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-xl border-border/30" onClick={() => handleQuantityChange(product.id, quantity - 1)}>
+                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-xl border-border/30" onClick={() => handleQuantityChange(product.id, quantity - 1, configuration)}>
                           <Minus className="h-3.5 w-3.5" />
                         </Button>
                         <span className="w-8 text-center font-medium">{quantity}</span>
-                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-xl border-border/30" onClick={() => handleQuantityChange(product.id, quantity + 1)}>
+                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-xl border-border/30" onClick={() => handleQuantityChange(product.id, quantity + 1, configuration)}>
                           <Plus className="h-3.5 w-3.5" />
                         </Button>
                       </div>
