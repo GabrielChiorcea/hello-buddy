@@ -61,7 +61,7 @@ export const PremiumCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
       <div className="container mx-auto px-4 py-8">
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-4 min-w-0">
-            {items.map(({ product, quantity }) => (
+            {items.map(({ product, quantity, configuration }) => (
               <Card key={product.id} className="border-border/20 bg-background/60 backdrop-blur-xl shadow-sm hover:shadow-md transition-all">
                 <CardContent className="p-5">
                   <div className="flex gap-5">
