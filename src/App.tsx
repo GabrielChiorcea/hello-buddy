@@ -89,6 +89,7 @@ import AdminSettings from "./admin/pages/AdminSettings";
 import AdminAnalytics from "./admin/pages/AdminAnalytics";
 import AdminAddonRules from "./admin/pages/AdminAddonRules";
 import AdminFreeProductCampaigns from "./admin/pages/AdminFreeProductCampaigns";
+import AdminProductOptions from "./admin/pages/AdminProductOptions";
 
 // ============================================================================
 // CONFIGURARE QUERY CLIENT
