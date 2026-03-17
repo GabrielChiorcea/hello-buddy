@@ -127,12 +127,13 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
               {group.options.map((opt) => {
                 const selected = selectedIds.has(opt.id);
                 const delta = opt.priceDelta;
+                const currency = texts.common.currency;
                 const deltaLabel =
                   delta === 0
                     ? ''
                     : delta > 0
-                    ? `+${delta} ${/* currency from texts at call site */ 'RON'}`
-                    : `${delta} ${'RON'}`;
+                    ? `+${delta} ${currency}`
+                    : `${delta} ${currency}`;
                 return (
                   <Button
                     key={opt.id}
