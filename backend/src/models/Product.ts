@@ -296,6 +296,7 @@ export async function findAll(options: {
     'p.id, p.name, p.description, p.price, p.image, p.category_id, p.is_available, ' +
     'COALESCE(p.is_addon, FALSE) as is_addon, COALESCE(p.priority_drain, FALSE) as priority_drain, ' +
     'p.preparation_time, p.min_visibility_tier_id, COALESCE(p.is_recommended, FALSE) as is_recommended, p.recommended_order, ' +
+    'COALESCE(p.follows_category_template, FALSE) as follows_category_template, p.category_template_id, ' +
     'p.created_at, p.updated_at, c.display_name as category_name';
   const rows = await query<ProductRow[]>(
     `SELECT ${selectColumns}
