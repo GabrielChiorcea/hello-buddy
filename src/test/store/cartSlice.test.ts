@@ -100,7 +100,7 @@ describe('cartSlice', () => {
       store.dispatch(addItem({ product: productA }));
       store.dispatch(addItem({ product: productB }));
       
-      store.dispatch(removeItem('prod-a'));
+      store.dispatch(removeItem({ productId: 'prod-a' }));
       
       const state = store.getState().cart;
       expect(state.items).toHaveLength(1);
