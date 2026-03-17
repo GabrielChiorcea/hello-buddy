@@ -19,6 +19,7 @@ import {
   ChefHat,
   Puzzle,
   DollarSign,
+  Settings2,
 } from 'lucide-react';
 import { pointsPlugin } from '@/plugins/points';
 import { streakPlugin } from '@/plugins/streak';
