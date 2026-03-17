@@ -55,7 +55,22 @@ export async function updateTemplate(req: Request, res: Response): Promise<void>
       res.status(404).json({ error: 'Template-ul nu a fost găsit' });
       return;
     }
-    res.json(updated);
+
+    // Live sync: actualizează automat produsele care urmăresc acest template
+    let synced = 0;
+    const connection = await beginTransaction();
+    try {
+      synced = await ProductModel.syncProductsForTemplate(connection, templateId, updated);
+      await connection.commit();
+      connection.release();
+    } catch (err) {
+      await connection.rollback();
+      connection.release();
+      // Log but don't fail the template update itself
+      logError('auto-sync after template update', err);
+    }
+
+    res.json({ ...updated, syncedProducts: synced });
   } catch (error) {
     logError('actualizare template opțiuni categorie', error);
     res.status(500).json({ error: 'Eroare internă server' });
