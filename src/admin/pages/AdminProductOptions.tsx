@@ -160,7 +160,8 @@ export default function AdminProductOptions() {
     } finally {
       setIsLoadingTemplates(false);
     }
-  }, [selectedCategoryId, api]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategoryId]);
 
   useEffect(() => {
     loadTemplatesAndProducts();
