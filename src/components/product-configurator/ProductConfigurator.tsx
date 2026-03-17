@@ -163,7 +163,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
       <div className="flex items-baseline gap-2">
         <span className="text-sm text-muted-foreground">Preț configurat:</span>
         <span className="text-xl font-semibold text-primary">
-          {unitPrice} {/* currency injected from parent label */}
+          {unitPrice} {texts.common.currency}
         </span>
       </div>
     </div>

@@ -74,7 +74,7 @@ export const PremiumCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                       <p className="text-lg font-semibold text-primary mt-2">{product.price} {texts.common.currency}</p>
                     </div>
                     <div className="flex flex-col items-end justify-between">
-                      <Button variant="ghost" size="icon" className="text-muted-foreground/50 hover:text-destructive h-8 w-8" onClick={() => handleRemoveItem(product.id, product.name)}>
+                      <Button variant="ghost" size="icon" className="text-muted-foreground/50 hover:text-destructive h-8 w-8" onClick={() => handleRemoveItem(product.id, product.name, configuration)}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                       <div className="flex items-center gap-2">
