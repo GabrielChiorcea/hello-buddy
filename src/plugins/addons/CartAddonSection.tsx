@@ -105,7 +105,7 @@ export function CartAddonSection() {
     cartItems.find((i) => i.product.id === productId)?.quantity ?? 0;
 
   const handleAdd = (suggestion: AddonSuggestion) => {
-    dispatch(addItem(suggestion.product));
+    dispatch(addItem({ product: suggestion.product }));
     toast({ title: 'Adăugat în coș', description: suggestion.product.name });
     trackAddonConversion({
       productId: suggestion.product.id,
