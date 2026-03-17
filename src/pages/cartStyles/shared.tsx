@@ -98,14 +98,18 @@ export function useCartData(): CartDisplayData {
     if (minThreshold === Infinity || minThreshold === 0) return null;
 
     // Calculăm subtotalul plătit (excluzând produsele gratuite din coș)
+    const getItemUnitPrice = (i: typeof items[number]) =>
+      typeof i.unitPriceWithConfiguration === 'number' ? i.unitPriceWithConfiguration : i.product.price;
+
     let paidSubtotal = 0;
     for (const item of items) {
+      const uPrice = getItemUnitPrice(item);
       if (freeProductIds.has(item.product.id)) {
         // Max 1 gratuit, restul plătit
         const paidQty = item.quantity > 1 ? item.quantity - 1 : 0;
-        paidSubtotal += item.product.price * paidQty;
+        paidSubtotal += uPrice * paidQty;
       } else {
-        paidSubtotal += item.product.price * item.quantity;
+        paidSubtotal += uPrice * item.quantity;
       }
     }
 
