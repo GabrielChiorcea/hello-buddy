@@ -600,6 +600,13 @@ export const useAdminApi = () => {
     getAddonRulesFull,
     updateAddonRules,
     updateAddonRulesFull,
+    // Option templates
+    getOptionTemplatesForCategory,
+    createOptionTemplate,
+    updateOptionTemplate,
+    deleteOptionTemplate,
+    applyOptionTemplate,
+    syncOptionTemplate,
     // Upload
     uploadImage,
   };
