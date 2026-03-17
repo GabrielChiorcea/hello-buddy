@@ -197,6 +197,7 @@ const App = () => (
                   <Route path="users" element={<AdminUsers />} />
                   <Route path="settings" element={<AdminSettings />} />
                   <Route path="addon-rules" element={<AdminAddonRules />} />
+                  <Route path="product-options" element={<AdminProductOptions />} />
                 </Route>
                 
                 {/* Rută catch-all pentru 404 */}

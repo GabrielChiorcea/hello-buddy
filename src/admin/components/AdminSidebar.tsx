@@ -48,6 +48,7 @@ const baseNavItems = [
   { title: 'Analitice', url: '/admin/analytics', icon: BarChart3 },
   { title: 'Produse', url: '/admin/products', icon: Package },
   { title: 'Categorii', url: '/admin/categories', icon: FolderOpen },
+  { title: 'Opțiuni produs', url: '/admin/product-options', icon: Settings2 },
   { title: 'Comenzi', url: '/admin/orders', icon: ShoppingCart },
   { title: 'Utilizatori', url: '/admin/users', icon: Users },
 ];
