@@ -121,8 +121,8 @@ export function useCartData(): CartDisplayData {
     };
   }, [user?.freeProductCampaignsSummary, items]);
 
-  const handleRemoveItem = (productId: string, productName: string) => {
-    dispatch(removeItem(productId));
+  const handleRemoveItem = (productId: string, productName: string, configuration?: OrderItemConfigurationGroup[]) => {
+    dispatch(removeItem({ productId, configuration }));
     toast({ title: texts.notifications.removedFromCart, description: productName });
   };
 
