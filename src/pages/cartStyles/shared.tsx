@@ -49,8 +49,8 @@ export interface CartDisplayData {
   isAuthenticated: boolean;
   orderPreview: OrderPreviewData | null;
   freeProductProgress: FreeProductProgress | null;
-  handleRemoveItem: (productId: string, productName: string) => void;
-  handleQuantityChange: (productId: string, newQuantity: number) => void;
+  handleRemoveItem: (productId: string, productName: string, configuration?: OrderItemConfigurationGroup[]) => void;
+  handleQuantityChange: (productId: string, newQuantity: number, configuration?: OrderItemConfigurationGroup[]) => void;
   handleCheckout: () => void;
 }
 
@@ -98,14 +98,18 @@ export function useCartData(): CartDisplayData {
     if (minThreshold === Infinity || minThreshold === 0) return null;
 
     // Calculăm subtotalul plătit (excluzând produsele gratuite din coș)
+    const getItemUnitPrice = (i: typeof items[number]) =>
+      typeof i.unitPriceWithConfiguration === 'number' ? i.unitPriceWithConfiguration : i.product.price;
+
     let paidSubtotal = 0;
     for (const item of items) {
+      const uPrice = getItemUnitPrice(item);
       if (freeProductIds.has(item.product.id)) {
         // Max 1 gratuit, restul plătit
         const paidQty = item.quantity > 1 ? item.quantity - 1 : 0;
-        paidSubtotal += item.product.price * paidQty;
+        paidSubtotal += uPrice * paidQty;
       } else {
-        paidSubtotal += item.product.price * item.quantity;
+        paidSubtotal += uPrice * item.quantity;
       }
     }
 
@@ -121,8 +125,8 @@ export function useCartData(): CartDisplayData {
     };
   }, [user?.freeProductCampaignsSummary, items]);
 
-  const handleRemoveItem = (productId: string, productName: string) => {
-    dispatch(removeItem(productId));
+  const handleRemoveItem = (productId: string, productName: string, configuration?: OrderItemConfigurationGroup[]) => {
+    dispatch(removeItem({ productId, configuration }));
     toast({ title: texts.notifications.removedFromCart, description: productName });
   };
 

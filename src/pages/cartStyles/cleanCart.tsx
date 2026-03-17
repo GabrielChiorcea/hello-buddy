@@ -80,7 +80,7 @@ export const CleanCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                     </p>
                   </div>
                   <div className="flex flex-col items-end justify-between">
-                    <button className="text-muted-foreground/50 hover:text-destructive transition-colors" onClick={() => handleRemoveItem(product.id, product.name)}>
+                    <button className="text-muted-foreground/50 hover:text-destructive transition-colors" onClick={() => handleRemoveItem(product.id, product.name, configuration)}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                     <div className="flex items-center gap-3">

@@ -45,7 +45,7 @@ describe('cartSlice', () => {
   describe('addItem', () => {
     it('adaugă un produs nou în coș', () => {
       const store = createStore();
-      store.dispatch(addItem(productA));
+      store.dispatch(addItem({ product: productA }));
       
       const state = store.getState().cart;
       expect(state.items).toHaveLength(1);
@@ -55,8 +55,8 @@ describe('cartSlice', () => {
 
     it('incrementează cantitatea pentru produs existent', () => {
       const store = createStore();
-      store.dispatch(addItem(productA));
-      store.dispatch(addItem(productA));
+      store.dispatch(addItem({ product: productA }));
+      store.dispatch(addItem({ product: productA }));
       
       const state = store.getState().cart;
       expect(state.items).toHaveLength(1);
@@ -65,8 +65,8 @@ describe('cartSlice', () => {
 
     it('calculează corect subtotal-ul', () => {
       const store = createStore();
-      store.dispatch(addItem(productA));
-      store.dispatch(addItem(productB));
+      store.dispatch(addItem({ product: productA }));
+      store.dispatch(addItem({ product: productB }));
       
       const state = store.getState().cart;
       expect(state.subtotal).toBe(60); // 32 + 28
@@ -74,17 +74,17 @@ describe('cartSlice', () => {
 
     it('taxa de livrare devine 0 peste 75 RON', () => {
       const store = createStore();
-      store.dispatch(addItem(productA)); // 32
-      store.dispatch(addItem(productA)); // 64
+      store.dispatch(addItem({ product: productA })); // 32
+      store.dispatch(addItem({ product: productA })); // 64
       expect(store.getState().cart.deliveryFee).toBe(10);
       
-      store.dispatch(addItem(productB)); // 92
+      store.dispatch(addItem({ product: productB })); // 92
       expect(store.getState().cart.deliveryFee).toBe(0);
     });
 
     it('calculează corect totalul', () => {
       const store = createStore();
-      store.dispatch(addItem(productA));
+      store.dispatch(addItem({ product: productA }));
       
       const state = store.getState().cart;
       expect(state.subtotal).toBe(32);
@@ -96,11 +96,11 @@ describe('cartSlice', () => {
   describe('removeItem', () => {
     it('elimină produsul din coș', () => {
       const store = createStore();
-      store.dispatch(addItem(productA));
-      store.dispatch(addItem(productA));
-      store.dispatch(addItem(productB));
+      store.dispatch(addItem({ product: productA }));
+      store.dispatch(addItem({ product: productA }));
+      store.dispatch(addItem({ product: productB }));
       
-      store.dispatch(removeItem('prod-a'));
+      store.dispatch(removeItem({ productId: 'prod-a' }));
       
       const state = store.getState().cart;
       expect(state.items).toHaveLength(1);
@@ -109,11 +109,11 @@ describe('cartSlice', () => {
 
     it('recalculează totalele după eliminare', () => {
       const store = createStore();
-      store.dispatch(addItem(productA));
-      store.dispatch(addItem(productA));
-      store.dispatch(addItem(productB)); // 92 RON total
+      store.dispatch(addItem({ product: productA }));
+      store.dispatch(addItem({ product: productA }));
+      store.dispatch(addItem({ product: productB })); // 92 RON total
       
-      store.dispatch(removeItem('prod-a')); // Rămân 28 RON
+      store.dispatch(removeItem({ productId: 'prod-a' })); // Rămân 28 RON
       
       const state = store.getState().cart;
       expect(state.subtotal).toBe(28);
@@ -125,7 +125,7 @@ describe('cartSlice', () => {
   describe('changeQuantity', () => {
     it('modifică cantitatea produsului', () => {
       const store = createStore();
-      store.dispatch(addItem(productA));
+      store.dispatch(addItem({ product: productA }));
       store.dispatch(changeQuantity({ productId: 'prod-a', quantity: 3 }));
       
       const state = store.getState().cart;
@@ -135,7 +135,7 @@ describe('cartSlice', () => {
 
     it('elimină produsul când cantitatea devine 0', () => {
       const store = createStore();
-      store.dispatch(addItem(productA));
+      store.dispatch(addItem({ product: productA }));
       store.dispatch(changeQuantity({ productId: 'prod-a', quantity: 0 }));
       
       const state = store.getState().cart;
@@ -144,7 +144,7 @@ describe('cartSlice', () => {
 
     it('elimină produsul când cantitatea devine negativă', () => {
       const store = createStore();
-      store.dispatch(addItem(productA));
+      store.dispatch(addItem({ product: productA }));
       store.dispatch(changeQuantity({ productId: 'prod-a', quantity: -1 }));
       
       const state = store.getState().cart;
@@ -155,8 +155,8 @@ describe('cartSlice', () => {
   describe('clearCart', () => {
     it('golește coșul', () => {
       const store = createStore();
-      store.dispatch(addItem(productA));
-      store.dispatch(addItem(productB));
+      store.dispatch(addItem({ product: productA }));
+      store.dispatch(addItem({ product: productB }));
       store.dispatch(clearCart());
       
       const state = store.getState().cart;
@@ -170,8 +170,8 @@ describe('cartSlice', () => {
   describe('resetCart', () => {
     it('resetează complet coșul (după checkout)', () => {
       const store = createStore();
-      store.dispatch(addItem(productA));
-      store.dispatch(addItem(productA));
+      store.dispatch(addItem({ product: productA }));
+      store.dispatch(addItem({ product: productA }));
       store.dispatch(resetCart());
       
       const state = store.getState().cart;
@@ -185,19 +185,19 @@ describe('cartSlice', () => {
   describe('selectori', () => {
     it('selectCartItemCount returnează numărul total de articole', () => {
       const store = createStore();
-      store.dispatch(addItem(productA));
-      store.dispatch(addItem(productA));
-      store.dispatch(addItem(productB));
-      store.dispatch(addItem(productB));
-      store.dispatch(addItem(productB));
+      store.dispatch(addItem({ product: productA }));
+      store.dispatch(addItem({ product: productA }));
+      store.dispatch(addItem({ product: productB }));
+      store.dispatch(addItem({ product: productB }));
+      store.dispatch(addItem({ product: productB }));
       
       expect(selectCartItemCount(store.getState())).toBe(5);
     });
 
     it('selectCartTotal returnează totalul', () => {
       const store = createStore();
-      store.dispatch(addItem(productA));
-      store.dispatch(addItem(productA));
+      store.dispatch(addItem({ product: productA }));
+      store.dispatch(addItem({ product: productA }));
       
       expect(selectCartTotal(store.getState())).toBe(74); // 64 + 10 delivery
     });
@@ -206,15 +206,15 @@ describe('cartSlice', () => {
   describe('calcul livrare gratuită', () => {
     it('livrare 10 RON pentru comenzi sub 75 RON', () => {
       const store = createStore();
-      store.dispatch(addItem(productA)); // 32 RON
+      store.dispatch(addItem({ product: productA })); // 32 RON
       expect(store.getState().cart.deliveryFee).toBe(10);
     });
 
     it('livrare gratuită pentru comenzi de 75+ RON', () => {
       const store = createStore();
-      store.dispatch(addItem(productA)); // 32
-      store.dispatch(addItem(productA)); // 64
-      store.dispatch(addItem(productA)); // 96
+      store.dispatch(addItem({ product: productA })); // 32
+      store.dispatch(addItem({ product: productA })); // 64
+      store.dispatch(addItem({ product: productA })); // 96
       
       expect(store.getState().cart.subtotal).toBe(96);
       expect(store.getState().cart.deliveryFee).toBe(0);
@@ -232,7 +232,7 @@ describe('cartSlice', () => {
       };
       
       const store = createStore();
-      store.dispatch(addItem(product75));
+      store.dispatch(addItem({ product: product75 }));
       expect(store.getState().cart.deliveryFee).toBe(0);
     });
   });

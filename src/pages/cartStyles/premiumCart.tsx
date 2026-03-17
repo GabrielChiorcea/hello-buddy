@@ -16,6 +16,7 @@ import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { getImageUrl } from '@/lib/imageUrl';
 import type { CartDisplayData } from './shared';
+import type { OrderItemConfigurationGroup } from '@/types';
 import { FREE_DELIVERY_THRESHOLD } from '@/config/cart';
 
 export const PremiumCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
@@ -61,7 +62,7 @@ export const PremiumCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
       <div className="container mx-auto px-4 py-8">
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-4 min-w-0">
-            {items.map(({ product, quantity }) => (
+            {items.map(({ product, quantity, configuration, unitPriceWithConfiguration }) => (
               <Card key={product.id} className="border-border/20 bg-background/60 backdrop-blur-xl shadow-sm hover:shadow-md transition-all">
                 <CardContent className="p-5">
                   <div className="flex gap-5">
@@ -71,18 +72,28 @@ export const PremiumCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-foreground truncate tracking-tight">{product.name}</h3>
                       <p className="text-sm text-muted-foreground line-clamp-1 mt-0.5">{product.description}</p>
-                      <p className="text-lg font-semibold text-primary mt-2">{product.price} {texts.common.currency}</p>
+                      {configuration && configuration.length > 0 && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {configuration
+                            .map(
+                              (g: OrderItemConfigurationGroup) =>
+                                `${g.groupName}: ${g.options.map((o) => o.name).join(', ')}`
+                            )
+                            .join(' • ')}
+                        </p>
+                      )}
+                      <p className="text-lg font-semibold text-primary mt-2">{(unitPriceWithConfiguration ?? product.price)} {texts.common.currency}</p>
                     </div>
                     <div className="flex flex-col items-end justify-between">
-                      <Button variant="ghost" size="icon" className="text-muted-foreground/50 hover:text-destructive h-8 w-8" onClick={() => handleRemoveItem(product.id, product.name)}>
+                      <Button variant="ghost" size="icon" className="text-muted-foreground/50 hover:text-destructive h-8 w-8" onClick={() => handleRemoveItem(product.id, product.name, configuration)}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-xl border-border/30" onClick={() => handleQuantityChange(product.id, quantity - 1)}>
+                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-xl border-border/30" onClick={() => handleQuantityChange(product.id, quantity - 1, configuration)}>
                           <Minus className="h-3.5 w-3.5" />
                         </Button>
                         <span className="w-8 text-center font-medium">{quantity}</span>
-                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-xl border-border/30" onClick={() => handleQuantityChange(product.id, quantity + 1)}>
+                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-xl border-border/30" onClick={() => handleQuantityChange(product.id, quantity + 1, configuration)}>
                           <Plus className="h-3.5 w-3.5" />
                         </Button>
                       </div>
