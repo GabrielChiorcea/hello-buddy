@@ -72,7 +72,17 @@ export const FriendlyCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-foreground truncate">{product.name}</h3>
                       <p className="text-sm text-muted-foreground line-clamp-1">{product.description}</p>
-                      <p className="text-lg font-bold text-primary mt-2">{product.price} {texts.common.currency}</p>
+                      {configuration && configuration.length > 0 && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {configuration
+                            .map(
+                              (g: OrderItemConfigurationGroup) =>
+                                `${g.groupName}: ${g.options.map((o) => o.name).join(', ')}`
+                            )
+                            .join(' • ')}
+                        </p>
+                      )}
+                      <p className="text-lg font-bold text-primary mt-2">{(unitPriceWithConfiguration ?? product.price)} {texts.common.currency}</p>
                     </div>
                     <div className="flex flex-col items-end justify-between">
                       <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => handleRemoveItem(product.id, product.name, configuration)}>
