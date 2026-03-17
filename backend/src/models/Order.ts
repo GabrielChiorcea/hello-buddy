@@ -306,6 +306,10 @@ export async function findAll(options: {
       productImage: r.product_image,
       quantity: r.quantity,
       priceAtOrder: parseFloat(r.price_at_order),
+      configuration: r.configuration ? JSON.parse(r.configuration) : undefined,
+      unitPriceWithConfiguration: r.unit_price_with_configuration
+        ? parseFloat(r.unit_price_with_configuration)
+        : undefined,
     });
   }
 
