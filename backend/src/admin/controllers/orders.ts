@@ -88,9 +88,12 @@ export async function getOrder(req: Request, res: Response): Promise<void> {
       return;
     }
     
-    // Obține informații utilizator
-    const users = await query<{ id: string; name: string; email: string; phone: string }[]>(
-      'SELECT id, name, email, phone FROM users WHERE id = ?',
+    // Obține informații utilizator (inclusiv tier/rank)
+    const users = await query<{ id: string; name: string; email: string; phone: string; tier_name: string | null }[]>(
+      `SELECT u.id, u.name, u.email, u.phone, lt.name as tier_name
+       FROM users u
+       LEFT JOIN loyalty_tiers lt ON u.tier_id = lt.id
+       WHERE u.id = ?`,
       [order.userId]
     );
     const user = users[0];
