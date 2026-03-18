@@ -684,6 +684,12 @@ export default function AdminOrders() {
                     <span>Livrare</span>
                     <span>{selectedOrder.deliveryFee} RON</span>
                   </div>
+                  {(selectedOrder.discountFromFreeProducts ?? 0) > 0 && (
+                    <div className="flex justify-between text-primary">
+                      <span>Produse gratuite</span>
+                      <span>-{selectedOrder.discountFromFreeProducts?.toFixed(2)} RON</span>
+                    </div>
+                  )}
                   {pointsEnabled && <PointsOrderDetails order={selectedOrder} currency="RON" />}
                   <div className="flex justify-between border-t border-border pt-2 font-semibold">
                     <span>Total</span>
