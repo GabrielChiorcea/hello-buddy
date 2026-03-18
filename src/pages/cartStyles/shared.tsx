@@ -91,8 +91,11 @@ export function useCartData(): CartDisplayData {
     const getItemUnitPrice = (i: (typeof items)[number]) =>
       typeof i.unitPriceWithConfiguration === 'number' ? i.unitPriceWithConfiguration : i.product.price;
 
+    // Excludem produsele eligibile pentru gratuitate din paidSubtotal
+    // pentru a evita logica circulară la verificarea pragului
     let paidSubtotal = 0;
     for (const item of items) {
+      if (freeProductIds.has(item.product.id)) continue;
       paidSubtotal += getItemUnitPrice(item) * item.quantity;
     }
 
