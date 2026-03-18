@@ -64,6 +64,12 @@ interface AdminOrder {
   userId: string;
   userName?: string;
   userEmail?: string;
+  customer?: {
+    id: string;
+    name?: string;
+    email?: string;
+    tierName?: string | null;
+  };
   items: OrderItem[];
   subtotal: number;
   deliveryFee: number;
@@ -79,6 +85,7 @@ interface AdminOrder {
   pointsEarned?: number;
   pointsUsed?: number;
   discountFromPoints?: number;
+  discountFromFreeProducts?: number;
   createdAt: string;
   estimatedDelivery?: string;
 }
@@ -556,9 +563,14 @@ export default function AdminOrders() {
               {/* Info client */}
               <div className="rounded-lg border border-border p-4">
                 <h4 className="mb-2 font-medium">Informații client</h4>
-                <p className="text-sm">{selectedOrder.userName || 'Client'}</p>
-                <p className="text-sm text-muted-foreground">{selectedOrder.userEmail}</p>
+                <p className="text-sm">{selectedOrder.userName || selectedOrder.customer?.name || 'Client'}</p>
+                <p className="text-sm text-muted-foreground">{selectedOrder.userEmail || selectedOrder.customer?.email}</p>
                 <p className="text-sm">Tel: {selectedOrder.phone}</p>
+                {selectedOrder.customer?.tierName && (
+                  <p className="text-sm mt-1">
+                    <Badge variant="secondary" className="text-xs">{selectedOrder.customer.tierName}</Badge>
+                  </p>
+                )}
               </div>
 
               {/* Info livrare / În locație */}
@@ -626,13 +638,25 @@ export default function AdminOrders() {
                 <div className="space-y-2">
                   {selectedOrder.items.map((item, index) => {
                     const unitPrice = item.unitPriceWithConfiguration ?? item.priceAtOrder;
+                    // Detectăm dacă acest produs a fost oferit gratuit (discount > 0 și prețul se potrivește)
+                    const isFreeProduct = (selectedOrder.discountFromFreeProducts ?? 0) > 0
+                      && unitPrice === selectedOrder.discountFromFreeProducts;
                     return (
                       <div key={index} className="text-sm">
                         <div className="flex justify-between">
-                          <span>
+                          <span className="flex items-center gap-1.5">
                             {item.quantity}x {item.productName}
+                            {isFreeProduct && (
+                              <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">GRATIS</Badge>
+                            )}
                           </span>
-                          <span>{(unitPrice * item.quantity).toFixed(2)} RON</span>
+                          <span>
+                            {isFreeProduct ? (
+                              <span className="text-primary">-{unitPrice.toFixed(2)} RON</span>
+                            ) : (
+                              `${(unitPrice * item.quantity).toFixed(2)} RON`
+                            )}
+                          </span>
                         </div>
                         {item.configuration && item.configuration.length > 0 && (
                           <p className="text-xs text-muted-foreground ml-4 mt-0.5">
@@ -660,6 +684,12 @@ export default function AdminOrders() {
                     <span>Livrare</span>
                     <span>{selectedOrder.deliveryFee} RON</span>
                   </div>
+                  {(selectedOrder.discountFromFreeProducts ?? 0) > 0 && (
+                    <div className="flex justify-between text-primary">
+                      <span>Produse gratuite</span>
+                      <span>-{selectedOrder.discountFromFreeProducts?.toFixed(2)} RON</span>
+                    </div>
+                  )}
                   {pointsEnabled && <PointsOrderDetails order={selectedOrder} currency="RON" />}
                   <div className="flex justify-between border-t border-border pt-2 font-semibold">
                     <span>Total</span>
