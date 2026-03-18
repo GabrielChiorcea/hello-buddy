@@ -563,9 +563,14 @@ export default function AdminOrders() {
               {/* Info client */}
               <div className="rounded-lg border border-border p-4">
                 <h4 className="mb-2 font-medium">Informații client</h4>
-                <p className="text-sm">{selectedOrder.userName || 'Client'}</p>
-                <p className="text-sm text-muted-foreground">{selectedOrder.userEmail}</p>
+                <p className="text-sm">{selectedOrder.userName || selectedOrder.customer?.name || 'Client'}</p>
+                <p className="text-sm text-muted-foreground">{selectedOrder.userEmail || selectedOrder.customer?.email}</p>
                 <p className="text-sm">Tel: {selectedOrder.phone}</p>
+                {selectedOrder.customer?.tierName && (
+                  <p className="text-sm mt-1">
+                    <Badge variant="secondary" className="text-xs">{selectedOrder.customer.tierName}</Badge>
+                  </p>
+                )}
               </div>
 
               {/* Info livrare / În locație */}
