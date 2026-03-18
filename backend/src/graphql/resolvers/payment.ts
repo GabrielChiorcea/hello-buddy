@@ -13,6 +13,12 @@ import { checkOrderRateLimit } from './order.js';
 interface OrderItemInput {
   productId: string;
   quantity: number;
+  configuration?: Array<{
+    groupId: number;
+    groupName: string;
+    options: Array<{ optionId: number; name: string; priceDelta: number }>;
+  }>;
+  unitPriceWithConfiguration?: number;
 }
 
 interface CreateOrderInput {
