@@ -64,6 +64,12 @@ interface AdminOrder {
   userId: string;
   userName?: string;
   userEmail?: string;
+  customer?: {
+    id: string;
+    name?: string;
+    email?: string;
+    tierName?: string | null;
+  };
   items: OrderItem[];
   subtotal: number;
   deliveryFee: number;
@@ -79,6 +85,7 @@ interface AdminOrder {
   pointsEarned?: number;
   pointsUsed?: number;
   discountFromPoints?: number;
+  discountFromFreeProducts?: number;
   createdAt: string;
   estimatedDelivery?: string;
 }
