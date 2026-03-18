@@ -420,8 +420,12 @@ export async function computeOrderTotal(
   }
 
   // Subtotalul folosit pentru pragurile de campanie și livrare gratuită:
-  // folosim subtotalul brut al coșului (înainte de gratuități).
-  const thresholdSubtotal = baseSubtotal;
+  // excludem produsele eligibile pentru gratuitate din calcul, pentru a evita logica circulară.
+  const eligibleProductIds = new Set(minOrderByProduct.keys());
+  const thresholdSubtotal = rawItems.reduce((sum, item) => {
+    if (eligibleProductIds.has(item.productId)) return sum;
+    return sum + item.price * item.quantity;
+  }, 0);
 
   const grantedFreeForProduct = new Set<string>();
 
