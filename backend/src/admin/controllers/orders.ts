@@ -34,16 +34,19 @@ export async function getOrders(req: Request, res: Response): Promise<void> {
       dateTo: dateTo ? new Date(dateTo as string) : undefined,
     });
     
-    // Obține informații despre utilizatori
+    // Obține informații despre utilizatori (inclusiv tier/rank)
     const userIds = [...new Set(orders.map(o => o.userId))];
-    let usersMap: Map<string, { name: string; email: string }> = new Map();
+    let usersMap: Map<string, { name: string; email: string; tierName: string | null }> = new Map();
     
     if (userIds.length > 0) {
-      const users = await query<{ id: string; name: string; email: string }[]>(
-        `SELECT id, name, email FROM users WHERE id IN (${userIds.map(() => '?').join(',')})`,
+      const users = await query<{ id: string; name: string; email: string; tier_name: string | null }[]>(
+        `SELECT u.id, u.name, u.email, lt.name as tier_name
+         FROM users u
+         LEFT JOIN loyalty_tiers lt ON u.tier_id = lt.id
+         WHERE u.id IN (${userIds.map(() => '?').join(',')})`,
         userIds
       );
-      users.forEach(u => usersMap.set(u.id, { name: u.name, email: u.email }));
+      users.forEach(u => usersMap.set(u.id, { name: u.name, email: u.email, tierName: u.tier_name }));
     }
     
     const pageNum = parseInt(page as string);
