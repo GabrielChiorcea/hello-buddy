@@ -24,15 +24,10 @@ export interface OrderPreviewData {
 }
 
 export interface FreeProductProgress {
-  /** Cel mai mic prag minim activ din campaniile userului */
   minOrderValue: number;
-  /** Subtotalul produselor plătite (fără cele gratuite) */
   paidSubtotal: number;
-  /** Cât mai trebuie adăugat */
   remaining: number;
-  /** Dacă pragul a fost atins */
   unlocked: boolean;
-  /** Numele produselor gratuite disponibile */
   productNames: string[];
 }
 
@@ -73,21 +68,17 @@ export function useCartData(): CartDisplayData {
   });
   const orderPreview = previewData?.orderPreview ?? null;
 
-  // Calculăm progresul spre produse gratuite
   const freeProductProgress = useMemo<FreeProductProgress | null>(() => {
     const campaigns = user?.freeProductCampaignsSummary;
     if (!campaigns || campaigns.length === 0 || items.length === 0) return null;
 
-    // Găsim cel mai mic minOrderValue > 0 din campaniile active
     let minThreshold = Infinity;
-    const allProductNames: string[] = [];
     const freeProductIds = new Set<string>();
 
     for (const c of campaigns) {
       if (c.minOrderValue > 0 && c.minOrderValue < minThreshold) {
         minThreshold = c.minOrderValue;
       }
-      allProductNames.push(...c.products);
       if (c.productDetails) {
         for (const p of c.productDetails) {
           freeProductIds.add(p.id);
@@ -97,31 +88,27 @@ export function useCartData(): CartDisplayData {
 
     if (minThreshold === Infinity || minThreshold === 0) return null;
 
-    // Calculăm subtotalul plătit (excluzând produsele gratuite din coș)
-    const getItemUnitPrice = (i: typeof items[number]) =>
+    const getItemUnitPrice = (i: (typeof items)[number]) =>
       typeof i.unitPriceWithConfiguration === 'number' ? i.unitPriceWithConfiguration : i.product.price;
 
     let paidSubtotal = 0;
     for (const item of items) {
-      const uPrice = getItemUnitPrice(item);
-      if (freeProductIds.has(item.product.id)) {
-        // Max 1 gratuit, restul plătit
-        const paidQty = item.quantity > 1 ? item.quantity - 1 : 0;
-        paidSubtotal += uPrice * paidQty;
-      } else {
-        paidSubtotal += uPrice * item.quantity;
-      }
+      paidSubtotal += getItemUnitPrice(item) * item.quantity;
     }
 
     const remaining = Math.max(0, minThreshold - paidSubtotal);
     const unlocked = paidSubtotal >= minThreshold;
+    const allNames: string[] = [];
+    for (const c of campaigns) {
+      allNames.push(...c.products);
+    }
 
     return {
       minOrderValue: minThreshold,
       paidSubtotal,
       remaining,
       unlocked,
-      productNames: [...new Set(allProductNames)].slice(0, 3),
+      productNames: [...new Set(allNames)].slice(0, 3),
     };
   }, [user?.freeProductCampaignsSummary, items]);
 

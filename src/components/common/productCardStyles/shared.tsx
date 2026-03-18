@@ -36,9 +36,23 @@ export interface CardVariantProps {
   product: Product;
   className?: string;
   data: ProductCardDisplayData;
+  /** Ingrediente/descriere max. 2 rânduri — evită carduri uriașe (ex. Produse similare) */
+  compactSubtitle?: boolean;
 }
 
-export function useProductCardData(product: Product): ProductCardDisplayData {
+/** O singură linie de text pentru zona meta a cardului */
+export function getProductCardMetaLine(product: Product): string {
+  if (product.ingredients?.length) {
+    return product.ingredients.map((i) => i.name).join(', ');
+  }
+  return product.description || '';
+}
+
+export function useProductCardData(
+  product: Product,
+  opts?: { suppressLoyaltyHints?: boolean }
+): ProductCardDisplayData {
+  const suppressLoyaltyHints = opts?.suppressLoyaltyHints ?? false;
   const dispatch = useAppDispatch();
   const [isAdded, setIsAdded] = useState(false);
   const { isAuthenticated, user } = useAppSelector((s) => s.user);
@@ -55,16 +69,17 @@ export function useProductCardData(product: Product): ProductCardDisplayData {
   };
 
   const pointsInfo =
-    tiersEnabled && isAuthenticated && user?.tier
-      ? (() => {
+    suppressLoyaltyHints || !tiersEnabled || !isAuthenticated || !user?.tier
+      ? null
+      : (() => {
           const base = Math.max(1, Math.round(product.price));
           const mult = user.tier?.pointsMultiplier ?? 1;
           return `+${Math.round(base * mult)} pct`;
-        })()
-      : null;
+        })();
 
   // Determine if this product should show the free ribbon
   const showFreeRibbon = useMemo(() => {
+    if (suppressLoyaltyHints) return false;
     const campaigns = user?.freeProductCampaignsSummary;
     if (!campaigns || campaigns.length === 0) return false;
 
@@ -94,7 +109,7 @@ export function useProductCardData(product: Product): ProductCardDisplayData {
     if (cartHasFreeFromCategory) return false;
 
     return true;
-  }, [user?.freeProductCampaignsSummary, product.category, cartItems]);
+  }, [suppressLoyaltyHints, user?.freeProductCampaignsSummary, product.category, cartItems]);
 
   return {
     handleAddToCart,

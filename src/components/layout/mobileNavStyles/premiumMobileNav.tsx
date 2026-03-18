@@ -13,7 +13,7 @@ export const PremiumMobileNav: React.FC<{ data: MobileNavDisplayData }> = ({ dat
 
   return (
     <div className="fixed bottom-5 left-4 right-4 z-50 md:hidden safe-area-bottom">
-      <nav className="mx-auto max-w-md flex items-center justify-around px-3 py-2 rounded-[2rem] border border-border/30 bg-background/40 backdrop-blur-3xl backdrop-saturate-[1.8] shadow-[0_4px_24px_hsl(var(--primary)/0.08)]">
+      <nav className="mx-auto max-w-md flex items-center justify-around px-3 py-2 rounded-[2rem] border border-primary/25 bg-background/40 backdrop-blur-3xl backdrop-saturate-[1.8] shadow-[0_4px_24px_hsl(var(--primary)/0.08)]">
         {navItems.map(({ path, label, icon: Icon, badge }) => (
           <Link
             key={path}

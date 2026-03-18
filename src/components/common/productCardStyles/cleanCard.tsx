@@ -10,8 +10,9 @@ import { texts } from '@/config/texts';
 import { cn } from '@/lib/utils';
 import { getProductUrl } from '@/config/routes';
 import type { CardVariantProps } from './shared';
+import { getProductCardMetaLine } from './shared';
 
-export const CleanCard: React.FC<CardVariantProps> = ({ product, className, data }) => {
+export const CleanCard: React.FC<CardVariantProps> = ({ product, className, data, compactSubtitle }) => {
   const navigate = useNavigate();
   const { handleAddToCart, isAdded, imageUrl, showFreeRibbon, hasOptions } = data;
 
@@ -57,10 +58,16 @@ export const CleanCard: React.FC<CardVariantProps> = ({ product, className, data
             <span className="shrink-0 text-[9px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded md:hidden">GRATIS</span>
           )}
         </div>
-        <p className="text-xs text-muted-foreground truncate md:hidden">
-          {product.description}
-        </p>
-        <p className="text-[13px] text-muted-foreground/70 line-clamp-1 hidden md:block">{product.description}</p>
+        {compactSubtitle ? (
+          <p className="text-xs md:text-[13px] text-muted-foreground/70 line-clamp-2 break-words min-w-0 mt-0.5 leading-snug">
+            {getProductCardMetaLine(product)}
+          </p>
+        ) : (
+          <>
+            <p className="text-xs text-muted-foreground truncate md:hidden">{product.description}</p>
+            <p className="text-[13px] text-muted-foreground/70 line-clamp-1 hidden md:block">{product.description}</p>
+          </>
+        )}
 
         {/* Desktop bottom */}
         <div className="hidden md:flex items-center justify-between mt-auto pt-2">

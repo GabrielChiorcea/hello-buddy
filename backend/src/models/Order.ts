@@ -398,7 +398,8 @@ export async function computeOrderTotal(
   }
 
   // Al doilea pas: aplicăm regulile de produse gratuite (max 1 buc. per produs, cu prag comandă).
-  // IMPORTANT: pragul se verifică pe subtotalul produselor PLĂTITE (fără cele gratuite).
+  // IMPORTANT (actualizat): pragul se verifică pe SUBTOTALUL COȘULUI (înainte de gratuități),
+  // nu pe "ce mai rămâne de plată" după ce marcăm ceva gratuit.
   let discountFromFreeProducts = 0;
   const itemDetails: OrderItemDetail[] = [];
 
@@ -418,36 +419,33 @@ export async function computeOrderTotal(
     }
   }
 
-  // Calculăm subtotalul plătit (excluzând produsele care ar fi gratuite)
-  let paidSubtotal = 0;
-  for (const item of rawItems) {
-    if (!minOrderByProduct.has(item.productId)) {
-      paidSubtotal += item.price * item.quantity;
-    } else {
-      // Produsele gratuite contribuie cu quantity - 1 (max 1 gratuit)
-      const paidQty = item.quantity > 1 ? item.quantity - 1 : 0;
-      paidSubtotal += item.price * paidQty;
-    }
-  }
+  // Subtotalul folosit pentru pragurile de campanie și livrare gratuită:
+  // folosim subtotalul brut al coșului (înainte de gratuități).
+  const thresholdSubtotal = baseSubtotal;
 
   const grantedFreeForProduct = new Set<string>();
 
-  for (const item of rawItems) {
-    const threshold = minOrderByProduct.get(item.productId);
-    let freeQty = 0;
+  // Business rule: se oferă UN SINGUR produs gratuit pe comandă din categoria campaniei,
+  // nu câte 1 pe fiecare produs eligibil. Alegem produsul eligibil cu prețul cel mai mic.
+  const eligibleItems = freeProductsPluginEnabled
+    ? rawItems.filter((item) => minOrderByProduct.has(item.productId) && item.quantity > 0)
+    : [];
 
-    if (
-      freeProductsPluginEnabled &&
-      threshold !== undefined &&
-      paidSubtotal >= threshold &&
-      !grantedFreeForProduct.has(item.productId) &&
-      item.quantity > 0
-    ) {
-      freeQty = 1;
-      grantedFreeForProduct.add(item.productId);
-      discountFromFreeProducts += item.price * freeQty;
+  if (eligibleItems.length > 0) {
+    const globalThreshold = Math.min(
+      ...eligibleItems.map((item) => minOrderByProduct.get(item.productId) ?? Infinity)
+    );
+
+    if (globalThreshold !== Infinity && thresholdSubtotal >= globalThreshold) {
+      const cheapestItem = eligibleItems.reduce((min, item) =>
+        item.price < min.price ? item : min
+      );
+      discountFromFreeProducts += cheapestItem.price;
+      grantedFreeForProduct.add(cheapestItem.productId);
     }
+  }
 
+  for (const item of rawItems) {
     itemDetails.push({
       productId: item.productId,
       productName: item.productName,
@@ -471,8 +469,9 @@ export async function computeOrderTotal(
     for (const row of settingsRows) settingsMap.set(row.id, row.value);
     const baseFee = parseFloat(settingsMap.get('delivery_fee') ?? '10');
     freeDeliveryThreshold = parseFloat(settingsMap.get('free_delivery_threshold') ?? '0');
-    // Aplicăm pragul de livrare gratuită pe subtotalul plătit
-    deliveryFee = freeDeliveryThreshold > 0 && paidSubtotal >= freeDeliveryThreshold ? 0 : baseFee;
+    // Aplicăm pragul de livrare gratuită pe SUBTOTALUL COȘULUI (înainte de gratuități)
+    deliveryFee =
+      freeDeliveryThreshold > 0 && thresholdSubtotal >= freeDeliveryThreshold ? 0 : baseFee;
   }
   const subtotal = baseSubtotal;
   // Calculăm totalul plătibil ÎNAINTE de puncte, pentru a limita reducerea din puncte

@@ -26,7 +26,7 @@ export const PremiumNav: React.FC<{ data: NavbarDisplayData }> = ({ data }) => {
 
   return (
     <header className="sticky top-3 z-50 w-full hidden md:block px-6">
-      <div className="mx-auto max-w-7xl rounded-[2rem] border border-border/30 bg-background/40 backdrop-blur-3xl backdrop-saturate-[1.8] shadow-[0_4px_24px_hsl(var(--primary)/0.08),0_1px_2px_rgba(0,0,0,0.04)]">
+      <div className="mx-auto max-w-7xl rounded-[2rem] border border-primary/25 bg-background/40 backdrop-blur-3xl backdrop-saturate-[1.8] shadow-[0_4px_24px_hsl(var(--primary)/0.08),0_1px_2px_rgba(0,0,0,0.04)]">
         <div className="flex h-14 items-center justify-between px-8">
           <Link to={routes.home} className="flex items-center gap-2.5 shrink-0">
             <Crown className="h-5 w-5 text-primary" />

@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Layout } from '@/components/layout/Layout';
-import { TierProgressBar } from '@/components/layout/TierProgressBar';
 import { CartAddonSectionWrapped } from '@/plugins/addons';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
@@ -20,7 +19,17 @@ import type { OrderItemConfigurationGroup } from '@/types';
 import { FREE_DELIVERY_THRESHOLD } from '@/config/cart';
 
 export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
-  const { items, subtotal, deliveryFee, total, orderPreview, freeProductProgress, handleRemoveItem, handleQuantityChange, handleCheckout } = data;
+  const {
+    items,
+    subtotal,
+    deliveryFee,
+    total,
+    orderPreview,
+    freeProductProgress,
+    handleRemoveItem,
+    handleQuantityChange,
+    handleCheckout,
+  } = data;
   const summarySubtotal = orderPreview?.subtotal ?? subtotal;
   const summaryDelivery = orderPreview?.deliveryFee ?? deliveryFee;
   const summaryTotal = orderPreview?.total ?? total;
@@ -34,7 +43,6 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
             {texts.cart.title}
           </h1>
         </div>
-        <TierProgressBar />
         <div className="container mx-auto px-4 py-16">
           <div className="max-w-md mx-auto text-center">
             <div className="mb-6 flex justify-center">
@@ -64,7 +72,6 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
           {texts.cart.title}
         </h1>
       </div>
-      <TierProgressBar />
       <div className="container mx-auto px-4 py-8">
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-4 min-w-0">
@@ -136,18 +143,19 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                   <span className="font-bold">{summaryDelivery === 0 ? <span className="text-success">{texts.cart.freeDelivery}</span> : `${summaryDelivery} ${texts.common.currency}`}</span>
                 </div>
                 {summaryDelivery > 0 && <p className="text-xs text-muted-foreground">Livrare gratuită peste {orderPreview?.freeDeliveryThreshold ?? FREE_DELIVERY_THRESHOLD} {texts.common.currency}</p>}
-                {freeProductProgress && (
+                {(orderPreview?.discountFromFreeProducts ?? 0) > 0 && (
                   <div className="flex justify-between">
-                    <span className={orderPreview?.discountFromFreeProducts ? 'text-success' : 'text-muted-foreground'}>{texts.freeProducts.cartDiscountLabel}</span>
-                    <span className={orderPreview?.discountFromFreeProducts ? 'text-success font-bold' : 'text-muted-foreground font-bold'}>
+                    <span className="text-success">{texts.freeProducts.cartDiscountLabel}</span>
+                    <span className="text-success font-bold">
                       -{(orderPreview?.discountFromFreeProducts ?? 0).toFixed(2)} {texts.common.currency}
                     </span>
                   </div>
                 )}
                 {freeProductProgress && !freeProductProgress.unlocked && (
-                  <p className="text-xs text-muted-foreground">Mai adaugă {freeProductProgress.remaining.toFixed(2)} {texts.common.currency} pentru produse gratuite</p>
+                  <p className="text-xs text-muted-foreground">
+                    Mai adaugă {freeProductProgress.remaining.toFixed(2)} {texts.common.currency} pentru produse gratuite
+                  </p>
                 )}
-                
                 <Separator />
                 <div className="flex justify-between text-xl font-extrabold">
                   <span>{texts.cart.total}</span>

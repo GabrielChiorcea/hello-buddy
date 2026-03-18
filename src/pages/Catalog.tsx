@@ -2,13 +2,12 @@
  * Catalog page component with client-side pagination
  */
 
-import React, { useEffect, useState } from 'react';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Layout } from '@/components/layout/Layout';
-import { TierProgressBar } from '@/components/layout/TierProgressBar';
 import { ProductCard } from '@/components/common/ProductCard';
 import { PageLoader, SkeletonLoader } from '@/components/common/Loader';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -22,9 +21,30 @@ import {
 import { texts } from '@/config/texts';
 import { cn } from '@/lib/utils';
 import { CategoryIconDisplay } from '@/config/categoryIcons';
-import { StreakCampaignBlock } from '@/plugins/streak';
-
 const ITEMS_PER_PAGE = 12;
+
+const catalogProductStagger = {
+  hidden: {},
+  show: {
+    transition: { staggerChildren: 0.045, delayChildren: 0.04 },
+  },
+};
+
+const catalogProductItem = {
+  hidden: {
+    opacity: 0,
+    y: 32,
+    scale: 0.92,
+    rotate: -2,
+  },
+  show: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    rotate: 0,
+    transition: { type: 'spring' as const, stiffness: 420, damping: 24 },
+  },
+};
 
 const Catalog: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -38,6 +58,7 @@ const Catalog: React.FC = () => {
   } = useAppSelector((state) => state.products);
   
   const [currentPage, setCurrentPage] = useState(1);
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     if (items.length === 0) {
@@ -53,9 +74,12 @@ const Catalog: React.FC = () => {
     setCurrentPage(1);
   }, [selectedCategory, searchQuery]);
 
-  const handleCategoryClick = (categoryName: string | null) => {
-    dispatch(setSelectedCategory(categoryName));
-  };
+  const handleCategoryClick = useCallback(
+    (categoryName: string | null) => {
+      dispatch(setSelectedCategory(categoryName));
+    },
+    [dispatch]
+  );
 
   const handleClearFilters = () => {
     dispatch(clearFilters());
@@ -83,16 +107,6 @@ const Catalog: React.FC = () => {
 
   return (
     <Layout>
-      {/* Bara de progres nivel – aliniată cu contentul principal */}
-      <section className="pt-4">
-        <div className="container mx-auto px-4">
-          <div className="max-w-xl mx-auto">
-            <TierProgressBar />
-          </div>
-        </div>
-      </section>
-      {/* Campanii active – full-width, ca înainte */}
-      <StreakCampaignBlock />
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -101,33 +115,80 @@ const Catalog: React.FC = () => {
           </h1>
         </div>
 
-        {/* Category Filters */}
+        {/* Category Filters — exact ca prima dată (spring + icon ușor), fără confetti */}
         <div className="mb-8">
-          <div className="flex flex-wrap gap-2">
-            <Badge
-              variant={selectedCategory === null ? 'default' : 'outline'}
-              className={cn(
-                'cursor-pointer px-4 py-2 text-sm transition-colors',
-                selectedCategory === null && 'bg-primary text-primary-foreground'
-              )}
-              onClick={() => handleCategoryClick(null)}
+          <div className="flex flex-wrap gap-2 items-center">
+            <motion.div
+              whileTap={reduceMotion ? {} : { scale: 0.9 }}
+              animate={
+                reduceMotion
+                  ? {}
+                  : selectedCategory === null
+                    ? { scale: [1, 1.12, 1], rotate: [0, -6, 6, -3, 3, 0] }
+                    : { scale: 1, rotate: 0 }
+              }
+              transition={{ type: 'spring', stiffness: 500, damping: 14 }}
             >
-              {texts.catalog.allCategories}
-            </Badge>
-            {categories.map((category) => (
               <Badge
-                key={category.id}
-                variant={selectedCategory === category.name ? 'default' : 'outline'}
+                variant={selectedCategory === null ? 'default' : 'outline'}
                 className={cn(
                   'cursor-pointer px-4 py-2 text-sm transition-colors',
-                  selectedCategory === category.name && 'bg-primary text-primary-foreground'
+                  selectedCategory === null && 'bg-primary text-primary-foreground'
                 )}
-                onClick={() => handleCategoryClick(category.name)}
+                onClick={() => handleCategoryClick(null)}
               >
-                <span className="mr-1 inline-flex"><CategoryIconDisplay categoryName={category.name} iconId={(category as any).icon} size={14} /></span>
-                {category.displayName}
+                {texts.catalog.allCategories}
               </Badge>
-            ))}
+            </motion.div>
+            {categories.map((category) => {
+              const active = selectedCategory === category.name;
+              return (
+                <motion.div
+                  key={category.id}
+                  whileTap={reduceMotion ? {} : { scale: 0.88 }}
+                  animate={
+                    reduceMotion
+                      ? {}
+                      : active
+                        ? { scale: [1, 1.14, 1], rotate: [0, 8, -8, 5, -5, 0] }
+                        : { scale: 1, rotate: 0 }
+                  }
+                  transition={{ type: 'spring', stiffness: 480, damping: 13 }}
+                >
+                  <Badge
+                    variant={active ? 'default' : 'outline'}
+                    className={cn(
+                      'cursor-pointer px-4 py-2 text-sm transition-colors',
+                      active && 'bg-primary text-primary-foreground'
+                    )}
+                    onClick={() => handleCategoryClick(category.name)}
+                  >
+                    <span className="mr-1 inline-flex align-middle">
+                      <motion.span
+                        animate={
+                          !reduceMotion && active
+                            ? {
+                                y: [0, -20, -5, 0],
+                                scale: [1, 1.55, 1.12, 1],
+                                rotate: [0, 16, -12, 0],
+                              }
+                            : {}
+                        }
+                        transition={{
+                          duration: 0.62,
+                          ease: [0.25, 0.46, 0.45, 0.94],
+                          times: [0, 0.38, 0.72, 1],
+                        }}
+                        className="inline-flex items-center justify-center origin-center"
+                      >
+                        <CategoryIconDisplay categoryName={category.name} iconId={(category as any).icon} size={20} />
+                      </motion.span>
+                    </span>
+                    {category.displayName}
+                  </Badge>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
 
@@ -154,11 +215,36 @@ const Catalog: React.FC = () => {
           </div>
         ) : paginatedItems.length > 0 ? (
           <>
-          <div className="flex flex-col gap-3 md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:gap-6 2xl:gap-7">
-              {paginatedItems.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${selectedCategory ?? 'all'}-${searchQuery}-${currentPage}`}
+                className="flex flex-col gap-3 md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:gap-6 2xl:gap-7"
+                variants={
+                  reduceMotion
+                    ? { hidden: {}, show: { transition: { staggerChildren: 0.02 } } }
+                    : catalogProductStagger
+                }
+                initial="hidden"
+                animate="show"
+                exit={{ opacity: 0, transition: { duration: reduceMotion ? 0.08 : 0.12 } }}
+              >
+                {paginatedItems.map((product) => (
+                  <motion.div
+                    key={product.id}
+                    variants={
+                      reduceMotion
+                        ? {
+                            hidden: { opacity: 0 },
+                            show: { opacity: 1, transition: { duration: 0.2 } },
+                          }
+                        : catalogProductItem
+                    }
+                  >
+                    <ProductCard product={product} />
+                  </motion.div>
+                ))}
+              </motion.div>
+            </AnimatePresence>
 
             {/* Pagination */}
             {totalPages > 1 && (

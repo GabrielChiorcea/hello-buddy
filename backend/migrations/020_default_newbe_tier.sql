@@ -7,7 +7,7 @@
 INSERT INTO loyalty_tiers (id, name, xp_threshold, points_multiplier, badge_icon, sort_order, benefit_description)
 VALUES (
     'a0000000-0000-4000-8000-000000000001',
-    'Newbe',
+    'Incepator',
     0,
     1.00,
     NULL,
@@ -15,7 +15,7 @@ VALUES (
     'Nivelul de start pentru utilizatori noi'
 )
 ON DUPLICATE KEY UPDATE
-    name = 'Newbe',
+    name = 'Incepator',
     xp_threshold = 0,
     points_multiplier = 1.00,
     sort_order = 0,

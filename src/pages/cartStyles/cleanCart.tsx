@@ -9,7 +9,6 @@ import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Layout } from '@/components/layout/Layout';
-import { TierProgressBar } from '@/components/layout/TierProgressBar';
 import { CartAddonSectionWrapped } from '@/plugins/addons';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
@@ -19,7 +18,17 @@ import type { OrderItemConfigurationGroup } from '@/types';
 import { FREE_DELIVERY_THRESHOLD } from '@/config/cart';
 
 export const CleanCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
-  const { items, subtotal, deliveryFee, total, orderPreview, freeProductProgress, handleRemoveItem, handleQuantityChange, handleCheckout } = data;
+  const {
+    items,
+    subtotal,
+    deliveryFee,
+    total,
+    orderPreview,
+    freeProductProgress,
+    handleRemoveItem,
+    handleQuantityChange,
+    handleCheckout,
+  } = data;
   const summarySubtotal = orderPreview?.subtotal ?? subtotal;
   const summaryDelivery = orderPreview?.deliveryFee ?? deliveryFee;
   const summaryTotal = orderPreview?.total ?? total;
@@ -30,7 +39,6 @@ export const CleanCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
         <div className="container mx-auto px-4 py-8">
           <h1 className="text-2xl font-medium mb-4 text-foreground">{texts.cart.title}</h1>
         </div>
-        <TierProgressBar />
         <div className="container mx-auto px-4 py-20">
           <div className="max-w-sm mx-auto text-center">
             <ShoppingBag className="h-10 w-10 text-muted-foreground/40 mx-auto mb-6" />
@@ -50,7 +58,6 @@ export const CleanCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-medium mb-8 text-foreground">{texts.cart.title}</h1>
       </div>
-      <TierProgressBar />
       <div className="container mx-auto px-4 py-8">
         <div className="grid gap-12 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-0 min-w-0">
@@ -115,18 +122,19 @@ export const CleanCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                   <span>{summaryDelivery === 0 ? texts.cart.freeDelivery : `${summaryDelivery} ${texts.common.currency}`}</span>
                 </div>
                 {summaryDelivery > 0 && <p className="text-xs text-muted-foreground">Gratuit peste {orderPreview?.freeDeliveryThreshold ?? FREE_DELIVERY_THRESHOLD} {texts.common.currency}</p>}
-                {freeProductProgress && (
+                {(orderPreview?.discountFromFreeProducts ?? 0) > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className={orderPreview?.discountFromFreeProducts ? 'text-success' : 'text-muted-foreground'}>{texts.freeProducts.cartDiscountLabel}</span>
-                    <span className={orderPreview?.discountFromFreeProducts ? 'text-success' : 'text-muted-foreground'}>
+                    <span className="text-success">{texts.freeProducts.cartDiscountLabel}</span>
+                    <span className="text-success">
                       -{(orderPreview?.discountFromFreeProducts ?? 0).toFixed(2)} {texts.common.currency}
                     </span>
                   </div>
                 )}
                 {freeProductProgress && !freeProductProgress.unlocked && (
-                  <p className="text-xs text-muted-foreground">Mai adaugă {freeProductProgress.remaining.toFixed(2)} {texts.common.currency} pentru produse gratuite</p>
+                  <p className="text-xs text-muted-foreground">
+                    Mai adaugă {freeProductProgress.remaining.toFixed(2)} {texts.common.currency} pentru produse gratuite
+                  </p>
                 )}
-                
               </div>
               <Separator />
               <div className="flex justify-between font-medium">

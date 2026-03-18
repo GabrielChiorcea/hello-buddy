@@ -25,14 +25,26 @@ interface ProductCardProps {
   product: Product;
   className?: string;
   disableLink?: boolean;
+  /** Ascunde puncte loialitate și panglica „gratis” (ex. în catalog) */
+  suppressLoyaltyHints?: boolean;
+  /** Limitează ingredientele/descrierea la 2 rânduri */
+  compactSubtitle?: boolean;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, className, disableLink = false }) => {
+const ProductCard: React.FC<ProductCardProps> = ({
+  product,
+  className,
+  disableLink = false,
+  suppressLoyaltyHints = false,
+  compactSubtitle = false,
+}) => {
   const style = useProductCardStyle();
-  const data = useProductCardData(product);
+  const data = useProductCardData(product, { suppressLoyaltyHints });
   const Variant = CARD_VARIANTS[style];
 
-  const card = <Variant product={product} className={className} data={data} />;
+  const card = (
+    <Variant product={product} className={className} data={data} compactSubtitle={compactSubtitle} />
+  );
 
   if (disableLink) return card;
 

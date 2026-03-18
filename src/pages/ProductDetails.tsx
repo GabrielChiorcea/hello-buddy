@@ -245,9 +245,9 @@ const ProductDetails: React.FC = () => {
             <h2 className="text-2xl font-bold text-foreground mb-6">
               {texts.productDetails.similarProducts}
             </h2>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 items-start">
               {similarProducts.map((p) => (
-                <ProductCard key={p.id} product={p} />
+                <ProductCard key={p.id} product={p} compactSubtitle className="min-w-0" />
               ))}
             </div>
           </div>
