@@ -115,6 +115,7 @@ export async function getOrder(req: Request, res: Response): Promise<void> {
         name: user.name,
         email: user.email,
         phone: user.phone,
+        tierName: user.tier_name,
       } : null,
       statusHistory: statusHistory.map(sh => ({
         status: sh.status,
