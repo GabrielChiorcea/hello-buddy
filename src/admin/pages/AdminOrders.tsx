@@ -638,13 +638,25 @@ export default function AdminOrders() {
                 <div className="space-y-2">
                   {selectedOrder.items.map((item, index) => {
                     const unitPrice = item.unitPriceWithConfiguration ?? item.priceAtOrder;
+                    // Detectăm dacă acest produs a fost oferit gratuit (discount > 0 și prețul se potrivește)
+                    const isFreeProduct = (selectedOrder.discountFromFreeProducts ?? 0) > 0
+                      && unitPrice === selectedOrder.discountFromFreeProducts;
                     return (
                       <div key={index} className="text-sm">
                         <div className="flex justify-between">
-                          <span>
+                          <span className="flex items-center gap-1.5">
                             {item.quantity}x {item.productName}
+                            {isFreeProduct && (
+                              <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">GRATIS</Badge>
+                            )}
                           </span>
-                          <span>{(unitPrice * item.quantity).toFixed(2)} RON</span>
+                          <span>
+                            {isFreeProduct ? (
+                              <span className="text-primary">-{unitPrice.toFixed(2)} RON</span>
+                            ) : (
+                              `${(unitPrice * item.quantity).toFixed(2)} RON`
+                            )}
+                          </span>
                         </div>
                         {item.configuration && item.configuration.length > 0 && (
                           <p className="text-xs text-muted-foreground ml-4 mt-0.5">
