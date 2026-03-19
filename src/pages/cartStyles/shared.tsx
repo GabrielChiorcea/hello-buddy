@@ -31,6 +31,14 @@ export interface FreeProductProgress {
   productNames: string[];
 }
 
+export interface FreeDeliveryProgress {
+  threshold: number;
+  current: number;
+  remaining: number;
+  unlocked: boolean;
+  percent: number;
+}
+
 export interface CartDisplayData {
   items: Array<{
     product: any;
@@ -44,9 +52,14 @@ export interface CartDisplayData {
   isAuthenticated: boolean;
   orderPreview: OrderPreviewData | null;
   freeProductProgress: FreeProductProgress | null;
+  freeDeliveryProgress: FreeDeliveryProgress;
+  /** Fake countdown seconds remaining (UI only) */
+  countdownSeconds: number;
+  totalSavings: number;
   handleRemoveItem: (productId: string, productName: string, configuration?: OrderItemConfigurationGroup[]) => void;
   handleQuantityChange: (productId: string, newQuantity: number, configuration?: OrderItemConfigurationGroup[]) => void;
   handleCheckout: () => void;
+  handleContinueShoppingWithToast: () => void;
 }
 
 export function useCartData(): CartDisplayData {
