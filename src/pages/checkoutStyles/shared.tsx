@@ -354,35 +354,72 @@ export const PaymentSelector: React.FC<{ data: CheckoutDisplayData }> = ({ data 
   </div>
 );
 
-export const OrderSummaryContent: React.FC<{ data: CheckoutDisplayData }> = ({ data }) => (
-  <>
-    <CardHeader><CardTitle>{texts.checkout.orderSummary}</CardTitle></CardHeader>
-    <CardContent className="space-y-4">
-      <div className="space-y-2">
-        {data.items.map(({ product, quantity }) => (
-          <div key={product.id} className="flex justify-between text-sm">
-            <span className="text-muted-foreground">{product.name} x {quantity}</span>
-            <span>{product.price * quantity} {texts.common.currency}</span>
-          </div>
-        ))}
-      </div>
-      <Separator />
-      <div className="flex justify-between"><span className="text-muted-foreground">{texts.cart.subtotal}</span><span className="font-medium">{data.subtotal} {texts.common.currency}</span></div>
-      <div className="flex justify-between">
-        <span className="text-muted-foreground">{texts.cart.delivery}</span>
-        <span className="font-medium">{data.effectiveDeliveryFee === 0 ? <span className="text-primary">{texts.cart.freeDelivery}</span> : `${data.deliveryFee} ${texts.common.currency}`}</span>
-      </div>
-      {data.discountFromFreeProducts > 0 && <div className="flex justify-between text-sm text-primary"><span>Produse gratuite</span><span>-{data.discountFromFreeProducts} {texts.common.currency}</span></div>}
-      {data.discountFromPoints > 0 && <div className="flex justify-between text-sm text-primary"><span>Reducere puncte</span><span>-{data.discountFromPoints} {texts.common.currency}</span></div>}
-      <Separator />
-      <div className="flex justify-between text-lg font-bold"><span>{texts.cart.total}</span><span className="text-primary">{data.displayTotal} {texts.common.currency}</span></div>
-    </CardContent>
-  </>
-);
+export const OrderSummaryContent: React.FC<{ data: CheckoutDisplayData }> = ({ data }) => {
+  const totalSavings = (data.discountFromFreeProducts || 0) + (data.discountFromPoints || 0) + (data.effectiveDeliveryFee === 0 && data.subtotal > 0 ? 10 : 0);
 
-export const SubmitButton: React.FC<{ isLoading: boolean }> = ({ isLoading }) => (
+  return (
+    <>
+      <CardHeader><CardTitle>{texts.checkout.orderSummary}</CardTitle></CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          {data.items.map(({ product, quantity }) => {
+            const isFree = data.discountFromFreeProducts > 0 && product.price <= data.discountFromFreeProducts;
+            return (
+              <div key={product.id} className="flex justify-between text-sm">
+                <span className="text-muted-foreground flex items-center gap-1.5">
+                  {product.name} x {quantity}
+                  {isFree && <span className="text-[10px] font-bold text-success bg-success/10 px-1.5 py-0.5 rounded">GRATIS</span>}
+                </span>
+                <span className={isFree ? 'line-through text-muted-foreground/50' : ''}>
+                  {product.price * quantity} {texts.common.currency}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+        <Separator />
+        <div className="flex justify-between"><span className="text-muted-foreground">{texts.cart.subtotal}</span><span className="font-medium">{data.subtotal} {texts.common.currency}</span></div>
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">{texts.cart.delivery}</span>
+          <span className="font-medium">{data.effectiveDeliveryFee === 0 ? <span className="text-primary">{texts.cart.freeDelivery}</span> : `${data.deliveryFee} ${texts.common.currency}`}</span>
+        </div>
+        {data.discountFromFreeProducts > 0 && (
+          <div className="flex justify-between text-sm text-success font-medium">
+            <span>🎁 Produse gratuite</span>
+            <span>-{data.discountFromFreeProducts} {texts.common.currency}</span>
+          </div>
+        )}
+        {data.discountFromPoints > 0 && (
+          <div className="flex justify-between text-sm text-primary font-medium">
+            <span>⭐ Reducere puncte</span>
+            <span>-{data.discountFromPoints} {texts.common.currency}</span>
+          </div>
+        )}
+        <Separator />
+        <div className="flex justify-between text-lg font-bold"><span>{texts.cart.total}</span><span className="text-primary">{data.displayTotal} {texts.common.currency}</span></div>
+
+        {/* Savings banner */}
+        {totalSavings > 0 && (
+          <div className="bg-success/10 border border-success/20 rounded-lg p-3 text-center">
+            <p className="text-sm font-bold text-success">
+              🔥 Economisești {totalSavings.toFixed(2)} {texts.common.currency} la această comandă!
+            </p>
+          </div>
+        )}
+      </CardContent>
+    </>
+  );
+};
+
+export const SubmitButton: React.FC<{ isLoading: boolean; savings?: number }> = ({ isLoading, savings }) => (
   <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
-    {isLoading ? <><Loader size="sm" className="mr-2" />{texts.checkout.processing}</> : texts.checkout.placeOrder}
+    {isLoading ? (
+      <><Loader size="sm" className="mr-2" />{texts.checkout.processing}</>
+    ) : savings && savings > 0 ? (
+      `Finalizează acum — economisești ${savings.toFixed(0)} ${texts.common.currency}`
+    ) : (
+      texts.checkout.placeOrder
+    )}
   </Button>
 );
 
@@ -461,7 +498,9 @@ export const CheckoutTemplate: React.FC<{ data: CheckoutDisplayData; variant: St
               <div>
                 <Card className={summaryCn}>
                   <OrderSummaryContent data={data} />
-                  <CardFooter><SubmitButton isLoading={data.isLoading} /></CardFooter>
+                  <CardFooter>
+                    <SubmitButton isLoading={data.isLoading} savings={(data.discountFromFreeProducts || 0) + (data.discountFromPoints || 0) + (data.effectiveDeliveryFee === 0 && data.subtotal > 0 ? 10 : 0)} />
+                  </CardFooter>
                 </Card>
               </div>
             </div>

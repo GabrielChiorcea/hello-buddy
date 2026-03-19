@@ -6,7 +6,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
-import { Zap, Check, Plus } from 'lucide-react';
+import { Zap, Check, Plus, TrendingUp } from 'lucide-react';
 import { texts } from '@/config/texts';
 import { cn } from '@/lib/utils';
 import { getProductUrl } from '@/config/routes';
@@ -16,6 +16,7 @@ import { getProductCardMetaLine } from './shared';
 export const GamifiedCard: React.FC<CardVariantProps> = ({ product, className, data, compactSubtitle }) => {
   const navigate = useNavigate();
   const { handleAddToCart, isAdded, pointsInfo, imageUrl, categoryLabel, showFreeRibbon, hasOptions } = data;
+  const isRecommended = (product as any).isRecommended === true;
 
   return (
     <div
@@ -62,6 +63,12 @@ export const GamifiedCard: React.FC<CardVariantProps> = ({ product, className, d
             {pointsInfo}
           </Badge>
         )}
+        {isRecommended && (
+          <Badge className="absolute left-2 bottom-2 bg-primary text-primary-foreground border-0 text-[10px] font-bold gap-1 hidden md:inline-flex animate-pulse">
+            <TrendingUp className="h-3 w-3" />
+            Popular
+          </Badge>
+        )}
         <Badge variant="secondary" className="absolute left-2 top-2 text-[10px] hidden md:inline-flex bg-card/90 backdrop-blur-md border-0">
           {categoryLabel}
         </Badge>
@@ -90,7 +97,13 @@ export const GamifiedCard: React.FC<CardVariantProps> = ({ product, className, d
 
         {/* Desktop bottom */}
         <div className="hidden md:flex items-center justify-between mt-auto pt-2.5">
-          <span className="text-lg font-extrabold text-primary">{product.price} {texts.common.currency}</span>
+          <span className="text-lg font-extrabold text-primary">
+            {showFreeRibbon ? (
+              <><span className="line-through text-muted-foreground text-sm mr-1">{product.price} {texts.common.currency}</span><span className="text-success">GRATIS</span></>
+            ) : (
+              <>{product.price} {texts.common.currency}</>
+            )}
+          </span>
           <div className="flex items-center gap-2">
             {hasOptions && (
               <button
@@ -127,7 +140,13 @@ export const GamifiedCard: React.FC<CardVariantProps> = ({ product, className, d
         {/* Mobile bottom */}
         <div className="flex items-center justify-between mt-1.5 md:hidden">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-extrabold text-primary">{product.price} {texts.common.currency}</span>
+            <span className="text-sm font-extrabold text-primary">
+              {showFreeRibbon ? (
+                <><span className="line-through text-muted-foreground text-xs mr-1">{product.price}</span><span className="text-success">GRATIS</span></>
+              ) : (
+                <>{product.price} {texts.common.currency}</>
+              )}
+            </span>
             {pointsInfo && (
               <span className="text-[10px] font-bold text-reward flex items-center gap-0.5">
                 <Zap className="h-2.5 w-2.5" />

@@ -5,11 +5,13 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ArrowRight, Zap } from 'lucide-react';
+import { Search, ArrowRight, Zap, ShoppingBag, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Layout } from '@/components/layout/Layout';
+import { useAppSelector } from '@/store';
+import { selectCartItemCount } from '@/store/slices/cartSlice';
 import { TierProgressBar } from '@/components/layout/TierProgressBar';
 import { ProductCard } from '@/components/common/ProductCard';
 import { PageLoader } from '@/components/common/Loader';
@@ -22,6 +24,10 @@ import { easeOut, fadeUp, staggerContainer, cardVariant } from './shared';
 
 export const GamifiedHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
   const { items, filteredItems, categories, searchQuery, isLoading, recommendedProducts, totalProducts, handleSearch, handleCategoryClick } = data;
+  const { isAuthenticated, user } = useAppSelector((s) => s.user);
+  const cartItemCount = useAppSelector(selectCartItemCount);
+  const cartSubtotal = useAppSelector((s) => s.cart.subtotal);
+  const hasFreeProductCampaigns = (user?.freeProductCampaignsSummary?.length ?? 0) > 0;
 
   if (isLoading && items.length === 0) return <Layout><PageLoader /></Layout>;
 
@@ -36,11 +42,27 @@ export const GamifiedHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
               <Zap className="h-4 w-4" /> Comandă acum!
             </motion.div>
             <motion.h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: easeOut }}>
-              {texts.home.heroTitle}
+              {isAuthenticated && user
+                ? <>Bine ai revenit, <span className="text-primary-foreground/90">{user.name?.split(' ')[0]}</span>!</>
+                : texts.home.heroTitle}
             </motion.h1>
-            <motion.p className="text-lg md:text-xl text-primary-foreground/80 mb-8" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15, ease: easeOut }}>
-              {texts.home.heroSubtitle}
+            <motion.p className="text-lg md:text-xl text-primary-foreground/80 mb-4" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15, ease: easeOut }}>
+              {isAuthenticated && user?.pointsBalance
+                ? <>Ai <strong>{user.pointsBalance} puncte</strong> de folosit · {user.tier?.name && <span>Nivel: <strong>{user.tier.name}</strong></span>}</>
+                : texts.home.heroSubtitle}
             </motion.p>
+            {/* Limited offer banner */}
+            {isAuthenticated && hasFreeProductCampaigns && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="inline-flex items-center gap-2 bg-primary-foreground/20 border border-primary-foreground/30 rounded-full px-5 py-2 mb-6 text-sm font-bold"
+              >
+                <Star className="h-4 w-4 fill-primary-foreground" />
+                Produse GRATIS pentru nivelul tău — doar astăzi!
+              </motion.div>
+            )}
             <motion.div className="relative max-w-xl mx-auto" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.3, ease: easeOut }}>
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input type="text" placeholder={texts.home.searchPlaceholder} value={searchQuery} onChange={handleSearch} className="pl-12 pr-4 h-14 text-lg rounded-full border-2 border-primary-foreground/20 bg-background text-foreground focus-visible:ring-primary-foreground/30" />
@@ -114,13 +136,30 @@ export const GamifiedHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
         </section>
       )}
 
-      {/* CTA */}
+      {/* CTA — personalized if cart has items */}
       <section className="py-16 md:py-24">
         <div className="container mx-auto px-4">
           <motion.div className="bg-primary rounded-2xl p-8 md:p-12 text-center shadow-2xl shadow-primary/20" initial={{ opacity: 0, scale: 0.96 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
-            <h2 className="text-2xl md:text-3xl font-extrabold text-primary-foreground mb-4">Pregătit să comanzi?</h2>
-            <p className="text-primary-foreground/80 mb-6 max-w-xl mx-auto">Explorează catalogul nostru complet și alege din cele mai bune preparate.</p>
-            <Button size="lg" variant="secondary" asChild className="rounded-xl font-bold"><Link to={routes.catalog}>{texts.home.orderNow}<ArrowRight className="ml-2 h-5 w-5" /></Link></Button>
+            {cartItemCount > 0 ? (
+              <>
+                <div className="flex items-center justify-center gap-2 mb-4">
+                  <ShoppingBag className="h-7 w-7 text-primary-foreground" />
+                  <h2 className="text-2xl md:text-3xl font-extrabold text-primary-foreground">
+                    Ai {cartItemCount} produse în coș · {cartSubtotal.toFixed(0)} {texts.common.currency}
+                  </h2>
+                </div>
+                <p className="text-primary-foreground/80 mb-6 max-w-xl mx-auto">Finalizează comanda acum și nu pierde reducerile!</p>
+                <Button size="lg" variant="secondary" asChild className="rounded-xl font-bold">
+                  <Link to={routes.checkout}>Finalizează comanda<ArrowRight className="ml-2 h-5 w-5" /></Link>
+                </Button>
+              </>
+            ) : (
+              <>
+                <h2 className="text-2xl md:text-3xl font-extrabold text-primary-foreground mb-4">Pregătit să comanzi?</h2>
+                <p className="text-primary-foreground/80 mb-6 max-w-xl mx-auto">Explorează catalogul nostru complet și alege din cele mai bune preparate.</p>
+                <Button size="lg" variant="secondary" asChild className="rounded-xl font-bold"><Link to={routes.catalog}>{texts.home.orderNow}<ArrowRight className="ml-2 h-5 w-5" /></Link></Button>
+              </>
+            )}
           </motion.div>
         </div>
       </section>

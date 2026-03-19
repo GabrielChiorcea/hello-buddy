@@ -1,22 +1,30 @@
 /**
  * Cart — Gamified
- * Bold, energic, recompense vizibile.
+ * Bold, energic, recompense vizibile, urgency bars & FOMO triggers.
  */
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Zap } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Zap, Clock, Truck, Gift, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { Layout } from '@/components/layout/Layout';
 import { CartAddonSectionWrapped } from '@/plugins/addons';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { getImageUrl } from '@/lib/imageUrl';
+import { cn } from '@/lib/utils';
 import type { CartDisplayData } from './shared';
 import type { OrderItemConfigurationGroup } from '@/types';
-import { FREE_DELIVERY_THRESHOLD } from '@/config/cart';
+
+const formatCountdown = (seconds: number) => {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+};
 
 export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
   const {
@@ -26,9 +34,13 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
     total,
     orderPreview,
     freeProductProgress,
+    freeDeliveryProgress,
+    countdownSeconds,
+    totalSavings,
     handleRemoveItem,
     handleQuantityChange,
     handleCheckout,
+    handleContinueShoppingWithToast,
   } = data;
   const summarySubtotal = orderPreview?.subtotal ?? subtotal;
   const summaryDelivery = orderPreview?.deliveryFee ?? deliveryFee;
@@ -67,12 +79,74 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-extrabold mb-4 text-foreground flex items-center gap-3">
-          <Zap className="h-7 w-7 text-primary" />
-          {texts.cart.title}
-        </h1>
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-3xl font-extrabold text-foreground flex items-center gap-3">
+            <Zap className="h-7 w-7 text-primary" />
+            {texts.cart.title}
+          </h1>
+          {/* Countdown timer */}
+          <div className="flex items-center gap-2 bg-destructive/10 text-destructive rounded-full px-4 py-1.5 text-sm font-bold animate-pulse">
+            <Clock className="h-4 w-4" />
+            <span>Expiră în {formatCountdown(countdownSeconds)}</span>
+          </div>
+        </div>
+
+        {/* Urgency progress bars */}
+        <div className="space-y-3 mb-6">
+          {/* Free delivery progress */}
+          <div className={cn(
+            'rounded-xl border p-4 transition-all',
+            freeDeliveryProgress.unlocked
+              ? 'bg-success/10 border-success/30'
+              : 'bg-card border-primary/15'
+          )}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Truck className={cn('h-4 w-4', freeDeliveryProgress.unlocked ? 'text-success' : 'text-primary')} />
+                <span className="text-sm font-bold text-foreground">
+                  {freeDeliveryProgress.unlocked
+                    ? '🎉 Livrare GRATUITĂ deblocată!'
+                    : `Mai adaugă ${freeDeliveryProgress.remaining.toFixed(0)} ${texts.common.currency} pentru livrare GRATUITĂ!`}
+                </span>
+              </div>
+              {freeDeliveryProgress.unlocked && (
+                <Badge className="bg-success text-success-foreground border-0 text-xs">-{(orderPreview?.deliveryFee ?? deliveryFee) === 0 ? '10' : '10'} RON</Badge>
+              )}
+            </div>
+            <Progress
+              value={freeDeliveryProgress.percent}
+              className={cn('h-2.5', freeDeliveryProgress.unlocked ? '[&>div]:bg-success' : '[&>div]:bg-primary')}
+            />
+          </div>
+
+          {/* Free product progress */}
+          {freeProductProgress && (
+            <div className={cn(
+              'rounded-xl border p-4 transition-all',
+              freeProductProgress.unlocked
+                ? 'bg-success/10 border-success/30'
+                : 'bg-card border-primary/15'
+            )}>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Gift className={cn('h-4 w-4', freeProductProgress.unlocked ? 'text-success' : 'text-primary')} />
+                  <span className="text-sm font-bold text-foreground">
+                    {freeProductProgress.unlocked
+                      ? `🎁 Produse GRATIS deblocate: ${freeProductProgress.productNames.join(', ')}!`
+                      : `Mai adaugă ${freeProductProgress.remaining.toFixed(0)} ${texts.common.currency} și primești ${freeProductProgress.productNames[0] ?? 'produs'} GRATIS!`}
+                  </span>
+                </div>
+              </div>
+              <Progress
+                value={Math.min(100, (freeProductProgress.paidSubtotal / freeProductProgress.minOrderValue) * 100)}
+                className={cn('h-2.5', freeProductProgress.unlocked ? '[&>div]:bg-success' : '[&>div]:bg-primary')}
+              />
+            </div>
+          )}
+        </div>
       </div>
-      <div className="container mx-auto px-4 py-8">
+
+      <div className="container mx-auto px-4 pb-8">
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-4 min-w-0">
           {items.map(({ product, quantity, configuration }) => (
@@ -122,8 +196,8 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
             ))}
             <CartAddonSectionWrapped />
             <div className="pt-4">
-              <Button variant="outline" asChild className="rounded-xl">
-                <Link to={routes.catalog}>{texts.cart.continueShopping}</Link>
+              <Button variant="outline" className="rounded-xl" onClick={handleContinueShoppingWithToast}>
+                {texts.cart.continueShopping}
               </Button>
             </div>
           </div>
@@ -142,7 +216,7 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                   <span className="text-muted-foreground">{texts.cart.delivery}</span>
                   <span className="font-bold">{summaryDelivery === 0 ? <span className="text-success">{texts.cart.freeDelivery}</span> : `${summaryDelivery} ${texts.common.currency}`}</span>
                 </div>
-                {summaryDelivery > 0 && <p className="text-xs text-muted-foreground">Livrare gratuită peste {orderPreview?.freeDeliveryThreshold ?? FREE_DELIVERY_THRESHOLD} {texts.common.currency}</p>}
+                {summaryDelivery > 0 && <p className="text-xs text-muted-foreground">Livrare gratuită peste {orderPreview?.freeDeliveryThreshold ?? freeDeliveryProgress.threshold} {texts.common.currency}</p>}
                 {(orderPreview?.discountFromFreeProducts ?? 0) > 0 && (
                   <div className="flex justify-between">
                     <span className="text-success">{texts.freeProducts.cartDiscountLabel}</span>
@@ -161,12 +235,28 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                   <span>{texts.cart.total}</span>
                   <span className="text-primary">{summaryTotal} {texts.common.currency}</span>
                 </div>
+
+                {/* Savings summary */}
+                {totalSavings > 0 && (
+                  <div className="flex items-center gap-2 bg-success/10 border border-success/20 rounded-lg p-3 mt-2">
+                    <Flame className="h-4 w-4 text-success shrink-0" />
+                    <span className="text-sm font-bold text-success">
+                      Economisești {totalSavings.toFixed(2)} {texts.common.currency} la această comandă!
+                    </span>
+                  </div>
+                )}
               </CardContent>
-              <CardFooter>
+              <CardFooter className="flex-col gap-3">
                 <Button className="w-full rounded-xl font-bold shadow-lg shadow-primary/25" size="lg" onClick={handleCheckout}>
-                  {texts.cart.checkout}
+                  {totalSavings > 0
+                    ? `Finalizează — economisești ${totalSavings.toFixed(0)} ${texts.common.currency}`
+                    : texts.cart.checkout}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
+                <p className="text-xs text-center text-muted-foreground">
+                  <Clock className="inline h-3 w-3 mr-1" />
+                  Ofertele expiră în {formatCountdown(countdownSeconds)}
+                </p>
               </CardFooter>
             </Card>
           </div>
