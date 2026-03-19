@@ -1,87 +1,81 @@
 
 
-# Plan: Marketing & Conversion Optimization
+# Plan: Marketing-Optimize Campaigns & Tier Bar (Gamified)
 
-Transformarea proiectului dintr-un produs de dev într-un produs optimizat de marketer, cu urgency, psychology triggers și vizualizare clară a recompenselor.
-
----
-
-## Zona 1: URGENCY & FOMO în Coș
-
-**Fișiere:** `src/pages/cartStyles/gamifiedCart.tsx`, `src/pages/cartStyles/shared.tsx`
-
-- **Progress bar animat „Livrare gratuită"**: Bară vizuală colorată care arată cât mai lipsește până la pragul de 75 RON (ex: „Mai adaugă 19 RON pentru livrare GRATUITĂ!"). Când e deblocat → confetti visual + text verde „Livrare gratuită deblocată!"
-- **Progress bar „Produs gratuit"**: Similiar, bară vizuală pentru pragul de 50 RON. Text „Mai adaugă X RON și primești [Fanta] GRATIS!" cu imagine mică a produsului gratuit
-- **Countdown timer vizual**: „Coșul tău expiră în 15:00" — timer fake care creează urgență (doar UI, nu blochează nimic)
-- **Mesaj abandon**: Când user-ul dă pe „Continuă cumpărăturile" → toast cu „Ai X RON în coș, nu pierde reducerile!"
-
-**Date noi în `shared.tsx`:**
-- `freeDeliveryProgress: { threshold, current, remaining, unlocked }`
-- `cartExpiryMinutes: number` (constant, doar UI)
+Focus pe transformarea campaniilor streak și a tier bar-ului din componente informative în componente care **împing acțiunea** — urgency, FOMO, progress visualization.
 
 ---
 
-## Zona 2: CHECKOUT — Evidențierea recompenselor
+## 1. Streak Campaign Block — Urgency & Push
 
-**Fișiere:** `src/pages/checkoutStyles/shared.tsx` (OrderSummaryContent)
+**Fișier:** `src/plugins/streak/components/StreakCampaignBlock.tsx`
 
-- **Reward activ vizibil**: Dacă user-ul are puncte aplicate → card highlight cu iconița de puncte, suma economisită și câte puncte rămân
-- **Produse gratuite evidențiate**: Item-urile gratuite din sumar afișate cu badge verde „GRATIS" + preț tăiat (~~8 RON~~) și „-8 RON"
-- **Savings summary**: Sub total → banner verde „Economisești X RON la această comandă!" (puncte + produse gratuite + livrare gratuită)
-- **Progres tier**: Mini-bar cu „Această comandă îți aduce +Y XP → mai ai Z XP până la [nivel următor]"
-- **Urgency CTA**: Butonul de submit schimbat din „Plasează comanda" → „Finalizează acum — economisești X RON"
+- **Countdown urgency**: Sub header, dacă o campanie se termină în ≤7 zile → banner roșu pulsant „Se termină în X zile! Nu pierde Y puncte bonus"
+- **Personalized CTA pentru neînscriși**: Dacă user-ul e autentificat dar nu e înscris → mesaj evidențiat „Ai ratat Z puncte luna trecută. Înscrie-te acum!"
+- **Section title mai agresiv**: „Câștigă puncte BONUS" în loc de „Campanii Active"
 
 ---
 
-## Zona 3: PSYCHOLOGY TRIGGERS pe ProductCard
+## 2. Gamified Campaign Card — FOMO & Triggers
 
-**Fișiere:** `src/components/common/productCardStyles/gamifiedCard.tsx`
+**Fișier:** `src/plugins/streak/components/styles/gamifiedCard.tsx`
 
-- **Badge „Popular"** pe produsele recomandate (când `product.isRecommended === true`)
-- **Badge „Ultimele bucăți"** random/configurat pentru urgency
-- **Preț tăiat vizual** când produsul e gratuit: ~~8 RON~~ → GRATIS
-
----
-
-## Zona 4: Home Page — Push & Urgency
-
-**Fișiere:** `src/pages/homeStyles/gamifiedHome.tsx`
-
-- **Hero personalizat**: Dacă user-ul e autentificat → „Bine ai revenit, [Nume]! Ai [X] puncte de folosit" în loc de textul generic
-- **Banner „Ofertă limitată"** sub hero: „Produse GRATIS pentru nivelul tău — doar astăzi!" (dacă are campanii active)
-- **CTA final personalizat**: Dacă coșul nu e gol → „Ai [X] produse în coș. Finalizează comanda!" cu buton direct spre checkout
+- **Urgency badge prominent**: Când rămân ≤3 zile → badge roșu animat (pulse) „ULTIMA ȘANSĂ!" în loc de simplu „X zile rămase"
+- **Loss aversion text**: Când user-ul e înscris dar nu a completat → „Ai deja X/Y comenzi — nu pierde progresul!" cu font bold pe ce pierde
+- **Reward highlight mai vizibil**: Punctele câștigate afișate ca un card separat cu glow — „Câștigi +150 puncte" cu iconița de cadou mai mare
+- **Social proof fake**: „432 participanți" badge mic sub header (număr static/random seed per campaign)
 
 ---
 
-## Zona 5: Checkout Success — Reinforce & Upsell
+## 3. Campaign Join Button — Conversion Push
 
-**Fișiere:** `src/pages/CheckoutSuccess.tsx`
+**Fișier:** `src/plugins/streak/components/CampaignJoinButton.tsx`
 
-- **Puncte câștigate prominent**: Card mare animat „Ai câștigat +X puncte!" cu progres vizual spre următorul reward
-- **Next reward teaser**: „Încă Y puncte și poți folosi o reducere de Z RON!"
-- **CTA „Comandă din nou"** mai prominent, cu mesaj „Comandă din nou și câștigi alte X puncte"
-
----
-
-## Zona 6: Navbar Cart Badge — Micro-urgency
-
-**Fișiere:** `src/components/layout/navbarStyles/shared.tsx`
-
-- **Pulse animation** pe badge-ul de coș când are items (atenție vizuală constantă)
-- **Tooltip rapid** la hover: „X produse · Y RON — finalizează acum"
+- **CTA text mai agresiv**: „Participă acum" → „Câștigă {bonusPoints} puncte — Începe acum!"
+- **Enrolled state cu urgency**: „Înscris — Continuă seria!" → „Streak activ! Comandă azi pentru a nu pierde progresul"
+- **Micro-animation**: Butonul de join pulsează ușor la fiecare 3 secunde pentru a atrage atenția
 
 ---
 
-## Rezumat tehnic
+## 4. Gamified Tier Bar — Progress & Push
 
-| Zonă | Fișiere principale | Complexitate |
-|------|-------------------|-------------|
-| Coș urgency bars | `cartStyles/gamifiedCart.tsx`, `shared.tsx` | Medie |
-| Checkout rewards | `checkoutStyles/shared.tsx` | Medie |
-| ProductCard badges | `gamifiedCard.tsx` | Mică |
-| Home personalizat | `gamifiedHome.tsx` | Mică |
-| Success upsell | `CheckoutSuccess.tsx` | Mică |
-| Navbar pulse | `navbarStyles/shared.tsx` | Mică |
+**Fișier:** `src/components/layout/tierStyles/gamifiedTier.tsx`
 
-Toate modificările sunt doar frontend (UI/UX). Nu necesită migrări sau schimbări backend. Datele necesare (puncte, tier, campanii gratuite) sunt deja disponibile în store/user state.
+- **Next reward teaser prominent**: Secțiunea „La nivelul următor" transformată într-un card cu border glow — „Încă X XP și deblochezi: Puncte x2.0! + Produse gratuite noi"
+- **Loss aversion**: Dacă progresul e >50% → text „Ești la jumătate! Nu te opri acum"
+- **Milestone celebration**: La 75%+ progres → sparkle animation pe bară + text „Aproape acolo!"
+- **Micro-CTA**: Link/buton „Comandă acum" sub next tier teaser care duce la catalog
+
+---
+
+## 5. Tier Progress Bar (wrapper) — Unauthenticated Push
+
+**Fișier:** `src/components/layout/TierProgressBar.tsx`
+
+- **FOMO pentru neautentificați**: Tier grid-ul existent + text „Alți clienți câștigă deja puncte bonus! Autentifică-te pentru a nu pierde"
+- **Animated arrow** pe butonul de login
+
+---
+
+## 6. Free Products Tier Grid — Urgency
+
+**Fișier:** `src/components/layout/tierStyles/FreeProductsTierGrid.tsx`
+
+- **Badge „GRATIS" mai vizibil**: Fiecare produs cu un badge verde „GRATIS" în loc de text simplu
+- **Urgency text**: „Disponibil doar pentru rangul tău — comandă acum!"
+
+---
+
+## Rezumat
+
+| Componentă | Fișier | Ce adăugăm |
+|---|---|---|
+| Campaign Block | `StreakCampaignBlock.tsx` | Countdown, push CTA |
+| Campaign Card | `styles/gamifiedCard.tsx` | FOMO badges, loss aversion, social proof |
+| Join Button | `CampaignJoinButton.tsx` | Agresive CTA text, pulse |
+| Tier Bar | `gamifiedTier.tsx` | Next reward glow, milestones, micro-CTA |
+| Tier Wrapper | `TierProgressBar.tsx` | FOMO neautentificați |
+| Free Products Grid | `FreeProductsTierGrid.tsx` | GRATIS badges, urgency |
+
+Toate modificările sunt frontend-only, doar pe varianta gamified.
 
