@@ -149,51 +149,69 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
       <div className="container mx-auto px-4 pb-8">
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-4 min-w-0">
-          {items.map(({ product, quantity, configuration }) => (
-              <Card key={product.id} className="border-primary/10 shadow-md hover:shadow-lg transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex gap-4">
-                    <div className="shrink-0">
-                      <img src={getImageUrl(product.image)} alt={product.name} className="h-24 w-24 rounded-xl object-cover ring-2 ring-primary/20" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-foreground truncate">{product.name}</h3>
-                      <p className="text-sm text-muted-foreground line-clamp-1">{product.description}</p>
-                      {configuration && configuration.length > 0 && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {configuration
-                            .map(
-                              (g: OrderItemConfigurationGroup) =>
-                                `${g.groupName}: ${g.options.map((o) => o.name).join(', ')}`
-                            )
-                            .join(' • ')}
+            <div className="space-y-4 max-h-[55vh] lg:max-h-[calc(100vh-320px)] overflow-y-auto pr-1">
+              {items.map(({ product, quantity, configuration }) => (
+                <Card key={product.id} className="border-primary/10 shadow-md hover:shadow-lg transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex gap-4">
+                      <div className="shrink-0">
+                        <img src={getImageUrl(product.image)} alt={product.name} className="h-24 w-24 rounded-xl object-cover ring-2 ring-primary/20" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-foreground truncate">{product.name}</h3>
+                        <p className="text-sm text-muted-foreground line-clamp-1">{product.description}</p>
+                        {configuration && configuration.length > 0 && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {configuration
+                              .map(
+                                (g: OrderItemConfigurationGroup) =>
+                                  `${g.groupName}: ${g.options.map((o) => o.name).join(', ')}`
+                              )
+                              .join(' • ')}
+                          </p>
+                        )}
+                        <p className="text-lg font-extrabold text-primary mt-2">
+                          {(product.price +
+                            (configuration?.reduce(
+                              (sum, g) => sum + g.options.reduce((s, o) => s + (o.priceDelta || 0), 0),
+                              0
+                            ) ?? 0))} {texts.common.currency}
                         </p>
-                      )}
-                      <p className="text-lg font-extrabold text-primary mt-2">
-                        {(product.price + (configuration?.reduce(
-                          (sum, g) => sum + g.options.reduce((s, o) => s + (o.priceDelta || 0), 0),
-                          0
-                        ) ?? 0))} {texts.common.currency}
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-end justify-between">
-                      <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => handleRemoveItem(product.id, product.name, configuration)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg border-primary/30" onClick={() => handleQuantityChange(product.id, quantity - 1, configuration)}>
-                          <Minus className="h-4 w-4" />
+                      </div>
+                      <div className="flex flex-col items-end justify-between">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-muted-foreground hover:text-destructive"
+                          onClick={() => handleRemoveItem(product.id, product.name, configuration)}
+                        >
+                          <Trash2 className="h-4 w-4" />
                         </Button>
-                        <span className="w-8 text-center font-bold text-lg">{quantity}</span>
-                        <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg border-primary/30" onClick={() => handleQuantityChange(product.id, quantity + 1, configuration)}>
-                          <Plus className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8 rounded-lg border-primary/30"
+                            onClick={() => handleQuantityChange(product.id, quantity - 1, configuration)}
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                          <span className="w-8 text-center font-bold text-lg">{quantity}</span>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8 rounded-lg border-primary/30"
+                            onClick={() => handleQuantityChange(product.id, quantity + 1, configuration)}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
             <CartAddonSectionWrapped />
             <div className="pt-4">
               <Button variant="outline" className="rounded-xl" onClick={handleContinueShoppingWithToast}>
