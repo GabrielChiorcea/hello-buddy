@@ -2,7 +2,7 @@
  * Cart — shared hook & types
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -11,7 +11,7 @@ import type { OrderItemConfigurationGroup } from '@/types';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { toast } from '@/hooks/use-toast';
-import { FREE_DELIVERY_THRESHOLD } from '@/config/cart';
+import { FREE_DELIVERY_THRESHOLD, DELIVERY_FEE } from '@/config/cart';
 import { GET_ORDER_PREVIEW } from '@/graphql/queries';
 
 export interface OrderPreviewData {
