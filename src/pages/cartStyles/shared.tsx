@@ -154,6 +154,46 @@ export function useCartData(): CartDisplayData {
     navigate(routes.checkout);
   };
 
+  // Free delivery progress
+  const freeDeliveryThreshold = orderPreview?.freeDeliveryThreshold ?? FREE_DELIVERY_THRESHOLD;
+  const freeDeliveryProgress = useMemo<FreeDeliveryProgress>(() => {
+    const current = subtotal;
+    const remaining = Math.max(0, freeDeliveryThreshold - current);
+    const unlocked = current >= freeDeliveryThreshold;
+    const percent = Math.min(100, (current / freeDeliveryThreshold) * 100);
+    return { threshold: freeDeliveryThreshold, current, remaining, unlocked, percent };
+  }, [subtotal, freeDeliveryThreshold]);
+
+  // Fake countdown timer (15 min from mount, UI only)
+  const [countdownSeconds, setCountdownSeconds] = useState(15 * 60);
+  useEffect(() => {
+    if (items.length === 0) return;
+    setCountdownSeconds(15 * 60);
+    const interval = setInterval(() => {
+      setCountdownSeconds((prev) => (prev <= 0 ? 0 : prev - 1));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [items.length > 0]); // reset when cart becomes non-empty
+
+  // Total savings
+  const totalSavings = useMemo(() => {
+    let savings = 0;
+    if (freeDeliveryProgress.unlocked) savings += DELIVERY_FEE;
+    if (orderPreview?.discountFromFreeProducts) savings += orderPreview.discountFromFreeProducts;
+    if (orderPreview?.discountFromPoints) savings += orderPreview.discountFromPoints;
+    return savings;
+  }, [freeDeliveryProgress.unlocked, orderPreview]);
+
+  // Abandon toast on continue shopping
+  const handleContinueShoppingWithToast = useCallback(() => {
+    if (items.length > 0) {
+      toast({
+        title: `Ai ${subtotal.toFixed(0)} ${texts.common.currency} în coș`,
+        description: 'Nu pierde reducerile — finalizează comanda!',
+      });
+    }
+    navigate(routes.catalog);
+  }, [items.length, subtotal, navigate]);
 
   return {
     items,
@@ -163,8 +203,12 @@ export function useCartData(): CartDisplayData {
     isAuthenticated,
     orderPreview,
     freeProductProgress,
+    freeDeliveryProgress,
+    countdownSeconds,
+    totalSavings,
     handleRemoveItem,
     handleQuantityChange,
     handleCheckout,
+    handleContinueShoppingWithToast,
   };
 }
