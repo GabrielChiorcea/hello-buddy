@@ -1,30 +1,46 @@
 /**
- * Gamified Tier — energic, glow, shimmer, badge-uri (fast-food, pizza, burger)
+ * Gamified Tier — marketing-optimized with milestones, loss aversion, micro-CTA
  */
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, ChevronRight, Zap, Gift, Star, TrendingUp } from 'lucide-react';
+import { Sparkles, ChevronRight, Zap, Gift, Star, TrendingUp, ShoppingBag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { texts } from '@/config/texts';
 import { TierIcon } from '@/config/tierIcons';
+import { routes } from '@/config/routes';
 import type { TierDisplayData } from './shared';
 import { FreeProductsTierGrid } from './FreeProductsTierGrid';
 
-const GradientProgressBar: React.FC<{ percent: number }> = ({ percent }) => (
-  <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-muted/60">
-    <motion.div
-      initial={{ width: 0 }}
-      animate={{ width: `${percent}%` }}
-      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      className="absolute inset-y-0 left-0 rounded-full"
-      style={{ background: 'linear-gradient(90deg, hsl(var(--primary)), hsl(16 90% 60%), hsl(36 100% 55%))' }}
-    />
-    <div
-      className="absolute inset-y-0 w-1/3 rounded-full opacity-30"
-      style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent)', animation: 'shimmer-sweep 2.5s ease-in-out infinite' }}
-    />
-  </div>
-);
+const GradientProgressBar: React.FC<{ percent: number }> = ({ percent }) => {
+  const isMilestone75 = percent >= 75 && percent < 100;
+  return (
+    <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-muted/60">
+      <motion.div
+        initial={{ width: 0 }}
+        animate={{ width: `${percent}%` }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="absolute inset-y-0 left-0 rounded-full"
+        style={{ background: 'linear-gradient(90deg, hsl(var(--primary)), hsl(16 90% 60%), hsl(36 100% 55%))' }}
+      />
+      <div
+        className="absolute inset-y-0 w-1/3 rounded-full opacity-30"
+        style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent)', animation: 'shimmer-sweep 2.5s ease-in-out infinite' }}
+      />
+      {/* Sparkle at milestone 75%+ */}
+      {isMilestone75 && (
+        <motion.div
+          className="absolute top-1/2 -translate-y-1/2"
+          style={{ left: `${percent}%` }}
+          animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+        >
+          <Sparkles className="h-3.5 w-3.5 text-reward -translate-x-1/2" />
+        </motion.div>
+      )}
+    </div>
+  );
+};
 
 const InfoPill: React.FC<{ icon: React.ReactNode; children: React.ReactNode; variant?: 'default' | 'highlight' }> = ({ icon, children, variant = 'default' }) => (
   <div className={cn(
@@ -54,6 +70,9 @@ export const GamifiedTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
     hasFreeProductBenefits,
     freeProductCampaignsSummary,
   } = data;
+
+  const isHalfway = progressPercent >= 50 && progressPercent < 75;
+  const isAlmostThere = progressPercent >= 75 && progressPercent < 100;
 
   return (
     <div className={cn('relative overflow-hidden rounded-2xl border border-border shadow-sm', 'bg-gradient-to-br from-card via-card to-accent/30')}>
@@ -91,9 +110,27 @@ export const GamifiedTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
       <div className="px-4 pb-2">
         <GradientProgressBar percent={progressPercent} />
         {!isMaxLevel && xpToNextLevel != null && (
-          <p className="mt-1 text-[10px] text-muted-foreground text-right tabular-nums">
-            Încă <span className="font-semibold text-foreground">{xpToNextLevel}</span> XP până la nivelul următor
-          </p>
+          <div className="mt-1 flex items-center justify-between">
+            {/* Milestone messages */}
+            {isAlmostThere && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-[10px] font-semibold text-reward flex items-center gap-1"
+              >
+                <Sparkles className="h-3 w-3 streak-sparkle" /> Aproape acolo!
+              </motion.p>
+            )}
+            {isHalfway && !isAlmostThere && (
+              <p className="text-[10px] font-medium text-primary">
+                Ești la jumătate! Nu te opri acum 💪
+              </p>
+            )}
+            {!isHalfway && !isAlmostThere && <span />}
+            <p className="text-[10px] text-muted-foreground text-right tabular-nums">
+              Încă <span className="font-semibold text-foreground">{xpToNextLevel}</span> XP
+            </p>
+          </div>
         )}
       </div>
 
@@ -122,12 +159,12 @@ export const GamifiedTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
         )}
       </div>
 
-      {/* Next tier */}
+      {/* Next tier — glow card with micro-CTA */}
       {!isMaxLevel && nextTier && (
-        <div className={cn('flex flex-col gap-1 px-4 py-2.5', 'bg-secondary/60 border-t border-border/50')}>
+        <div className={cn('flex flex-col gap-1.5 px-4 py-2.5', 'bg-secondary/60 border-t border-border/50')}>
           <div className="flex items-center gap-2">
             <ChevronRight className="h-3.5 w-3.5 text-primary flex-shrink-0" />
-            <span className="text-[11px] text-muted-foreground">La nivelul următor:</span>
+            <span className="text-[11px] text-muted-foreground">Deblochezi:</span>
             <span className="text-[11px] font-semibold text-foreground">
               <TierIcon badgeIcon={nextTier?.badgeIcon} size={14} className="inline text-primary" /> {nextTier.name}
             </span>
@@ -137,12 +174,26 @@ export const GamifiedTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
             <div className="flex items-center gap-2 pl-5">
               <Star className="h-3 w-3 text-primary/60 flex-shrink-0" />
               <span className="text-[10px] text-muted-foreground line-clamp-1">
-                Deblochezi: <span className="font-medium text-foreground">{nextBenefitText}</span>
+                <span className="font-medium text-foreground">{nextBenefitText}</span>
               </span>
             </div>
           )}
+          {/* Micro-CTA */}
+          <Link
+            to={routes.catalog}
+            className="mt-1 ml-5 inline-flex items-center gap-1.5 text-[10px] font-semibold text-primary hover:text-primary/80 transition-colors"
+          >
+            <ShoppingBag className="h-3 w-3" />
+            Comandă acum pentru XP
+            <ArrowRight className="h-3 w-3" />
+          </Link>
         </div>
       )}
     </div>
   );
 };
+
+// Small ArrowRight inline
+const ArrowRight: React.FC<{ className?: string }> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+);

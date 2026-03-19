@@ -1,6 +1,6 @@
 /**
- * Style-aware join button for streak campaigns
- * Plugin: plugins/streak
+ * Style-aware join button for streak campaigns — marketing-optimized
+ * Aggressive CTAs, loss aversion enrolled state, pulse animation.
  */
 
 import React from 'react';
@@ -11,7 +11,7 @@ import { routes } from '@/config/routes';
 import { JOIN_STREAK_CAMPAIGN } from '../mutations';
 import { ACTIVE_STREAK_CAMPAIGNS, MY_STREAK_ENROLLMENT } from '../queries';
 import type { StreakCampaign } from '../types';
-import { Loader2, Sparkles, Trophy, Lock, ArrowRight, Check } from 'lucide-react';
+import { Loader2, Sparkles, Trophy, Lock, ArrowRight, Check, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useComponentStyle } from '@/config/componentStyle';
@@ -60,13 +60,13 @@ export const CampaignJoinButton: React.FC<CampaignJoinButtonProps> = ({
     className
   );
 
-  // Enrolled but not completed
+  // Enrolled but not completed — loss aversion
   if (enrollment && !completed) {
     if (isGamified) {
       return (
         <div className={cn(baseClasses, 'bg-gradient-to-r from-reward-accent/40 to-reward-accent/30 text-reward border border-reward/30 cursor-default uppercase')}>
-          <Sparkles className="h-4 w-4 streak-sparkle" />
-          Înscris — Continuă seria!
+          <Zap className="h-4 w-4" />
+          Streak activ! Comandă azi
           <Sparkles className="h-4 w-4 streak-sparkle" style={{ animationDelay: '0.5s' }} />
         </div>
       );
@@ -100,7 +100,7 @@ export const CampaignJoinButton: React.FC<CampaignJoinButtonProps> = ({
   if (enrolledInOtherCampaign) {
     return (
       <div className={cn(baseClasses, isGamified
-        ? 'bg-reward/20 text-gray-900 border border-reward/30 cursor-not-allowed font-semibold'
+        ? 'bg-reward/20 text-foreground border border-reward/30 cursor-not-allowed font-semibold'
         : 'bg-muted text-muted-foreground border border-border cursor-not-allowed'
       )}>
         <Lock className="h-4 w-4" /> Înscris la altă campanie
@@ -108,7 +108,7 @@ export const CampaignJoinButton: React.FC<CampaignJoinButtonProps> = ({
     );
   }
 
-  // CTA — Join (casino: orange gradient + shimmer + Rajdhani)
+  // CTA — Join (aggressive marketing copy + pulse)
   if (isGamified) {
     return (
       <motion.button
@@ -116,10 +116,16 @@ export const CampaignJoinButton: React.FC<CampaignJoinButtonProps> = ({
         disabled={loading}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
+        animate={{ boxShadow: ['0 0 0 0 hsl(var(--reward) / 0)', '0 0 0 6px hsl(var(--reward) / 0.15)', '0 0 0 0 hsl(var(--reward) / 0)'] }}
+        transition={{ boxShadow: { duration: 3, repeat: Infinity, ease: 'easeInOut' } }}
         className={cn(baseClasses, 'gamified-cta-btn disabled:opacity-50 disabled:cursor-not-allowed')}
       >
         <span className="relative z-10 flex items-center gap-2">
-          {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Se înscrie...</> : <><Sparkles className="h-4 w-4" /> Participă acum</>}
+          {loading ? (
+            <><Loader2 className="h-4 w-4 animate-spin" /> Se înscrie...</>
+          ) : (
+            <><Sparkles className="h-4 w-4" /> Câștigă {campaign.bonusPoints} puncte — Începe acum!</>
+          )}
         </span>
       </motion.button>
     );
