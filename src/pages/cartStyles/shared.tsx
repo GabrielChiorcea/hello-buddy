@@ -104,13 +104,23 @@ export function useCartData(): CartDisplayData {
     const getItemUnitPrice = (i: (typeof items)[number]) =>
       typeof i.unitPriceWithConfiguration === 'number' ? i.unitPriceWithConfiguration : i.product.price;
 
-    // Excludem produsele eligibile pentru gratuitate din paidSubtotal
-    // pentru a evita logica circulară la verificarea pragului
-    let paidSubtotal = 0;
+    // Calculăm totalul TUTUROR produselor din coș
+    let fullSubtotal = 0;
     for (const item of items) {
-      if (freeProductIds.has(item.product.id)) continue;
-      paidSubtotal += getItemUnitPrice(item) * item.quantity;
+      fullSubtotal += getItemUnitPrice(item) * item.quantity;
     }
+
+    // Scădem doar prețul UNUI singur produs gratuit (cel mai ieftin eligibil)
+    // pentru a evita logica circulară, dar fără a exclude toate produsele din categorie
+    let cheapestFreePrice = Infinity;
+    for (const item of items) {
+      if (freeProductIds.has(item.product.id)) {
+        const unitPrice = getItemUnitPrice(item);
+        if (unitPrice < cheapestFreePrice) cheapestFreePrice = unitPrice;
+      }
+    }
+    const freeDeduction = cheapestFreePrice === Infinity ? 0 : cheapestFreePrice;
+    const paidSubtotal = fullSubtotal - freeDeduction;
 
     const remaining = Math.max(0, minThreshold - paidSubtotal);
     const unlocked = paidSubtotal >= minThreshold;
