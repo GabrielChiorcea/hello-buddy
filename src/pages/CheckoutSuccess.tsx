@@ -52,6 +52,9 @@ interface OrderSummaryProps {
 
 const OrderSummary: React.FC<OrderSummaryProps> = ({ order }) => {
   const currentStep = getStepIndex(order.status);
+  const { user } = useAppSelector((s) => s.user);
+  const pointsEarned = order.pointsEarned ?? 0;
+  const totalSavings = (order.discountFromPoints ?? 0) + (order.discountFromFreeProducts ?? 0) + (order.deliveryFee === 0 ? 10 : 0);
 
   return (
     <div className="space-y-6">
