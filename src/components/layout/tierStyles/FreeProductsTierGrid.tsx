@@ -1,7 +1,5 @@
 /**
- * Grid compact de produse gratuite (iconița categoriei + nume) pentru blocul de tier.
- * Afișat sub "Ai produse gratuite active pentru nivelul tău: …"
- * Include mesaj despre prag minim și ce trebuie făcut.
+ * Grid compact de produse gratuite — marketing-optimized cu badge GRATIS și urgency.
  */
 import React from 'react';
 import { CategoryIconDisplay } from '@/config/categoryIcons';
@@ -72,8 +70,12 @@ export const FreeProductsTierGrid: React.FC<{ summaries: Summary[] }> = ({ summa
         {products.map((p) => (
         <div
           key={p.id}
-          className="flex items-center gap-1.5 rounded-lg border border-primary/15 bg-primary/5 px-2 py-1.5"
+          className="relative flex items-center gap-1.5 rounded-lg border border-primary/15 bg-primary/5 px-2 py-1.5"
         >
+          {/* GRATIS badge */}
+          <span className="absolute -top-1.5 -right-1 rounded-full bg-green-500 text-white text-[7px] font-bold px-1.5 py-0.5 uppercase shadow-sm">
+            Gratis
+          </span>
           <span className="text-lg shrink-0" title={p.categoryName || p.name}>
             {p.categoryName || p.categoryIcon
               ? <CategoryIconDisplay categoryName={p.categoryName} iconId={p.categoryIcon} size={18} />
@@ -85,7 +87,9 @@ export const FreeProductsTierGrid: React.FC<{ summaries: Summary[] }> = ({ summa
         </div>
       ))}
       </div>
-      <p className="text-[10px] text-muted-foreground/80">{texts.freeProducts.rankInfoCta}</p>
+      <p className="text-[10px] font-semibold text-primary/80">
+        🎯 Disponibil doar pentru rangul tău — comandă acum!
+      </p>
     </div>
   );
 };

@@ -1,5 +1,6 @@
 /**
  * TierProgressBar — delegates rendering to the active component style variant.
+ * Marketing-optimized: FOMO for unauthenticated users.
  */
 import React from 'react';
 import { Link } from 'react-router-dom';
@@ -17,6 +18,7 @@ import { GamifiedTier } from './tierStyles/gamifiedTier';
 import { CleanTier } from './tierStyles/cleanTier';
 import { PremiumTier } from './tierStyles/premiumTier';
 import { FriendlyTier } from './tierStyles/friendlyTier';
+import { Sparkles, ArrowRight, Zap } from 'lucide-react';
 
 const TIER_VARIANTS = {
   gamified: GamifiedTier,
@@ -69,12 +71,20 @@ export const TierProgressBar: React.FC = () => {
           </div>
         ) : (
           <div className="relative overflow-hidden rounded-2xl border border-dashed border-border/70 bg-card/80 px-4 py-4 shadow-sm space-y-4">
+            {/* FOMO banner */}
+            <div className="flex items-center gap-2 rounded-lg bg-reward/10 border border-reward/20 px-3 py-2">
+              <Sparkles className="h-4 w-4 text-reward flex-shrink-0" />
+              <p className="text-[11px] font-medium text-foreground">
+                Alți clienți câștigă deja puncte bonus! <span className="font-bold text-reward">Nu pierde recompensele.</span>
+              </p>
+            </div>
+
             <div>
               <h3 className="text-sm sm:text-base font-semibold text-foreground">
                 Sistem de Loialitate
               </h3>
               <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
-                Autentifică-te pentru a începe să câștigi XP.
+                Autentifică-te pentru a începe să câștigi XP și recompense exclusive.
               </p>
             </div>
 
@@ -103,8 +113,12 @@ export const TierProgressBar: React.FC = () => {
             )}
 
             <div className="pt-1">
-              <Button asChild size="sm" className="w-full text-xs font-medium">
-                <Link to={routes.login}>Autentifică-te pentru rang</Link>
+              <Button asChild size="sm" className="w-full text-xs font-medium group">
+                <Link to={routes.login} className="flex items-center justify-center gap-2">
+                  <Zap className="h-3.5 w-3.5" />
+                  Autentifică-te pentru rang
+                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                </Link>
               </Button>
             </div>
           </div>
