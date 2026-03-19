@@ -6,7 +6,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
-import { Zap, Check, Plus, TrendingUp } from 'lucide-react';
+import { Check, Plus, TrendingUp } from 'lucide-react';
 import { texts } from '@/config/texts';
 import { cn } from '@/lib/utils';
 import { getProductUrl } from '@/config/routes';
@@ -46,8 +46,8 @@ export const GamifiedCard: React.FC<CardVariantProps> = ({ product, className, d
         />
         <div className="absolute inset-0 bg-gradient-to-t from-foreground/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity hidden md:block" />
         {showFreeRibbon && (
-          <div className="absolute top-0 right-0 overflow-hidden w-20 h-20 pointer-events-none hidden md:block">
-            <div className="absolute top-[10px] right-[-28px] w-[120px] text-center rotate-45 bg-primary text-primary-foreground text-[10px] font-bold py-0.5 shadow-sm">
+          <div className="absolute top-0 right-0 overflow-hidden w-24 h-24 pointer-events-none block">
+            <div className="absolute top-[13px] right-[-32px] w-[138px] text-center rotate-45 bg-primary text-primary-foreground text-[11px] md:text-xs font-extrabold py-1 shadow-md tracking-wide">
               GRATIS
             </div>
           </div>
@@ -56,12 +56,6 @@ export const GamifiedCard: React.FC<CardVariantProps> = ({ product, className, d
           <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-[2px]">
             <span className="text-xs font-semibold text-muted-foreground">Indisponibil</span>
           </div>
-        )}
-        {pointsInfo && (
-          <Badge className="absolute right-2 top-2 bg-reward text-reward-foreground border-0 text-[10px] font-bold gap-1 hidden md:inline-flex">
-            <Zap className="h-3 w-3" />
-            {pointsInfo}
-          </Badge>
         )}
         {isRecommended && (
           <Badge className="absolute left-2 bottom-2 bg-primary text-primary-foreground border-0 text-[10px] font-bold gap-1 hidden md:inline-flex animate-pulse">
@@ -78,9 +72,6 @@ export const GamifiedCard: React.FC<CardVariantProps> = ({ product, className, d
       <div className={cn('flex flex-1 min-w-0 flex-col justify-between gap-0.5', 'md:px-4 md:pt-3 md:pb-3.5 md:flex-1')}>
         <div className="flex items-center gap-1.5">
           <h3 className="font-bold text-foreground text-sm md:text-[15px] truncate md:line-clamp-1">{product.name}</h3>
-          {showFreeRibbon && (
-            <span className="shrink-0 text-[9px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded md:hidden">GRATIS</span>
-          )}
         </div>
         {compactSubtitle ? (
           <p className="text-xs md:text-[13px] text-muted-foreground/80 line-clamp-2 break-words min-w-0 mt-1 leading-snug">
@@ -99,7 +90,7 @@ export const GamifiedCard: React.FC<CardVariantProps> = ({ product, className, d
         <div className="hidden md:flex items-center justify-between mt-auto pt-2.5">
           <span className="text-lg font-extrabold text-primary">
             {showFreeRibbon ? (
-              <><span className="line-through text-muted-foreground text-sm mr-1">{product.price} {texts.common.currency}</span><span className="text-success">GRATIS</span></>
+              <span className="line-through text-primary/70 text-sm">{product.price} {texts.common.currency}</span>
             ) : (
               <>{product.price} {texts.common.currency}</>
             )}
@@ -142,17 +133,11 @@ export const GamifiedCard: React.FC<CardVariantProps> = ({ product, className, d
           <div className="flex items-center gap-2">
             <span className="text-sm font-extrabold text-primary">
               {showFreeRibbon ? (
-                <><span className="line-through text-muted-foreground text-xs mr-1">{product.price}</span><span className="text-success">GRATIS</span></>
+                <span className="line-through">{product.price} {texts.common.currency}</span>
               ) : (
                 <>{product.price} {texts.common.currency}</>
               )}
             </span>
-            {pointsInfo && (
-              <span className="text-[10px] font-bold text-reward flex items-center gap-0.5">
-                <Zap className="h-2.5 w-2.5" />
-                {pointsInfo}
-              </span>
-            )}
           </div>
           <div className="flex items-center gap-1.5">
             {hasOptions && (
