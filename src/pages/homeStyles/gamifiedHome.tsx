@@ -24,6 +24,10 @@ import { easeOut, fadeUp, staggerContainer, cardVariant } from './shared';
 
 export const GamifiedHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
   const { items, filteredItems, categories, searchQuery, isLoading, recommendedProducts, totalProducts, handleSearch, handleCategoryClick } = data;
+  const { isAuthenticated, user } = useAppSelector((s) => s.user);
+  const cartItemCount = useAppSelector(selectCartItemCount);
+  const cartSubtotal = useAppSelector((s) => s.cart.subtotal);
+  const hasFreeProductCampaigns = (user?.freeProductCampaignsSummary?.length ?? 0) > 0;
 
   if (isLoading && items.length === 0) return <Layout><PageLoader /></Layout>;
 
