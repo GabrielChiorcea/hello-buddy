@@ -188,11 +188,13 @@ export function useCartData(): CartDisplayData {
   // Total savings
   const totalSavings = useMemo(() => {
     let savings = 0;
-    if (freeDeliveryProgress.unlocked) savings += DELIVERY_FEE;
+    // Count delivery savings only when actually waived (backend says 0)
+    const actualDelivery = orderPreview?.deliveryFee ?? deliveryFee;
+    if (actualDelivery === 0 && items.length > 0) savings += DELIVERY_FEE;
     if (orderPreview?.discountFromFreeProducts) savings += orderPreview.discountFromFreeProducts;
     if (orderPreview?.discountFromPoints) savings += orderPreview.discountFromPoints;
     return savings;
-  }, [freeDeliveryProgress.unlocked, orderPreview]);
+  }, [orderPreview, deliveryFee, items.length]);
 
   // Abandon toast on continue shopping
   const handleContinueShoppingWithToast = useCallback(() => {
