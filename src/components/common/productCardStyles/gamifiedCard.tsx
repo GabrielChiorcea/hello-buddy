@@ -16,6 +16,7 @@ import { getProductCardMetaLine } from './shared';
 export const GamifiedCard: React.FC<CardVariantProps> = ({ product, className, data, compactSubtitle }) => {
   const navigate = useNavigate();
   const { handleAddToCart, isAdded, pointsInfo, imageUrl, categoryLabel, showFreeRibbon, hasOptions } = data;
+  const isRecommended = (product as any).isRecommended === true;
 
   return (
     <div
