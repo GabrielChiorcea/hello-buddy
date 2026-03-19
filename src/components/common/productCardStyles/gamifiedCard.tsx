@@ -6,7 +6,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
-import { Zap, Check, Plus } from 'lucide-react';
+import { Zap, Check, Plus, TrendingUp } from 'lucide-react';
 import { texts } from '@/config/texts';
 import { cn } from '@/lib/utils';
 import { getProductUrl } from '@/config/routes';
