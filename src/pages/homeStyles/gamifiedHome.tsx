@@ -136,13 +136,30 @@ export const GamifiedHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
         </section>
       )}
 
-      {/* CTA */}
+      {/* CTA — personalized if cart has items */}
       <section className="py-16 md:py-24">
         <div className="container mx-auto px-4">
           <motion.div className="bg-primary rounded-2xl p-8 md:p-12 text-center shadow-2xl shadow-primary/20" initial={{ opacity: 0, scale: 0.96 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
-            <h2 className="text-2xl md:text-3xl font-extrabold text-primary-foreground mb-4">Pregătit să comanzi?</h2>
-            <p className="text-primary-foreground/80 mb-6 max-w-xl mx-auto">Explorează catalogul nostru complet și alege din cele mai bune preparate.</p>
-            <Button size="lg" variant="secondary" asChild className="rounded-xl font-bold"><Link to={routes.catalog}>{texts.home.orderNow}<ArrowRight className="ml-2 h-5 w-5" /></Link></Button>
+            {cartItemCount > 0 ? (
+              <>
+                <div className="flex items-center justify-center gap-2 mb-4">
+                  <ShoppingBag className="h-7 w-7 text-primary-foreground" />
+                  <h2 className="text-2xl md:text-3xl font-extrabold text-primary-foreground">
+                    Ai {cartItemCount} produse în coș · {cartSubtotal.toFixed(0)} {texts.common.currency}
+                  </h2>
+                </div>
+                <p className="text-primary-foreground/80 mb-6 max-w-xl mx-auto">Finalizează comanda acum și nu pierde reducerile!</p>
+                <Button size="lg" variant="secondary" asChild className="rounded-xl font-bold">
+                  <Link to={routes.checkout}>Finalizează comanda<ArrowRight className="ml-2 h-5 w-5" /></Link>
+                </Button>
+              </>
+            ) : (
+              <>
+                <h2 className="text-2xl md:text-3xl font-extrabold text-primary-foreground mb-4">Pregătit să comanzi?</h2>
+                <p className="text-primary-foreground/80 mb-6 max-w-xl mx-auto">Explorează catalogul nostru complet și alege din cele mai bune preparate.</p>
+                <Button size="lg" variant="secondary" asChild className="rounded-xl font-bold"><Link to={routes.catalog}>{texts.home.orderNow}<ArrowRight className="ml-2 h-5 w-5" /></Link></Button>
+              </>
+            )}
           </motion.div>
         </div>
       </section>

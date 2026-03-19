@@ -201,15 +201,48 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ order }) => {
             <span>Total</span>
             <span>{order.total.toFixed(2)} RON</span>
           </div>
+
+          {/* Savings banner */}
+          {totalSavings > 0 && (
+            <div className="bg-success/10 border border-success/20 rounded-lg p-3 text-center mt-2">
+              <p className="text-sm font-bold text-success">
+                🔥 Ai economisit {totalSavings.toFixed(2)} RON la această comandă!
+              </p>
+            </div>
+          )}
         </div>
 
-        {/* Badge puncte câștigate */}
-        {(order.pointsEarned ?? 0) > 0 && (
-          <div className="mt-4 flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-xl p-3">
-            <Star className="w-4 h-4 text-primary fill-primary" />
-            <p className="text-sm text-primary font-medium">
-              Vei câștiga <strong>{order.pointsEarned} puncte</strong> la livrare
-            </p>
+        {/* Points earned — prominent card */}
+        {pointsEarned > 0 && (
+          <div className="bg-gradient-to-r from-primary/10 to-primary/5 border-2 border-primary/20 rounded-2xl p-5 text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Star className="w-6 h-6 text-primary fill-primary" />
+              <p className="text-xl font-extrabold text-primary">+{pointsEarned} puncte câștigate!</p>
+            </div>
+            {user?.pointsBalance != null && (
+              <p className="text-sm text-muted-foreground">
+                Sold total: <strong className="text-foreground">{user.pointsBalance} puncte</strong>
+              </p>
+            )}
+            {user?.xpToNextLevel != null && user.nextTier && (
+              <div className="mt-3">
+                <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                  <span>{user.tier?.name ?? 'Nivel curent'}</span>
+                  <span>{user.nextTier.name}</span>
+                </div>
+                <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary rounded-full transition-all duration-700"
+                    style={{
+                      width: `${Math.min(100, ((user.totalXp) / (user.nextTier.xpThreshold)) * 100)}%`,
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Încă <strong>{user.xpToNextLevel} XP</strong> până la {user.nextTier.name}
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -246,19 +279,19 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ order }) => {
         </div>
       </div>
 
-      {/* CTA-uri */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <Button asChild className="flex-1">
+      {/* CTA-uri — more prominent reorder */}
+      <div className="flex flex-col gap-3">
+        <Button asChild size="lg" className="w-full">
+          <Link to={routes.catalog}>
+            <ShoppingBag className="w-4 h-4 mr-2" />
+            Comandă din nou{pointsEarned > 0 ? ` — câștigi alte puncte!` : ''}
+          </Link>
+        </Button>
+        <Button variant="outline" asChild className="w-full">
           <Link to={routes.profile}>
             <Receipt className="w-4 h-4 mr-2" />
             Vezi toate comenzile
             <ChevronRight className="w-4 h-4 ml-1" />
-          </Link>
-        </Button>
-        <Button variant="outline" asChild className="flex-1">
-          <Link to={routes.catalog}>
-            <ShoppingBag className="w-4 h-4 mr-2" />
-            Comandă din nou
           </Link>
         </Button>
       </div>

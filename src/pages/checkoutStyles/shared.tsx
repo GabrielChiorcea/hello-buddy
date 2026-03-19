@@ -498,7 +498,9 @@ export const CheckoutTemplate: React.FC<{ data: CheckoutDisplayData; variant: St
               <div>
                 <Card className={summaryCn}>
                   <OrderSummaryContent data={data} />
-                  <CardFooter><SubmitButton isLoading={data.isLoading} /></CardFooter>
+                  <CardFooter>
+                    <SubmitButton isLoading={data.isLoading} savings={(data.discountFromFreeProducts || 0) + (data.discountFromPoints || 0) + (data.effectiveDeliveryFee === 0 && data.subtotal > 0 ? 10 : 0)} />
+                  </CardFooter>
                 </Card>
               </div>
             </div>

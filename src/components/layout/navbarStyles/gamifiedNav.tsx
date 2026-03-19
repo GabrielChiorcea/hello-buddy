@@ -59,7 +59,7 @@ export const GamifiedNav: React.FC<{ data: NavbarDisplayData }> = ({ data }) => 
             <Button variant="ghost" size="icon" className="relative text-primary-foreground hover:bg-primary-foreground/10">
               <ShoppingCart className="h-5 w-5" />
               {cartItemCount > 0 && (
-                <Badge className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-reward text-reward-foreground">{cartItemCount}</Badge>
+                <Badge className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-reward text-reward-foreground animate-bounce">{cartItemCount}</Badge>
               )}
             </Button>
           </Link>
