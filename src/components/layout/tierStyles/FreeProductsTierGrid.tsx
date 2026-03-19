@@ -73,7 +73,7 @@ export const FreeProductsTierGrid: React.FC<{ summaries: Summary[] }> = ({ summa
           className="relative flex items-center gap-1.5 rounded-lg border border-primary/15 bg-primary/5 px-2 py-1.5"
         >
           {/* GRATIS badge */}
-          <span className="absolute -top-1.5 -right-1 rounded-full bg-green-500 text-white text-[7px] font-bold px-1.5 py-0.5 uppercase shadow-sm">
+          <span className="absolute -top-1.5 -right-1 rounded-full bg-primary text-primary-foreground text-[7px] font-bold px-1.5 py-0.5 uppercase shadow-sm">
             Gratis
           </span>
           <span className="text-lg shrink-0" title={p.categoryName || p.name}>

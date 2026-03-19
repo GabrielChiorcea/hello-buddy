@@ -100,7 +100,7 @@ export const CampaignJoinButton: React.FC<CampaignJoinButtonProps> = ({
   if (enrolledInOtherCampaign) {
     return (
       <div className={cn(baseClasses, isGamified
-        ? 'bg-reward/20 text-gray-900 border border-reward/30 cursor-not-allowed font-semibold'
+        ? 'bg-reward/20 text-foreground border border-reward/30 cursor-not-allowed font-semibold'
         : 'bg-muted text-muted-foreground border border-border cursor-not-allowed'
       )}>
         <Lock className="h-4 w-4" /> Înscris la altă campanie
