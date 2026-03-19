@@ -63,6 +63,12 @@ export const GamifiedCard: React.FC<CardVariantProps> = ({ product, className, d
             {pointsInfo}
           </Badge>
         )}
+        {isRecommended && (
+          <Badge className="absolute left-2 bottom-2 bg-primary text-primary-foreground border-0 text-[10px] font-bold gap-1 hidden md:inline-flex animate-pulse">
+            <TrendingUp className="h-3 w-3" />
+            Popular
+          </Badge>
+        )}
         <Badge variant="secondary" className="absolute left-2 top-2 text-[10px] hidden md:inline-flex bg-card/90 backdrop-blur-md border-0">
           {categoryLabel}
         </Badge>
