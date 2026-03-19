@@ -140,7 +140,13 @@ export const GamifiedCard: React.FC<CardVariantProps> = ({ product, className, d
         {/* Mobile bottom */}
         <div className="flex items-center justify-between mt-1.5 md:hidden">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-extrabold text-primary">{product.price} {texts.common.currency}</span>
+            <span className="text-sm font-extrabold text-primary">
+              {showFreeRibbon ? (
+                <><span className="line-through text-muted-foreground text-xs mr-1">{product.price}</span><span className="text-success">GRATIS</span></>
+              ) : (
+                <>{product.price} {texts.common.currency}</>
+              )}
+            </span>
             {pointsInfo && (
               <span className="text-[10px] font-bold text-reward flex items-center gap-0.5">
                 <Zap className="h-2.5 w-2.5" />
