@@ -67,5 +67,6 @@ export const streakSchemaExtension = `#graphql
 
   extend type Mutation {
     joinStreakCampaign(campaignId: ID!): StreakEnrollment
+    leaveStreakCampaign(campaignId: ID!): Boolean
   }
 `;

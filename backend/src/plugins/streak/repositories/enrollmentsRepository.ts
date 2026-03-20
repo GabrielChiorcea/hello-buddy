@@ -118,3 +118,7 @@ export async function getActiveEnrollmentsForUser(userId: string): Promise<UserS
   );
   return Array.isArray(rows) ? rows.map(mapRow) : [];
 }
+
+export async function deleteEnrollment(enrollmentId: string): Promise<void> {
+  await query('DELETE FROM user_streak_campaigns WHERE id = ?', [enrollmentId]);
+}

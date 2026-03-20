@@ -66,3 +66,12 @@ export async function getOrderDatesInRange(
 
 /** Alias for backward compat */
 export const getOrderDatesInWeek = getOrderDatesInRange;
+
+/** Get last order date for an enrollment */
+export async function getLastOrderDate(userStreakCampaignId: string): Promise<string | null> {
+  const row = await queryOne<{ order_date: string | Date }>(
+    'SELECT order_date FROM streak_logs WHERE user_streak_campaign_id = ? ORDER BY order_date DESC LIMIT 1',
+    [userStreakCampaignId]
+  );
+  return row ? normDate(row.order_date) : null;
+}
