@@ -133,11 +133,11 @@ export const CleanCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                   <span>{summaryDelivery === 0 ? `0 ${texts.common.currency}` : `${summaryDelivery} ${texts.common.currency}`}</span>
                 </div>
                 {summaryDelivery > 0 && <p className="text-xs text-muted-foreground">Gratuit peste {orderPreview?.freeDeliveryThreshold ?? FREE_DELIVERY_THRESHOLD} {texts.common.currency}</p>}
-                {(orderPreview?.discountFromFreeProducts ?? 0) > 0 && (
+                {summaryDiscountFreeProducts > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-success">{texts.freeProducts.cartDiscountLabel}</span>
                     <span className="text-success">
-                      -{(orderPreview?.discountFromFreeProducts ?? 0).toFixed(2)} {texts.common.currency}
+                      -{summaryDiscountFreeProducts.toFixed(2)} {texts.common.currency}
                     </span>
                   </div>
                 )}
