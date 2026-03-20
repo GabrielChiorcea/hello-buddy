@@ -80,12 +80,19 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
   if (campaignProp === undefined && (campaignLoading || !campaign)) return null;
   if (!campaign) return null;
 
+  const streakBroken = isConsecutiveStreakBroken(enrollment, campaign);
+  const impossible = isImpossibleToComplete(enrollment, campaign);
+  const isFailed = streakBroken || impossible;
+  const failReason: 'broken' | 'impossible' | null = streakBroken ? 'broken' : impossible ? 'impossible' : null;
+
   const sharedProps = {
     campaign,
     enrollment,
     enrolledInOtherCampaign,
     completed,
     isEnrolled,
+    isFailed,
+    failReason,
     enrollmentLoading: enrollmentProp === undefined ? enrollmentLoading : false,
   };
 
