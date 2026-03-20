@@ -55,6 +55,7 @@ export const streakSchemaExtension = `#graphql
     currentLevel: Int!
     completedAt: String
     bonusAwardedAt: String
+    lastOrderDate: String
     campaign: StreakCampaign
   }
 
