@@ -23,14 +23,10 @@ interface Props {
 }
 
 export const CleanCard: React.FC<Props> = ({
-  campaign, enrollment, enrolledInOtherCampaign, completed, isEnrolled, enrollmentLoading,
+  campaign, enrollment, enrolledInOtherCampaign, completed, isEnrolled, isFailed, failReason, enrollmentLoading,
 }) => {
   const remaining = daysRemaining(campaign.endDate);
   const hasSteps = campaign.rewardType === 'steps' && campaign.rewardSteps?.length > 0;
-
-  const streakBroken = isConsecutiveStreakBroken(enrollment, campaign);
-  const impossible = isImpossibleToComplete(enrollment, campaign);
-  const isFailed = streakBroken || impossible;
 
   return (
     <div className={`rounded-xl bg-card border border-border h-full flex flex-col ${isFailed ? 'opacity-80' : ''}`}>

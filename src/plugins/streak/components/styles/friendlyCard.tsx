@@ -23,14 +23,10 @@ interface Props {
 }
 
 export const FriendlyCard: React.FC<Props> = ({
-  campaign, enrollment, enrolledInOtherCampaign, completed, isEnrolled, enrollmentLoading,
+  campaign, enrollment, enrolledInOtherCampaign, completed, isEnrolled, isFailed, failReason, enrollmentLoading,
 }) => {
   const remaining = daysRemaining(campaign.endDate);
   const hasSteps = campaign.rewardType === 'steps' && campaign.rewardSteps?.length > 0;
-
-  const streakBroken = isConsecutiveStreakBroken(enrollment, campaign);
-  const impossible = isImpossibleToComplete(enrollment, campaign);
-  const isFailed = streakBroken || impossible;
 
   return (
     <div className={`rounded-2xl bg-accent/30 border-2 ${isFailed ? 'border-destructive/30' : 'border-accent'} h-full flex flex-col shadow-md`}>
