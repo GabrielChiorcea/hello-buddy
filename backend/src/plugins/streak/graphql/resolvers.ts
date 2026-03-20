@@ -6,6 +6,8 @@
 import { isPluginEnabled } from '../../../utils/pluginFlags.js';
 import * as StreakService from '../service.js';
 import * as CampaignsRepo from '../repositories/campaignsRepository.js';
+import * as EnrollmentsRepo from '../repositories/enrollmentsRepository.js';
+import * as StreakLogsRepo from '../repositories/streakLogsRepository.js';
 
 function formatDate(d: Date): string {
   return d.toISOString();
@@ -16,12 +18,14 @@ async function enrichCampaign(campaign: CampaignsRepo.StreakCampaign) {
   return { ...campaign, rewardSteps };
 }
 
-function formatEnrollment(enrollment: any, campaign: any) {
+async function formatEnrollment(enrollment: any, campaign: any) {
+  const lastOrderDate = await StreakLogsRepo.getLastOrderDate(enrollment.id);
   return {
     ...enrollment,
     joinedAt: formatDate(enrollment.joinedAt),
     completedAt: enrollment.completedAt ? formatDate(enrollment.completedAt) : null,
     bonusAwardedAt: enrollment.bonusAwardedAt ? formatDate(enrollment.bonusAwardedAt) : null,
+    lastOrderDate,
     campaign: campaign ?? null,
   };
 }
@@ -74,6 +78,21 @@ export const streakResolvers = {
       const campaign = await CampaignsRepo.getCampaignById(enrollment.campaignId);
       const enriched = campaign ? await enrichCampaign(campaign) : null;
       return formatEnrollment(enrollment, enriched);
+    },
+    async leaveStreakCampaign(
+      _: unknown,
+      args: { campaignId: string },
+      context: { user?: { id: string } }
+    ) {
+      const enabled = await isPluginEnabled('streak');
+      if (!enabled) throw new Error('Plugin streak este dezactivat');
+      const userId = context.user?.id;
+      if (!userId) throw new Error('Trebuie să fii autentificat');
+      const enrollment = await EnrollmentsRepo.getEnrollment(userId, args.campaignId);
+      if (!enrollment) return true;
+      // Delete streak logs for this enrollment
+      await EnrollmentsRepo.deleteEnrollment(enrollment.id);
+      return true;
     },
   },
 };

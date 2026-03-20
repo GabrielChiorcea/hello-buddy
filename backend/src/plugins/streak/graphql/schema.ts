@@ -55,6 +55,7 @@ export const streakSchemaExtension = `#graphql
     currentLevel: Int!
     completedAt: String
     bonusAwardedAt: String
+    lastOrderDate: String
     campaign: StreakCampaign
   }
 
@@ -66,5 +67,6 @@ export const streakSchemaExtension = `#graphql
 
   extend type Mutation {
     joinStreakCampaign(campaignId: ID!): StreakEnrollment
+    leaveStreakCampaign(campaignId: ID!): Boolean
   }
 `;

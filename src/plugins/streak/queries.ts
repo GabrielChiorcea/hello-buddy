@@ -71,6 +71,7 @@ export const MY_STREAK_ENROLLMENT = gql`
       currentLevel
       completedAt
       bonusAwardedAt
+      lastOrderDate
       campaign {
         id
         name

@@ -1,6 +1,7 @@
 /**
  * Style-aware join button for streak campaigns — marketing-optimized
  * Aggressive CTAs, loss aversion enrolled state, pulse animation.
+ * Supports failed state with leave option.
  */
 
 import React from 'react';
@@ -8,10 +9,10 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutation } from '@apollo/client';
 import { useAppSelector } from '@/store';
 import { routes } from '@/config/routes';
-import { JOIN_STREAK_CAMPAIGN } from '../mutations';
+import { JOIN_STREAK_CAMPAIGN, LEAVE_STREAK_CAMPAIGN } from '../mutations';
 import { ACTIVE_STREAK_CAMPAIGNS, MY_STREAK_ENROLLMENT } from '../queries';
 import type { StreakCampaign } from '../types';
-import { Loader2, Sparkles, Trophy, Lock, ArrowRight, Check, Zap } from 'lucide-react';
+import { Loader2, Sparkles, Trophy, Lock, ArrowRight, Check, Zap, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useComponentStyle } from '@/config/componentStyle';
@@ -20,18 +21,26 @@ export interface CampaignJoinButtonProps {
   campaign: StreakCampaign;
   enrollment: { completedAt: string | null } | null | undefined;
   enrolledInOtherCampaign?: boolean;
+  isFailed?: boolean;
   onJoined?: () => void;
   className?: string;
 }
 
 export const CampaignJoinButton: React.FC<CampaignJoinButtonProps> = ({
-  campaign, enrollment, enrolledInOtherCampaign, onJoined, className,
+  campaign, enrollment, enrolledInOtherCampaign, isFailed, onJoined, className,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const style = useComponentStyle();
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
   const [joinCampaign, { loading }] = useMutation(JOIN_STREAK_CAMPAIGN, {
+    refetchQueries: [
+      { query: MY_STREAK_ENROLLMENT, variables: { campaignId: campaign.id } },
+      { query: MY_STREAK_ENROLLMENT },
+      { query: ACTIVE_STREAK_CAMPAIGNS },
+    ],
+  });
+  const [leaveCampaign, { loading: leaveLoading }] = useMutation(LEAVE_STREAK_CAMPAIGN, {
     refetchQueries: [
       { query: MY_STREAK_ENROLLMENT, variables: { campaignId: campaign.id } },
       { query: MY_STREAK_ENROLLMENT },
@@ -55,10 +64,37 @@ export const CampaignJoinButton: React.FC<CampaignJoinButtonProps> = ({
     }
   };
 
+  const handleLeave = async () => {
+    try {
+      await leaveCampaign({ variables: { campaignId: campaign.id } });
+    } catch (e) {
+      console.error('Leave campaign error', e);
+    }
+  };
+
   const baseClasses = cn(
     'relative w-full py-3 px-6 rounded-xl font-bold text-sm tracking-wide transition-all duration-300 overflow-hidden flex items-center justify-center gap-2',
     className
   );
+
+  // Failed state — show leave button
+  if (isFailed && enrollment && !completed) {
+    return (
+      <motion.button
+        onClick={handleLeave}
+        disabled={leaveLoading}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        className={cn(baseClasses, 'bg-destructive/10 text-destructive border border-destructive/30 hover:bg-destructive/20')}
+      >
+        {leaveLoading ? (
+          <><Loader2 className="h-4 w-4 animate-spin" /> Se procesează...</>
+        ) : (
+          <><LogOut className="h-4 w-4" /> Părăsește campania</>
+        )}
+      </motion.button>
+    );
+  }
 
   // Enrolled but not completed — loss aversion
   if (enrollment && !completed) {
