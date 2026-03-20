@@ -109,7 +109,7 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                 </span>
               </div>
               {freeDeliveryProgress.unlocked && (
-                <Badge className="bg-success text-success-foreground border-0 text-xs">-{(orderPreview?.deliveryFee ?? deliveryFee) === 0 ? '10' : '10'} RON</Badge>
+                <Badge className="bg-success text-success-foreground border-0 text-xs">-{summaryDelivery === 0 ? '10' : '10'} RON</Badge>
               )}
             </div>
             <Progress
