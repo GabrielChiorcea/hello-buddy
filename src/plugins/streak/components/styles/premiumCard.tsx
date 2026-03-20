@@ -8,7 +8,7 @@ import type { StreakCampaign, StreakEnrollment } from '../../types';
 import { StreakProgressBar } from '../StreakProgressBar';
 import { CampaignJoinButton } from '../CampaignJoinButton';
 import { Skeleton } from '@/components/ui/skeleton';
-import { buildRuleDescription, formatDate, daysRemaining, isConsecutiveStreakBroken, isImpossibleToComplete } from '../campaignUtils';
+import { buildRuleDescription, formatDate, daysRemaining } from '../campaignUtils';
 import { RewardStepsLadder } from '../RewardStepsLadder';
 
 interface Props {
@@ -17,18 +17,16 @@ interface Props {
   enrolledInOtherCampaign?: boolean;
   completed: boolean;
   isEnrolled: boolean;
+  isFailed: boolean;
+  failReason: 'broken' | 'impossible' | null;
   enrollmentLoading?: boolean;
 }
 
 export const PremiumCard: React.FC<Props> = ({
-  campaign, enrollment, enrolledInOtherCampaign, completed, isEnrolled, enrollmentLoading,
+  campaign, enrollment, enrolledInOtherCampaign, completed, isEnrolled, isFailed, failReason, enrollmentLoading,
 }) => {
   const remaining = daysRemaining(campaign.endDate);
   const hasSteps = campaign.rewardType === 'steps' && campaign.rewardSteps?.length > 0;
-
-  const streakBroken = isConsecutiveStreakBroken(enrollment, campaign);
-  const impossible = isImpossibleToComplete(enrollment, campaign);
-  const isFailed = streakBroken || impossible;
 
   return (
     <div className={`rounded-2xl bg-card h-full flex flex-col shadow-lg shadow-foreground/5 border border-border/50 overflow-hidden ${isFailed ? 'opacity-80' : ''}`}>
@@ -57,7 +55,7 @@ export const PremiumCard: React.FC<Props> = ({
             <XCircle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-xs font-medium text-destructive">
-                {streakBroken ? 'Streak-ul consecutiv s-a întrerupt' : 'Nu mai sunt suficiente zile pentru completare'}
+                {failReason === 'broken' ? 'Streak-ul consecutiv s-a întrerupt' : 'Nu mai sunt suficiente zile pentru completare'}
               </p>
               <p className="text-[10px] text-muted-foreground/60 mt-0.5">
                 Poți părăsi campania și te poți înscrie la alta.

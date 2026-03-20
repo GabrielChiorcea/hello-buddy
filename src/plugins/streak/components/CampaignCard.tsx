@@ -10,6 +10,7 @@ import { ACTIVE_STREAK_CAMPAIGN, MY_STREAK_ENROLLMENT } from '../queries';
 import type { StreakCampaign, StreakEnrollment } from '../types';
 import { motion } from 'framer-motion';
 import { useComponentStyle } from '@/config/componentStyle';
+import { isConsecutiveStreakBroken, isImpossibleToComplete } from './campaignUtils';
 import { GamifiedCard } from './styles/gamifiedCard';
 import { CleanCard } from './styles/cleanCard';
 import { PremiumCard } from './styles/premiumCard';
@@ -79,12 +80,19 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
   if (campaignProp === undefined && (campaignLoading || !campaign)) return null;
   if (!campaign) return null;
 
+  const streakBroken = isConsecutiveStreakBroken(enrollment, campaign);
+  const impossible = isImpossibleToComplete(enrollment, campaign);
+  const isFailed = streakBroken || impossible;
+  const failReason: 'broken' | 'impossible' | null = streakBroken ? 'broken' : impossible ? 'impossible' : null;
+
   const sharedProps = {
     campaign,
     enrollment,
     enrolledInOtherCampaign,
     completed,
     isEnrolled,
+    isFailed,
+    failReason,
     enrollmentLoading: enrollmentProp === undefined ? enrollmentLoading : false,
   };
 

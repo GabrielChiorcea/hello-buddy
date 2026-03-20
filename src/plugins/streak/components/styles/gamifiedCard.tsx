@@ -10,7 +10,7 @@ import type { StreakCampaign, StreakEnrollment } from '../../types';
 import { StreakProgressBar } from '../StreakProgressBar';
 import { CampaignJoinButton } from '../CampaignJoinButton';
 import { Skeleton } from '@/components/ui/skeleton';
-import { buildRuleDescription, formatDate, daysRemaining, isConsecutiveStreakBroken, isImpossibleToComplete } from '../campaignUtils';
+import { buildRuleDescription, formatDate, daysRemaining } from '../campaignUtils';
 import { RewardStepsLadder } from '../RewardStepsLadder';
 
 interface Props {
@@ -19,6 +19,8 @@ interface Props {
   enrolledInOtherCampaign?: boolean;
   completed: boolean;
   isEnrolled: boolean;
+  isFailed: boolean;
+  failReason: 'broken' | 'impossible' | null;
   enrollmentLoading?: boolean;
 }
 
@@ -30,7 +32,7 @@ function fakeParticipants(id: string): number {
 }
 
 export const GamifiedCard: React.FC<Props> = ({
-  campaign, enrollment, enrolledInOtherCampaign, completed, isEnrolled, enrollmentLoading,
+  campaign, enrollment, enrolledInOtherCampaign, completed, isEnrolled, isFailed, failReason, enrollmentLoading,
 }) => {
   const remaining = daysRemaining(campaign.endDate);
   const hasSteps = campaign.rewardType === 'steps' && campaign.rewardSteps?.length > 0;
@@ -44,10 +46,7 @@ export const GamifiedCard: React.FC<Props> = ({
   const ordersRequired = enrollment?.campaign?.ordersRequired ?? campaign.ordersRequired;
   const showLossAversion = isEnrolled && !completed && currentCount > 0;
 
-  // Broken/impossible detection
-  const streakBroken = isConsecutiveStreakBroken(enrollment, campaign);
-  const impossible = isImpossibleToComplete(enrollment, campaign);
-  const isFailed = streakBroken || impossible;
+  const streakBroken = failReason === 'broken';
 
   return (
     <div className={`gamified-casino-card relative overflow-hidden rounded-2xl h-full flex flex-col ${isFailed ? 'opacity-90' : ''}`}>
