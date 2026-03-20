@@ -41,5 +41,6 @@ export interface StreakEnrollment {
   currentLevel: number;
   completedAt: string | null;
   bonusAwardedAt: string | null;
+  lastOrderDate: string | null;
   campaign?: StreakCampaign | null;
 }

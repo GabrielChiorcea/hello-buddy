@@ -15,6 +15,7 @@ export const JOIN_STREAK_CAMPAIGN = gql`
       currentLevel
       completedAt
       bonusAwardedAt
+      lastOrderDate
       campaign {
         id
         name
@@ -33,5 +34,11 @@ export const JOIN_STREAK_CAMPAIGN = gql`
         }
       }
     }
+  }
+`;
+
+export const LEAVE_STREAK_CAMPAIGN = gql`
+  mutation LeaveStreakCampaign($campaignId: ID!) {
+    leaveStreakCampaign(campaignId: $campaignId)
   }
 `;
