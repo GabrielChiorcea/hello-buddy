@@ -57,6 +57,12 @@ export interface CartDisplayData {
   /** Fake countdown seconds remaining (UI only) */
   countdownSeconds: number;
   totalSavings: number;
+  /** Computed summary values — single source of truth for all styles */
+  summarySubtotal: number;
+  summaryDelivery: number;
+  summaryDiscountFreeProducts: number;
+  summaryDiscountPoints: number;
+  summaryTotal: number;
   handleRemoveItem: (productId: string, productName: string, configuration?: OrderItemConfigurationGroup[]) => void;
   handleQuantityChange: (productId: string, newQuantity: number, configuration?: OrderItemConfigurationGroup[]) => void;
   handleCheckout: () => void;
