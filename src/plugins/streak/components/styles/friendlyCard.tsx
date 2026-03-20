@@ -8,7 +8,7 @@ import type { StreakCampaign, StreakEnrollment } from '../../types';
 import { StreakProgressBar } from '../StreakProgressBar';
 import { CampaignJoinButton } from '../CampaignJoinButton';
 import { Skeleton } from '@/components/ui/skeleton';
-import { buildRuleDescription, formatDate, daysRemaining, isConsecutiveStreakBroken, isImpossibleToComplete } from '../campaignUtils';
+import { buildRuleDescription, formatDate, daysRemaining } from '../campaignUtils';
 import { RewardStepsLadder } from '../RewardStepsLadder';
 
 interface Props {
