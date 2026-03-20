@@ -29,24 +29,21 @@ const formatCountdown = (seconds: number) => {
 export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
   const {
     items,
-    subtotal,
-    deliveryFee,
-    total,
     orderPreview,
     freeProductProgress,
     freeDeliveryProgress,
     countdownSeconds,
     totalSavings,
+    summarySubtotal,
+    summaryDelivery,
+    summaryDiscountFreeProducts,
+    summaryDiscountPoints,
+    summaryTotal,
     handleRemoveItem,
     handleQuantityChange,
     handleCheckout,
     handleContinueShoppingWithToast,
   } = data;
-  const summarySubtotal = orderPreview?.subtotal ?? subtotal;
-  const summaryDelivery = orderPreview?.deliveryFee ?? deliveryFee;
-  const discountFromFreeProducts = orderPreview?.discountFromFreeProducts ?? 0;
-  const discountFromPoints = orderPreview?.discountFromPoints ?? 0;
-  const summaryTotal = Math.max(0, summarySubtotal + summaryDelivery - discountFromFreeProducts - discountFromPoints);
 
   if (items.length === 0) {
     return (
