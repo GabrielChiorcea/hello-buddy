@@ -17,6 +17,8 @@ interface Props {
   enrolledInOtherCampaign?: boolean;
   completed: boolean;
   isEnrolled: boolean;
+  isFailed: boolean;
+  failReason: 'broken' | 'impossible' | null;
   enrollmentLoading?: boolean;
 }
 
