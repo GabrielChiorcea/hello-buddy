@@ -77,6 +77,7 @@ export interface CheckoutDisplayData {
   userPoints: number;
   pointsRewards: any[];
   payableBeforePoints: number;
+  freeProductMinOrderValue: number | null;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleSubmit: (e: React.FormEvent) => void;
   handleFulfillmentChange: (value: FulfillmentType) => void;
@@ -119,23 +120,34 @@ export function useCheckoutData(): CheckoutDisplayData {
   const pointsToUseVar = formData.pointsToUse ?? 0;
   const { data: previewData } = useQuery<{ orderPreview: { subtotal: number; deliveryFee: number; freeDeliveryThreshold: number; discountFromFreeProducts: number; discountFromPoints: number; total: number } }>(GET_ORDER_PREVIEW, {
     variables: { items: previewItems, pointsToUse: pointsToUseVar },
-    skip: items.length === 0,
+    // Avoid auth errors while user/session is still being resolved
+    skip: items.length === 0 || !user?.id,
     fetchPolicy: 'cache-and-network',
   });
   const orderPreview = previewData?.orderPreview ?? null;
 
   const { enabled: pointsEnabled } = usePluginEnabled('points');
   const { pointsRewards } = usePointsRewards();
-  const userPoints = pointsEnabled ? (user?.pointsBalance ?? 0) : 0;
+  const userPointsRaw = pointsEnabled ? (user?.pointsBalance ?? 0) : 0;
+  const userPoints = Number(userPointsRaw) || 0;
 
   const selectedReward = formData.pointsToUse ? pointsRewards.find((r) => r.pointsCost === formData.pointsToUse) : null;
   const discountFromPoints = orderPreview?.discountFromPoints ?? (selectedReward?.discountAmount ?? 0);
   const isInLocation = formData.fulfillmentType === 'in_location';
+  const freeProductMinOrderValue = (() => {
+    const campaigns = user?.freeProductCampaignsSummary ?? [];
+    let min = Infinity;
+    for (const c of campaigns) {
+      if (c.minOrderValue > 0 && c.minOrderValue < min) min = c.minOrderValue;
+    }
+    return min === Infinity ? null : min;
+  })();
 
   // Use backend preview values when available, fallback to local cart values
   const effectiveDeliveryFee = isInLocation ? 0 : (orderPreview?.deliveryFee ?? deliveryFee);
   const discountFromFreeProducts = orderPreview?.discountFromFreeProducts ?? 0;
-  const displayTotal = orderPreview?.total ?? Math.max(0, subtotal + effectiveDeliveryFee - discountFromPoints - discountFromFreeProducts);
+  const previewSubtotal = orderPreview?.subtotal ?? subtotal;
+  const displayTotal = Math.max(0, previewSubtotal + effectiveDeliveryFee - discountFromPoints - discountFromFreeProducts);
   const isCartEmpty = items.length === 0;
 
   // Totalul plătibil fără reducerea din puncte — folosit pentru a filtra opțiunile de puncte irelevante
@@ -245,6 +257,7 @@ export function useCheckoutData(): CheckoutDisplayData {
     savedAddresses, selectedAddressId, isLoadingAddresses, showManualForm, manualFormRef,
     items, subtotal, deliveryFee, effectiveDeliveryFee, displayTotal, discountFromPoints, discountFromFreeProducts,
     pointsEnabled, userPoints, pointsRewards, payableBeforePoints,
+    freeProductMinOrderValue,
     handleChange, handleSubmit, handleFulfillmentChange, handlePaymentChange,
     selectAddress, handleManualEntry, setFormData, navigate: (p: string) => navigate(p),
   };
@@ -362,16 +375,15 @@ export const OrderSummaryContent: React.FC<{ data: CheckoutDisplayData }> = ({ d
       <CardHeader><CardTitle>{texts.checkout.orderSummary}</CardTitle></CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          {data.items.map(({ product, quantity }) => {
-            const isFree = data.discountFromFreeProducts > 0 && product.price <= data.discountFromFreeProducts;
+          {data.items.map(({ product, quantity, unitPriceWithConfiguration }) => {
+            const unitPrice = typeof unitPriceWithConfiguration === 'number' ? unitPriceWithConfiguration : product.price;
             return (
               <div key={product.id} className="flex justify-between text-sm">
-                <span className="text-muted-foreground flex items-center gap-1.5">
+                <span className="text-muted-foreground">
                   {product.name} x {quantity}
-                  {isFree && <span className="text-[10px] font-bold text-success bg-success/10 px-1.5 py-0.5 rounded">GRATIS</span>}
                 </span>
-                <span className={isFree ? 'line-through text-muted-foreground/50' : ''}>
-                  {product.price * quantity} {texts.common.currency}
+                <span>
+                  {(unitPrice * quantity).toFixed(2)} {texts.common.currency}
                 </span>
               </div>
             );
@@ -381,7 +393,7 @@ export const OrderSummaryContent: React.FC<{ data: CheckoutDisplayData }> = ({ d
         <div className="flex justify-between"><span className="text-muted-foreground">{texts.cart.subtotal}</span><span className="font-medium">{data.subtotal} {texts.common.currency}</span></div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">{texts.cart.delivery}</span>
-          <span className="font-medium">{data.effectiveDeliveryFee === 0 ? <span className="text-primary">{texts.cart.freeDelivery}</span> : `${data.deliveryFee} ${texts.common.currency}`}</span>
+          <span className="font-medium">{data.effectiveDeliveryFee === 0 ? <span className="text-primary">0 {texts.common.currency}</span> : `${data.deliveryFee} ${texts.common.currency}`}</span>
         </div>
         {data.discountFromFreeProducts > 0 && (
           <div className="flex justify-between text-sm text-success font-medium">
@@ -490,7 +502,7 @@ export const CheckoutTemplate: React.FC<{ data: CheckoutDisplayData; variant: St
                   <CardContent>
                     <PaymentSelector data={data} />
                     {data.pointsEnabled && (
-                      <PointsCheckoutSelector userPoints={data.userPoints} rewards={data.pointsRewards} formData={data.formData} onPointsChange={(p) => data.setFormData((prev) => ({ ...prev, pointsToUse: p }))} currency={texts.common.currency} payableBeforePoints={data.payableBeforePoints} />
+                      <PointsCheckoutSelector userPoints={data.userPoints} rewards={data.pointsRewards} formData={data.formData} onPointsChange={(p) => data.setFormData((prev) => ({ ...prev, pointsToUse: p }))} currency={texts.common.currency} payableBeforePoints={data.payableBeforePoints} freeProductMinOrderValue={data.freeProductMinOrderValue} hasFreeProductApplied={(data.discountFromFreeProducts ?? 0) > 0} onNeedMoreProducts={() => data.navigate(routes.catalog)} />
                     )}
                   </CardContent>
                 </Card>

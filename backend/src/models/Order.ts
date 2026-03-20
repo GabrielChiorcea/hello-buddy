@@ -419,14 +419,6 @@ export async function computeOrderTotal(
     }
   }
 
-  // Subtotalul folosit pentru pragurile de campanie și livrare gratuită:
-  // excludem produsele eligibile pentru gratuitate din calcul, pentru a evita logica circulară.
-  const eligibleProductIds = new Set(minOrderByProduct.keys());
-  const thresholdSubtotal = rawItems.reduce((sum, item) => {
-    if (eligibleProductIds.has(item.productId)) return sum;
-    return sum + item.price * item.quantity;
-  }, 0);
-
   const grantedFreeForProduct = new Set<string>();
 
   // Business rule: se oferă UN SINGUR produs gratuit pe comandă din categoria campaniei,
@@ -440,12 +432,17 @@ export async function computeOrderTotal(
       ...eligibleItems.map((item) => minOrderByProduct.get(item.productId) ?? Infinity)
     );
 
-    if (globalThreshold !== Infinity && thresholdSubtotal >= globalThreshold) {
+    // Regula de consistență:
+    // un produs gratuit se acordă doar dacă subtotalul rămâne peste prag și după reducere.
+    if (globalThreshold !== Infinity && baseSubtotal >= globalThreshold) {
       const cheapestItem = eligibleItems.reduce((min, item) =>
         item.price < min.price ? item : min
       );
-      discountFromFreeProducts += cheapestItem.price;
-      grantedFreeForProduct.add(cheapestItem.productId);
+      const subtotalAfterFreeProduct = baseSubtotal - cheapestItem.price;
+      if (subtotalAfterFreeProduct >= globalThreshold) {
+        discountFromFreeProducts += cheapestItem.price;
+        grantedFreeForProduct.add(cheapestItem.productId);
+      }
     }
   }
 
@@ -465,20 +462,37 @@ export async function computeOrderTotal(
   const isInLocation = fulfillmentType === 'in_location';
   let deliveryFee = 0;
   let freeDeliveryThreshold = 0;
+  let baseFee = 0;
   if (!isInLocation) {
     const [settingsRows] = await connection.execute<any[]>(
       `SELECT id, value FROM app_settings WHERE id IN ('delivery_fee', 'free_delivery_threshold')`
     );
     const settingsMap = new Map<string, string>();
     for (const row of settingsRows) settingsMap.set(row.id, row.value);
-    const baseFee = parseFloat(settingsMap.get('delivery_fee') ?? '10');
+    baseFee = parseFloat(settingsMap.get('delivery_fee') ?? '10');
     freeDeliveryThreshold = parseFloat(settingsMap.get('free_delivery_threshold') ?? '0');
-    // Aplicăm pragul de livrare gratuită pe SUBTOTALUL COȘULUI (înainte de gratuități)
-    deliveryFee =
-      freeDeliveryThreshold > 0 && thresholdSubtotal >= freeDeliveryThreshold ? 0 : baseFee;
   }
   const subtotal = baseSubtotal;
-  // Calculăm totalul plătibil ÎNAINTE de puncte, pentru a limita reducerea din puncte
+
+  // 1) Estimăm reducerea din puncte folosind un plafon maximal (subtotal + taxa de livrare de bază - gratis).
+  // 2) Decidem livrarea gratuită pe suma rămasă după gratis + puncte (fără taxa de livrare).
+  // 3) Recalculăm reducerea din puncte cu plafonul final ca să evităm orice depășire.
+  const provisionalPayableForPoints = Math.max(0, subtotal + (isInLocation ? 0 : baseFee) - discountFromFreeProducts);
+  const provisionalPoints = await pointsPlugin.service.applyAtCheckout(connection, {
+    userId: input.userId,
+    pointsToUse: input.pointsToUse,
+  }, provisionalPayableForPoints);
+
+  if (!isInLocation) {
+    const deliveryEligibilitySubtotal = Math.max(
+      0,
+      subtotal - discountFromFreeProducts - provisionalPoints.discountFromPoints
+    );
+    deliveryFee =
+      freeDeliveryThreshold > 0 && deliveryEligibilitySubtotal >= freeDeliveryThreshold ? 0 : baseFee;
+  }
+
+  // Calculăm totalul plătibil ÎNAINTE de reducerea din puncte, pentru plafonarea finală.
   const payableBeforePoints = Math.max(0, subtotal + deliveryFee - discountFromFreeProducts);
   const { pointsUsed, discountFromPoints } = await pointsPlugin.service.applyAtCheckout(connection, {
     userId: input.userId,

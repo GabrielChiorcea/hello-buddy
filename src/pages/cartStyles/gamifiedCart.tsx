@@ -44,7 +44,9 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
   } = data;
   const summarySubtotal = orderPreview?.subtotal ?? subtotal;
   const summaryDelivery = orderPreview?.deliveryFee ?? deliveryFee;
-  const summaryTotal = orderPreview?.total ?? total;
+  const discountFromFreeProducts = orderPreview?.discountFromFreeProducts ?? 0;
+  const discountFromPoints = orderPreview?.discountFromPoints ?? 0;
+  const summaryTotal = Math.max(0, summarySubtotal + summaryDelivery - discountFromFreeProducts - discountFromPoints);
 
   if (items.length === 0) {
     return (
@@ -138,7 +140,7 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                 </div>
               </div>
               <Progress
-                value={Math.min(100, (freeProductProgress.paidSubtotal / freeProductProgress.minOrderValue) * 100)}
+                value={Math.min(100, (freeProductProgress.currentSubtotal / freeProductProgress.eligibilityThreshold) * 100)}
                 className={cn('h-2.5', freeProductProgress.unlocked ? '[&>div]:bg-success' : '[&>div]:bg-primary')}
               />
             </div>
@@ -232,7 +234,7 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                 <div className="flex justify-between"><span className="text-muted-foreground">{texts.cart.subtotal}</span><span className="font-bold">{summarySubtotal} {texts.common.currency}</span></div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{texts.cart.delivery}</span>
-                  <span className="font-bold">{summaryDelivery === 0 ? <span className="text-success">{texts.cart.freeDelivery}</span> : `${summaryDelivery} ${texts.common.currency}`}</span>
+                  <span className="font-bold">{summaryDelivery === 0 ? <span className="text-success">0 {texts.common.currency}</span> : `${summaryDelivery} ${texts.common.currency}`}</span>
                 </div>
                 {summaryDelivery > 0 && <p className="text-xs text-muted-foreground">Livrare gratuită peste {orderPreview?.freeDeliveryThreshold ?? freeDeliveryProgress.threshold} {texts.common.currency}</p>}
                 {(orderPreview?.discountFromFreeProducts ?? 0) > 0 && (

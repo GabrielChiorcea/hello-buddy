@@ -3,11 +3,14 @@
  * Allows users to apply points discount at checkout.
  */
 
-import { Gift, Sparkles, Coins, Check, Star, Heart } from 'lucide-react';
+import { Gift, Coins, Check, Star, Heart } from 'lucide-react';
 import type { PointsReward } from '../types';
 import type { CheckoutData } from '@/types';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { useComponentStyle, type ComponentStyleName } from '@/config/componentStyle';
 
 interface PointsCheckoutSelectorProps {
@@ -18,6 +21,9 @@ interface PointsCheckoutSelectorProps {
   currency?: string;
   /** Totalul plătibil fără reducerea din puncte — pentru a filtra opțiunile irelevante */
   payableBeforePoints?: number;
+  freeProductMinOrderValue?: number | null;
+  hasFreeProductApplied?: boolean;
+  onNeedMoreProducts?: () => void;
 }
 
 export function PointsCheckoutSelector(props: PointsCheckoutSelectorProps) {
@@ -31,130 +37,153 @@ export function PointsCheckoutSelector(props: PointsCheckoutSelectorProps) {
 }
 
 /* ═══ Gamified (original casino style) ═══ */
-function GamifiedSelector({ userPoints, rewards, formData, onPointsChange, currency = 'RON', payableBeforePoints }: PointsCheckoutSelectorProps) {
-  if (rewards.length === 0 || userPoints <= 0) return null;
-  const availableRewards = rewards.filter((r) => r.pointsCost <= userPoints && (payableBeforePoints == null || r.discountAmount <= payableBeforePoints));
-
+function GamifiedSelector(props: PointsCheckoutSelectorProps) {
+  const safeUserPoints = Number(props.userPoints) || 0;
+  if (props.rewards.length === 0 || safeUserPoints <= 0) return null;
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="mt-5 relative rounded-2xl overflow-hidden gamified-casino-card"
-    >
-      <div className="absolute -top-16 -right-10 w-24 h-24 bg-reward/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-10 -left-10 w-20 h-20 bg-reward-light/10 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="relative z-10 px-5 py-4 border-b border-[rgba(255,160,60,0.35)] flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-reward via-reward to-reward-accent flex items-center justify-center shadow-md shadow-reward/40">
-            <Gift className="h-4 w-4 text-reward-surface-foreground" />
-          </div>
-          <div className="leading-tight">
-            <p className="points-casino-title">Folosește punctele tale</p>
-            <p className="points-casino-subtitle">Aplică o reducere din punctele acumulate</p>
-          </div>
-        </div>
-        <div className="points-balance-chip flex items-center gap-1.5 rounded-full px-3 py-1">
-          <Coins className="h-3.5 w-3.5 text-reward-foreground" />
-          <span className="points-balance-value">{userPoints.toFixed(2)}</span>
-          <span className="points-balance-unit">pt</span>
-        </div>
-      </div>
-      <div className="relative z-10 p-5 space-y-2">
-        <RewardOption label="Nu folosi puncte" selected={!formData.pointsToUse} onClick={() => onPointsChange(undefined)} variant="gamified" />
-        {availableRewards.map((r) => (
-          <RewardOption key={r.id} label={`${r.pointsCost} puncte`} value={`-${r.discountAmount} ${currency}`}
-            selected={formData.pointsToUse === r.pointsCost} onClick={() => onPointsChange(r.pointsCost)} variant="gamified" />
-        ))}
-      </div>
-      <SelectedFeedback formData={formData} rewards={rewards} currency={currency} variant="gamified" />
-    </motion.div>
+    <SelectorContent
+      variant="gamified"
+      userPoints={safeUserPoints}
+      {...props}
+    />
   );
 }
 
 /* ═══ Clean ═══ */
-function CleanSelector({ userPoints, rewards, formData, onPointsChange, currency = 'RON', payableBeforePoints }: PointsCheckoutSelectorProps) {
-  if (rewards.length === 0 || userPoints <= 0) return null;
-  const availableRewards = rewards.filter((r) => r.pointsCost <= userPoints && (payableBeforePoints == null || r.discountAmount <= payableBeforePoints));
-
-  return (
-    <div className="mt-5 rounded-xl border border-border bg-card">
-      <div className="px-4 py-3 border-b border-border flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Coins className="h-4 w-4 text-primary" />
-          <p className="text-sm font-medium text-foreground">Folosește punctele</p>
-        </div>
-        <span className="text-sm text-muted-foreground">{userPoints} pt disponibile</span>
-      </div>
-      <div className="p-4 space-y-2">
-        <RewardOption label="Nu folosi puncte" selected={!formData.pointsToUse} onClick={() => onPointsChange(undefined)} variant="clean" />
-        {availableRewards.map((r) => (
-          <RewardOption key={r.id} label={`${r.pointsCost} puncte`} value={`-${r.discountAmount} ${currency}`}
-            selected={formData.pointsToUse === r.pointsCost} onClick={() => onPointsChange(r.pointsCost)} variant="clean" />
-        ))}
-      </div>
-      <SelectedFeedback formData={formData} rewards={rewards} currency={currency} variant="clean" />
-    </div>
-  );
+function CleanSelector(props: PointsCheckoutSelectorProps) {
+  const safeUserPoints = Number(props.userPoints) || 0;
+  if (props.rewards.length === 0 || safeUserPoints <= 0) return null;
+  return <SelectorContent variant="clean" userPoints={safeUserPoints} {...props} />;
 }
 
 /* ═══ Premium ═══ */
-function PremiumSelector({ userPoints, rewards, formData, onPointsChange, currency = 'RON', payableBeforePoints }: PointsCheckoutSelectorProps) {
-  if (rewards.length === 0 || userPoints <= 0) return null;
-  const availableRewards = rewards.filter((r) => r.pointsCost <= userPoints && (payableBeforePoints == null || r.discountAmount <= payableBeforePoints));
-
-  return (
-    <div className="mt-5 rounded-2xl bg-card border border-border/50 shadow-lg shadow-foreground/5 overflow-hidden">
-      <div className="h-0.5 bg-gradient-to-r from-primary/50 via-primary to-primary/50" />
-      <div className="px-5 py-3 border-b border-border/50 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Star className="h-4 w-4 text-primary" />
-          <p className="text-sm font-medium text-foreground tracking-tight">Aplică reducere din puncte</p>
-        </div>
-        <span className="text-xs text-muted-foreground/60 tracking-wide uppercase">{userPoints} puncte</span>
-      </div>
-      <div className="p-5 space-y-2">
-        <RewardOption label="Fără reducere" selected={!formData.pointsToUse} onClick={() => onPointsChange(undefined)} variant="premium" />
-        {availableRewards.map((r) => (
-          <RewardOption key={r.id} label={`${r.pointsCost} puncte`} value={`-${r.discountAmount} ${currency}`}
-            selected={formData.pointsToUse === r.pointsCost} onClick={() => onPointsChange(r.pointsCost)} variant="premium" />
-        ))}
-      </div>
-      <SelectedFeedback formData={formData} rewards={rewards} currency={currency} variant="premium" />
-    </div>
-  );
+function PremiumSelector(props: PointsCheckoutSelectorProps) {
+  const safeUserPoints = Number(props.userPoints) || 0;
+  if (props.rewards.length === 0 || safeUserPoints <= 0) return null;
+  return <SelectorContent variant="premium" userPoints={safeUserPoints} {...props} />;
 }
 
 /* ═══ Friendly ═══ */
-function FriendlySelector({ userPoints, rewards, formData, onPointsChange, currency = 'RON', payableBeforePoints }: PointsCheckoutSelectorProps) {
-  if (rewards.length === 0 || userPoints <= 0) return null;
-  const availableRewards = rewards.filter((r) => r.pointsCost <= userPoints && (payableBeforePoints == null || r.discountAmount <= payableBeforePoints));
+function FriendlySelector(props: PointsCheckoutSelectorProps) {
+  const safeUserPoints = Number(props.userPoints) || 0;
+  if (props.rewards.length === 0 || safeUserPoints <= 0) return null;
+  return <SelectorContent variant="friendly" userPoints={safeUserPoints} {...props} />;
+}
+
+function SelectorContent({
+  variant,
+  userPoints,
+  rewards,
+  formData,
+  onPointsChange,
+  currency = 'RON',
+  payableBeforePoints,
+  freeProductMinOrderValue,
+  hasFreeProductApplied,
+  onNeedMoreProducts,
+}: PointsCheckoutSelectorProps & { variant: ComponentStyleName; userPoints: number }) {
+  const [blockedDiscount, setBlockedDiscount] = useState<number | null>(null);
+  const baseAvailable = rewards.filter((r) => r.pointsCost <= userPoints && (payableBeforePoints == null || r.discountAmount <= payableBeforePoints));
+  const minRequiredAfterDiscount = hasFreeProductApplied && freeProductMinOrderValue != null ? freeProductMinOrderValue : null;
+  const maxAllowedDiscount = minRequiredAfterDiscount != null && payableBeforePoints != null
+    ? Math.max(0, payableBeforePoints - minRequiredAfterDiscount)
+    : null;
+
+  const handleRewardClick = (pointsCost: number, discountAmount: number) => {
+    if (maxAllowedDiscount != null && discountAmount > maxAllowedDiscount) {
+      setBlockedDiscount(discountAmount);
+      return;
+    }
+    onPointsChange(pointsCost);
+  };
+
+  const rewardButton = (r: PointsReward) => (
+    <RewardOption
+      key={r.id}
+      label={`${r.pointsCost} puncte`}
+      value={`-${r.discountAmount} ${currency}`}
+      selected={formData.pointsToUse === r.pointsCost}
+      onClick={() => handleRewardClick(r.pointsCost, r.discountAmount)}
+      variant={variant}
+      disabled={maxAllowedDiscount != null && r.discountAmount > maxAllowedDiscount}
+      onDisabledClick={() => setBlockedDiscount(r.discountAmount)}
+    />
+  );
 
   return (
-    <div className="mt-5 rounded-2xl bg-accent/30 border-2 border-accent shadow-md">
-      <div className="px-4 py-3 border-b border-accent flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Heart className="h-4 w-4 text-primary" />
-          <p className="text-sm font-bold text-foreground">Folosește punctele!</p>
+    <>
+      {variant === 'gamified' && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-5 relative rounded-2xl overflow-hidden gamified-casino-card">
+          <div className="absolute -top-16 -right-10 w-24 h-24 bg-reward/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-10 -left-10 w-20 h-20 bg-reward-light/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative z-10 px-5 py-4 border-b border-[rgba(255,160,60,0.35)] flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-reward via-reward to-reward-accent flex items-center justify-center shadow-md shadow-reward/40"><Gift className="h-4 w-4 text-reward-surface-foreground" /></div>
+              <div className="leading-tight"><p className="points-casino-title">Folosește punctele tale</p><p className="points-casino-subtitle">Aplică o reducere din punctele acumulate</p></div>
+            </div>
+            <div className="points-balance-chip flex items-center gap-1.5 rounded-full px-3 py-1"><Coins className="h-3.5 w-3.5 text-reward-foreground" /><span className="points-balance-value">{userPoints.toFixed(2)}</span><span className="points-balance-unit">pt</span></div>
+          </div>
+          <div className="relative z-10 p-5 space-y-2">
+            <RewardOption label="Nu folosi puncte" selected={!formData.pointsToUse} onClick={() => onPointsChange(undefined)} variant="gamified" />
+            {baseAvailable.map(rewardButton)}
+          </div>
+          <SelectedFeedback formData={formData} rewards={rewards} currency={currency} variant="gamified" />
+        </motion.div>
+      )}
+      {variant === 'clean' && (
+        <div className="mt-5 rounded-xl border border-border bg-card">
+          <div className="px-4 py-3 border-b border-border flex items-center justify-between"><div className="flex items-center gap-2"><Coins className="h-4 w-4 text-primary" /><p className="text-sm font-medium text-foreground">Folosește punctele</p></div><span className="text-sm text-muted-foreground">{userPoints} pt disponibile</span></div>
+          <div className="p-4 space-y-2"><RewardOption label="Nu folosi puncte" selected={!formData.pointsToUse} onClick={() => onPointsChange(undefined)} variant="clean" />{baseAvailable.map(rewardButton)}</div>
+          <SelectedFeedback formData={formData} rewards={rewards} currency={currency} variant="clean" />
         </div>
-        <span className="bg-primary/15 text-primary rounded-full px-2.5 py-0.5 text-xs font-semibold">{userPoints} pt</span>
-      </div>
-      <div className="p-4 space-y-2">
-        <RewardOption label="Nu folosi puncte" selected={!formData.pointsToUse} onClick={() => onPointsChange(undefined)} variant="friendly" />
-        {availableRewards.map((r) => (
-          <RewardOption key={r.id} label={`${r.pointsCost} puncte`} value={`-${r.discountAmount} ${currency}`}
-            selected={formData.pointsToUse === r.pointsCost} onClick={() => onPointsChange(r.pointsCost)} variant="friendly" />
-        ))}
-      </div>
-      <SelectedFeedback formData={formData} rewards={rewards} currency={currency} variant="friendly" />
-    </div>
+      )}
+      {variant === 'premium' && (
+        <div className="mt-5 rounded-2xl bg-card border border-border/50 shadow-lg shadow-foreground/5 overflow-hidden">
+          <div className="h-0.5 bg-gradient-to-r from-primary/50 via-primary to-primary/50" />
+          <div className="px-5 py-3 border-b border-border/50 flex items-center justify-between"><div className="flex items-center gap-2"><Star className="h-4 w-4 text-primary" /><p className="text-sm font-medium text-foreground tracking-tight">Aplică reducere din puncte</p></div><span className="text-xs text-muted-foreground/60 tracking-wide uppercase">{userPoints} puncte</span></div>
+          <div className="p-5 space-y-2"><RewardOption label="Fără reducere" selected={!formData.pointsToUse} onClick={() => onPointsChange(undefined)} variant="premium" />{baseAvailable.map(rewardButton)}</div>
+          <SelectedFeedback formData={formData} rewards={rewards} currency={currency} variant="premium" />
+        </div>
+      )}
+      {variant === 'friendly' && (
+        <div className="mt-5 rounded-2xl bg-accent/30 border-2 border-accent shadow-md">
+          <div className="px-4 py-3 border-b border-accent flex items-center justify-between"><div className="flex items-center gap-2"><Heart className="h-4 w-4 text-primary" /><p className="text-sm font-bold text-foreground">Folosește punctele!</p></div><span className="bg-primary/15 text-primary rounded-full px-2.5 py-0.5 text-xs font-semibold">{userPoints} pt</span></div>
+          <div className="p-4 space-y-2"><RewardOption label="Nu folosi puncte" selected={!formData.pointsToUse} onClick={() => onPointsChange(undefined)} variant="friendly" />{baseAvailable.map(rewardButton)}</div>
+          <SelectedFeedback formData={formData} rewards={rewards} currency={currency} variant="friendly" />
+        </div>
+      )}
+
+      <Dialog open={blockedDiscount != null} onOpenChange={(open) => !open && setBlockedDiscount(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reducerea din puncte nu poate fi aplicată</DialogTitle>
+            <DialogDescription>
+              Pentru a păstra produsul gratuit, totalul după reduceri trebuie să rămână cel puțin {freeProductMinOrderValue ?? 0} {currency}. Adaugă produse în coș sau elimină reducerea din puncte.
+            </DialogDescription>
+          </DialogHeader>
+          {blockedDiscount != null && maxAllowedDiscount != null && (
+            <p className="text-sm text-muted-foreground">
+              Ai ales -{blockedDiscount} {currency}, dar maximul permis acum este -{maxAllowedDiscount.toFixed(2)} {currency}.
+            </p>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { onPointsChange(undefined); setBlockedDiscount(null); }}>
+              Elimină reducerea puncte
+            </Button>
+            <Button onClick={() => { setBlockedDiscount(null); onNeedMoreProducts?.(); }}>
+              Adaugă produse
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
 /* ═══ Shared sub-components ═══ */
 
-function RewardOption({ label, value, selected, onClick, variant }: {
-  label: string; value?: string; selected: boolean; onClick: () => void; variant: ComponentStyleName;
+function RewardOption({ label, value, selected, onClick, variant, disabled = false, onDisabledClick }: {
+  label: string; value?: string; selected: boolean; onClick: () => void; variant: ComponentStyleName; disabled?: boolean; onDisabledClick?: () => void;
 }) {
   const styles: Record<ComponentStyleName, { base: string; selected: string; unselected: string; radio: string; radioSelected: string }> = {
     gamified: {
@@ -194,9 +223,10 @@ function RewardOption({ label, value, selected, onClick, variant }: {
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={disabled ? (onDisabledClick ?? (() => {})) : onClick}
       className={cn(
         s.base,
+        disabled && 'opacity-60 cursor-not-allowed',
         selected
           ? isGamifiedNone
             ? 'border-white/20 bg-white/5'

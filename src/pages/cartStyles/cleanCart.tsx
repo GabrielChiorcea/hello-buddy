@@ -31,7 +31,9 @@ export const CleanCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
   } = data;
   const summarySubtotal = orderPreview?.subtotal ?? subtotal;
   const summaryDelivery = orderPreview?.deliveryFee ?? deliveryFee;
-  const summaryTotal = orderPreview?.total ?? total;
+  const discountFromFreeProducts = orderPreview?.discountFromFreeProducts ?? 0;
+  const discountFromPoints = orderPreview?.discountFromPoints ?? 0;
+  const summaryTotal = Math.max(0, summarySubtotal + summaryDelivery - discountFromFreeProducts - discountFromPoints);
 
   if (items.length === 0) {
     return (
@@ -131,7 +133,7 @@ export const CleanCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                 <div className="flex justify-between"><span className="text-muted-foreground">{texts.cart.subtotal}</span><span>{summarySubtotal} {texts.common.currency}</span></div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{texts.cart.delivery}</span>
-                  <span>{summaryDelivery === 0 ? texts.cart.freeDelivery : `${summaryDelivery} ${texts.common.currency}`}</span>
+                  <span>{summaryDelivery === 0 ? `0 ${texts.common.currency}` : `${summaryDelivery} ${texts.common.currency}`}</span>
                 </div>
                 {summaryDelivery > 0 && <p className="text-xs text-muted-foreground">Gratuit peste {orderPreview?.freeDeliveryThreshold ?? FREE_DELIVERY_THRESHOLD} {texts.common.currency}</p>}
                 {(orderPreview?.discountFromFreeProducts ?? 0) > 0 && (

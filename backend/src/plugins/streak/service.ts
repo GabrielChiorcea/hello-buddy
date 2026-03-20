@@ -133,6 +133,31 @@ async function getIncrementalReward(
   return 0;
 }
 
+/**
+ * Points earned when user reaches exactly `level`.
+ * Mirrors incremental awarding logic used during normal streak progression.
+ */
+async function getRewardForReachedLevel(
+  campaign: CampaignsRepo.StreakCampaign,
+  level: number
+): Promise<number> {
+  if (level <= 0) return 0;
+
+  if (campaign.rewardType === 'steps') {
+    const steps = await CampaignsRepo.getRewardSteps(campaign.id);
+    const step = steps.find((s) => s.stepNumber === level);
+    return step?.pointsAwarded ?? 0;
+  }
+
+  if (campaign.rewardType === 'multiplier') {
+    const mult = campaign.baseMultiplier + (level - 1) * campaign.multiplierIncrement;
+    return Math.round(campaign.bonusPoints * mult);
+  }
+
+  // "single" rewards only on completion, no per-level grant.
+  return 0;
+}
+
 /* ─── Main order processing ────────────────────────────────── */
 
 export async function recordOrderDelivered(
@@ -274,4 +299,34 @@ export async function applySoftDecay(enrollmentId: string): Promise<void> {
   const newCount = Math.max(0, enrollment.currentStreakCount - 1);
   const newLevel = Math.max(0, enrollment.currentLevel - 1);
   await EnrollmentsRepo.updateEnrollmentProgress(enrollmentId, newCount, newLevel, null, null);
+}
+
+/**
+ * Hard reset: drops progress to 0 and reclaims all incremental streak points earned so far.
+ */
+export async function applyHardReset(enrollmentId: string): Promise<void> {
+  const enrollment = await EnrollmentsRepo.getEnrollmentById(enrollmentId);
+  if (!enrollment) return;
+
+  const campaign = await CampaignsRepo.getCampaignById(enrollment.campaignId);
+  if (!campaign || campaign.resetType !== 'hard') return;
+
+  await EnrollmentsRepo.updateEnrollmentProgress(enrollmentId, 0, 0, null, null);
+}
+
+/**
+ * Applies reset behavior configured on campaign (hard or soft decay).
+ */
+export async function applyConfiguredReset(enrollmentId: string): Promise<void> {
+  const enrollment = await EnrollmentsRepo.getEnrollmentById(enrollmentId);
+  if (!enrollment) return;
+  const campaign = await CampaignsRepo.getCampaignById(enrollment.campaignId);
+  if (!campaign) return;
+
+  if (campaign.resetType === 'soft_decay') {
+    await applySoftDecay(enrollmentId);
+    return;
+  }
+
+  await applyHardReset(enrollmentId);
 }

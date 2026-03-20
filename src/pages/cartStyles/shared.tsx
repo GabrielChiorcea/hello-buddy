@@ -25,7 +25,8 @@ export interface OrderPreviewData {
 
 export interface FreeProductProgress {
   minOrderValue: number;
-  paidSubtotal: number;
+  eligibilityThreshold: number;
+  currentSubtotal: number;
   remaining: number;
   unlocked: boolean;
   productNames: string[];
@@ -104,26 +105,25 @@ export function useCartData(): CartDisplayData {
     const getItemUnitPrice = (i: (typeof items)[number]) =>
       typeof i.unitPriceWithConfiguration === 'number' ? i.unitPriceWithConfiguration : i.product.price;
 
-    // Calculăm totalul TUTUROR produselor din coș
+    // Calculăm totalul coșului înainte de reduceri.
     let fullSubtotal = 0;
     for (const item of items) {
       fullSubtotal += getItemUnitPrice(item) * item.quantity;
     }
-
-    // Scădem doar prețul UNUI singur produs gratuit (cel mai ieftin eligibil)
-    // pentru a evita logica circulară, dar fără a exclude toate produsele din categorie
-    let cheapestFreePrice = Infinity;
+    let cheapestEligiblePrice = Infinity;
     for (const item of items) {
       if (freeProductIds.has(item.product.id)) {
         const unitPrice = getItemUnitPrice(item);
-        if (unitPrice < cheapestFreePrice) cheapestFreePrice = unitPrice;
+        if (unitPrice < cheapestEligiblePrice) cheapestEligiblePrice = unitPrice;
       }
     }
-    const freeDeduction = cheapestFreePrice === Infinity ? 0 : cheapestFreePrice;
-    const paidSubtotal = fullSubtotal - freeDeduction;
-
-    const remaining = Math.max(0, minThreshold - paidSubtotal);
-    const unlocked = paidSubtotal >= minThreshold;
+    const requiredSubtotal =
+      cheapestEligiblePrice === Infinity ? minThreshold : minThreshold + cheapestEligiblePrice;
+    const remaining = Math.max(0, requiredSubtotal - fullSubtotal);
+    // If backend preview is available, it is the source of truth for unlocked state.
+    const unlocked = orderPreview
+      ? (orderPreview.discountFromFreeProducts ?? 0) > 0
+      : fullSubtotal >= requiredSubtotal && Array.from(freeProductIds).some((id) => items.some((i) => i.product.id === id));
     const allNames: string[] = [];
     for (const c of campaigns) {
       allNames.push(...c.products);
@@ -131,12 +131,13 @@ export function useCartData(): CartDisplayData {
 
     return {
       minOrderValue: minThreshold,
-      paidSubtotal,
+      eligibilityThreshold: requiredSubtotal,
+      currentSubtotal: fullSubtotal,
       remaining,
       unlocked,
       productNames: [...new Set(allNames)].slice(0, 3),
     };
-  }, [user?.freeProductCampaignsSummary, items]);
+  }, [user?.freeProductCampaignsSummary, items, orderPreview]);
 
   const handleRemoveItem = (productId: string, productName: string, configuration?: OrderItemConfigurationGroup[]) => {
     dispatch(removeItem({ productId, configuration }));
@@ -167,12 +168,17 @@ export function useCartData(): CartDisplayData {
   // Free delivery progress
   const freeDeliveryThreshold = orderPreview?.freeDeliveryThreshold ?? FREE_DELIVERY_THRESHOLD;
   const freeDeliveryProgress = useMemo<FreeDeliveryProgress>(() => {
-    const current = subtotal;
+    // Keep progress aligned with backend rule: delivery threshold is checked on subtotal after free-product discount.
+    const effectiveSubtotalForDelivery =
+      orderPreview
+        ? Math.max(0, (orderPreview.subtotal ?? subtotal) - (orderPreview.discountFromFreeProducts ?? 0))
+        : subtotal;
+    const current = effectiveSubtotalForDelivery;
     const remaining = Math.max(0, freeDeliveryThreshold - current);
-    const unlocked = current >= freeDeliveryThreshold;
+    const unlocked = orderPreview ? (orderPreview.deliveryFee ?? deliveryFee) === 0 : current >= freeDeliveryThreshold;
     const percent = Math.min(100, (current / freeDeliveryThreshold) * 100);
     return { threshold: freeDeliveryThreshold, current, remaining, unlocked, percent };
-  }, [subtotal, freeDeliveryThreshold]);
+  }, [subtotal, freeDeliveryThreshold, orderPreview, deliveryFee]);
 
   // Fake countdown timer (15 min from mount, UI only)
   const [countdownSeconds, setCountdownSeconds] = useState(15 * 60);
@@ -188,15 +194,15 @@ export function useCartData(): CartDisplayData {
   // Total savings
   const totalSavings = useMemo(() => {
     let savings = 0;
-    if (freeDeliveryProgress.unlocked) savings += DELIVERY_FEE;
+    if (orderPreview) {
+      if ((orderPreview.deliveryFee ?? deliveryFee) === 0) savings += DELIVERY_FEE;
+    } else if (freeDeliveryProgress.unlocked) {
+      savings += DELIVERY_FEE;
+    }
     if (orderPreview?.discountFromFreeProducts) savings += orderPreview.discountFromFreeProducts;
     if (orderPreview?.discountFromPoints) savings += orderPreview.discountFromPoints;
-    if (!orderPreview && freeProductProgress?.unlocked) {
-      // Fallback: estimate free product savings from local data
-      savings += freeProductProgress.paidSubtotal - freeProductProgress.minOrderValue > 0 ? 0 : 0;
-    }
     return savings;
-  }, [freeDeliveryProgress.unlocked, orderPreview, freeProductProgress]);
+  }, [freeDeliveryProgress.unlocked, orderPreview, deliveryFee]);
 
   // Abandon toast on continue shopping
   const handleContinueShoppingWithToast = useCallback(() => {
