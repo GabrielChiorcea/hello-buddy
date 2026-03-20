@@ -57,6 +57,12 @@ export interface CartDisplayData {
   /** Fake countdown seconds remaining (UI only) */
   countdownSeconds: number;
   totalSavings: number;
+  /** Computed summary values — single source of truth for all styles */
+  summarySubtotal: number;
+  summaryDelivery: number;
+  summaryDiscountFreeProducts: number;
+  summaryDiscountPoints: number;
+  summaryTotal: number;
   handleRemoveItem: (productId: string, productName: string, configuration?: OrderItemConfigurationGroup[]) => void;
   handleQuantityChange: (productId: string, newQuantity: number, configuration?: OrderItemConfigurationGroup[]) => void;
   handleCheckout: () => void;
@@ -215,6 +221,13 @@ export function useCartData(): CartDisplayData {
     navigate(routes.catalog);
   }, [items.length, subtotal, navigate]);
 
+  // Computed summary — single source of truth
+  const summarySubtotal = orderPreview?.subtotal ?? subtotal;
+  const summaryDelivery = orderPreview?.deliveryFee ?? deliveryFee;
+  const summaryDiscountFreeProducts = orderPreview?.discountFromFreeProducts ?? 0;
+  const summaryDiscountPoints = orderPreview?.discountFromPoints ?? 0;
+  const summaryTotal = Math.max(0, summarySubtotal + summaryDelivery - summaryDiscountFreeProducts - summaryDiscountPoints);
+
   return {
     items,
     subtotal,
@@ -226,6 +239,11 @@ export function useCartData(): CartDisplayData {
     freeDeliveryProgress,
     countdownSeconds,
     totalSavings,
+    summarySubtotal,
+    summaryDelivery,
+    summaryDiscountFreeProducts,
+    summaryDiscountPoints,
+    summaryTotal,
     handleRemoveItem,
     handleQuantityChange,
     handleCheckout,
