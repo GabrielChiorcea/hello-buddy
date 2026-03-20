@@ -52,7 +52,7 @@ export const CleanCard: React.FC<Props> = ({
             <XCircle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-xs font-medium text-destructive">
-                {streakBroken ? 'Streak-ul consecutiv s-a întrerupt' : `Nu mai sunt suficiente zile pentru completare`}
+                {failReason === 'broken' ? 'Streak-ul consecutiv s-a întrerupt' : `Nu mai sunt suficiente zile pentru completare`}
               </p>
               <p className="text-[10px] text-muted-foreground mt-0.5">
                 Poți părăsi campania și te poți înscrie la alta.

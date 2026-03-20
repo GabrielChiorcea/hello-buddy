@@ -52,7 +52,7 @@ export const FriendlyCard: React.FC<Props> = ({
             <XCircle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-xs font-semibold text-destructive">
-                {streakBroken ? 'Streak-ul s-a întrerupt 😞' : 'Nu mai sunt suficiente zile 😔'}
+                {failReason === 'broken' ? 'Streak-ul s-a întrerupt 😞' : 'Nu mai sunt suficiente zile 😔'}
               </p>
               <p className="text-[10px] text-muted-foreground mt-0.5">
                 Poți părăsi campania și te poți înscrie la alta.
