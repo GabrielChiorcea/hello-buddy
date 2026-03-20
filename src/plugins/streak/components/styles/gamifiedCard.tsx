@@ -32,7 +32,7 @@ function fakeParticipants(id: string): number {
 }
 
 export const GamifiedCard: React.FC<Props> = ({
-  campaign, enrollment, enrolledInOtherCampaign, completed, isEnrolled, enrollmentLoading,
+  campaign, enrollment, enrolledInOtherCampaign, completed, isEnrolled, isFailed, failReason, enrollmentLoading,
 }) => {
   const remaining = daysRemaining(campaign.endDate);
   const hasSteps = campaign.rewardType === 'steps' && campaign.rewardSteps?.length > 0;
