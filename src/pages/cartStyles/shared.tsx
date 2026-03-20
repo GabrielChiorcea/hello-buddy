@@ -221,6 +221,13 @@ export function useCartData(): CartDisplayData {
     navigate(routes.catalog);
   }, [items.length, subtotal, navigate]);
 
+  // Computed summary — single source of truth
+  const summarySubtotal = orderPreview?.subtotal ?? subtotal;
+  const summaryDelivery = orderPreview?.deliveryFee ?? deliveryFee;
+  const summaryDiscountFreeProducts = orderPreview?.discountFromFreeProducts ?? 0;
+  const summaryDiscountPoints = orderPreview?.discountFromPoints ?? 0;
+  const summaryTotal = Math.max(0, summarySubtotal + summaryDelivery - summaryDiscountFreeProducts - summaryDiscountPoints);
+
   return {
     items,
     subtotal,
@@ -232,6 +239,11 @@ export function useCartData(): CartDisplayData {
     freeDeliveryProgress,
     countdownSeconds,
     totalSavings,
+    summarySubtotal,
+    summaryDelivery,
+    summaryDiscountFreeProducts,
+    summaryDiscountPoints,
+    summaryTotal,
     handleRemoveItem,
     handleQuantityChange,
     handleCheckout,
