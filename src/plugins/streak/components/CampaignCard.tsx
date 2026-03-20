@@ -10,6 +10,7 @@ import { ACTIVE_STREAK_CAMPAIGN, MY_STREAK_ENROLLMENT } from '../queries';
 import type { StreakCampaign, StreakEnrollment } from '../types';
 import { motion } from 'framer-motion';
 import { useComponentStyle } from '@/config/componentStyle';
+import { isConsecutiveStreakBroken, isImpossibleToComplete } from './campaignUtils';
 import { GamifiedCard } from './styles/gamifiedCard';
 import { CleanCard } from './styles/cleanCard';
 import { PremiumCard } from './styles/premiumCard';
