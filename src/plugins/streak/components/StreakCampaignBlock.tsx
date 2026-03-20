@@ -13,7 +13,7 @@ import type { StreakCampaign, StreakEnrollment } from '../types';
 import { Flame, Sparkles, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useComponentStyle } from '@/config/componentStyle';
-import { daysRemaining } from './campaignUtils';
+import { shouldHideImpossibleCampaign } from './campaignUtils';
 
 export const StreakCampaignBlock: React.FC = () => {
   const { enabled, loading } = usePluginEnabled('streak');
@@ -29,14 +29,18 @@ export const StreakCampaignBlock: React.FC = () => {
   });
   const campaigns = campaignsData?.activeStreakCampaigns ?? [];
   const myActiveEnrollment = enrollmentData?.myStreakEnrollment ?? null;
+  const visibleCampaigns = campaigns.filter((campaign) => {
+    const enrollmentForCampaign = myActiveEnrollment?.campaignId === campaign.id ? myActiveEnrollment : null;
+    return !shouldHideImpossibleCampaign(enrollmentForCampaign, campaign);
+  });
 
   if (loading || !enabled) return null;
 
   const isGamified = style === 'gamified';
 
   // Check if user is authenticated but not enrolled in any campaign
-  const isNotEnrolled = isAuthenticated && !myActiveEnrollment && campaigns.length > 0;
-  const topBonusPoints = campaigns.reduce((max, c) => Math.max(max, c.bonusPoints), 0);
+  const isNotEnrolled = isAuthenticated && !myActiveEnrollment && visibleCampaigns.length > 0;
+  const topBonusPoints = visibleCampaigns.reduce((max, c) => Math.max(max, c.bonusPoints), 0);
 
   return (
     <section className="relative py-10 overflow-hidden bg-background">
@@ -88,9 +92,9 @@ export const StreakCampaignBlock: React.FC = () => {
 
         <div className="overflow-x-auto overflow-y-hidden -mx-4 px-4 sm:-mx-6 sm:px-6 md:mx-0 md:px-0 bg-background scrollbar-none">
           <div className="flex gap-5 pb-2 min-w-0 scroll-smooth after:content-[''] after:flex-shrink-0 after:w-4 sm:after:w-6 md:after:w-0">
-            {campaigns.length === 0 ? (
+            {visibleCampaigns.length === 0 ? (
               <p className="text-sm text-muted-foreground py-4">Momentan nu există campanii active.</p>
-            ) : campaigns.map((campaign, index) => {
+            ) : visibleCampaigns.map((campaign, index) => {
               const enrolledInOtherCampaign = myActiveEnrollment != null && myActiveEnrollment.campaignId !== campaign.id;
               return (
                 <motion.div

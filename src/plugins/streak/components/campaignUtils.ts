@@ -20,9 +20,16 @@ export function formatDate(dateStr: string): string {
 }
 
 export function daysRemaining(endDate: string): number {
-  const now = new Date();
-  const end = new Date(endDate);
-  return Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+  const today = getTodayBucharest();
+  const endDay = endDate.slice(0, 10);
+  const oneDayMs = 1000 * 60 * 60 * 24;
+
+  // Calendar-day diff (inclusive) to avoid partial-day timezone issues.
+  const todayUtc = new Date(`${today}T12:00:00Z`);
+  const endUtc = new Date(`${endDay}T12:00:00Z`);
+  const diffDaysInclusive = Math.floor((endUtc.getTime() - todayUtc.getTime()) / oneDayMs) + 1;
+
+  return Math.max(0, diffDaysInclusive);
 }
 
 export function buildRewardDescription(campaign: StreakCampaign): string {
@@ -83,4 +90,26 @@ export function isImpossibleToComplete(enrollment: StreakEnrollment | null, camp
 
   // Not enough days left in campaign
   return remaining < ordersNeeded;
+}
+
+/**
+ * Hide campaigns that are impossible to complete for current user progress.
+ * Exception: rolling + steps campaigns can still grant partial rewards.
+ */
+export function shouldHideImpossibleCampaign(enrollment: StreakEnrollment | null, campaign: StreakCampaign): boolean {
+  // Keep currently enrolled campaign visible so user can leave/unroll.
+  if (enrollment) return false;
+  if (enrollment?.completedAt) return false;
+
+  const remaining = daysRemaining(campaign.endDate);
+  const currentCount = enrollment?.currentStreakCount ?? 0;
+  const ordersNeeded = campaign.ordersRequired - currentCount;
+
+  if (ordersNeeded <= 0) return false;
+
+  const impossibleToFinish = remaining < ordersNeeded;
+  if (!impossibleToFinish) return false;
+
+  const allowsPartialRewards = campaign.recurrenceType === 'rolling' && campaign.rewardType === 'steps';
+  return !allowsPartialRewards;
 }
