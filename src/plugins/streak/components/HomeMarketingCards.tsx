@@ -18,6 +18,12 @@ import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import type { StreakCampaign, StreakEnrollment } from '../types';
 
+const GET_STREAK_CARD_IMAGE = gql`
+  query GetStreakCardImage {
+    appSetting(key: "streak_home_card_image")
+  }
+`;
+
 type StreakStatus = 'active' | 'lost' | 'completed' | 'available' | 'none';
 
 interface StreakCardData {
@@ -27,6 +33,7 @@ interface StreakCardData {
   progress?: { current: number; total: number };
   daysLeft?: number;
   campaignName?: string;
+  imageUrl?: string;
 }
 
 function useStreakCardData(): StreakCardData | null {
