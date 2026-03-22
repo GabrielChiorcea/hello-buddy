@@ -184,6 +184,7 @@ const GamifiedStreakCard: React.FC<CardStyleProps> = ({ data }) => {
             </div>
           </div>
         </div>
+        </div>
       </div>
     </Link>
   );
