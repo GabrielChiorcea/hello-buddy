@@ -48,6 +48,11 @@ function useStreakCardData(): StreakCardData | null {
     MY_STREAK_ENROLLMENT,
     { fetchPolicy: 'cache-and-network', skip: !enabled }
   );
+  const { data: imageData } = useQuery<{ appSetting: string | null }>(
+    GET_STREAK_CARD_IMAGE,
+    { fetchPolicy: 'cache-first', skip: !enabled }
+  );
+  const imageUrl = imageData?.appSetting || undefined;
 
   if (!enabled) return null;
 
