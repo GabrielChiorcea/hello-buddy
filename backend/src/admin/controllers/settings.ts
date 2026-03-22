@@ -77,6 +77,7 @@ export async function updateSettings(req: Request, res: Response): Promise<void>
       'tiers_notify_on_level_up',
       'tiers_notify_message',
       'has_tables',
+      'streak_home_card_image',
     ];
     
     for (const [key, value] of Object.entries(updates)) {

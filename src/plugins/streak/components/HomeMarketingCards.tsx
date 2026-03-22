@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@apollo/client';
+import { useQuery, gql } from '@apollo/client';
 import { motion } from 'framer-motion';
 import { Flame, ArrowRight, AlertTriangle, Trophy, Zap, Clock } from 'lucide-react';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
@@ -18,6 +18,12 @@ import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import type { StreakCampaign, StreakEnrollment } from '../types';
 
+const GET_STREAK_CARD_IMAGE = gql`
+  query GetStreakCardImage {
+    appSetting(key: "streak_home_card_image")
+  }
+`;
+
 type StreakStatus = 'active' | 'lost' | 'completed' | 'available' | 'none';
 
 interface StreakCardData {
@@ -27,6 +33,7 @@ interface StreakCardData {
   progress?: { current: number; total: number };
   daysLeft?: number;
   campaignName?: string;
+  imageUrl?: string;
 }
 
 function useStreakCardData(): StreakCardData | null {
@@ -41,6 +48,11 @@ function useStreakCardData(): StreakCardData | null {
     MY_STREAK_ENROLLMENT,
     { fetchPolicy: 'cache-and-network', skip: !enabled }
   );
+  const { data: imageData } = useQuery<{ appSetting: string | null }>(
+    GET_STREAK_CARD_IMAGE,
+    { fetchPolicy: 'cache-first', skip: !enabled }
+  );
+  const imageUrl = imageData?.appSetting || undefined;
 
   if (!enabled) return null;
 
@@ -61,6 +73,7 @@ function useStreakCardData(): StreakCardData | null {
       statusText: texts.streak.homeCardCompleted,
       bonusPoints: enrolledCampaign?.bonusPoints ?? topBonus,
       campaignName: enrolledCampaign?.name,
+      imageUrl,
     };
   }
 
@@ -76,6 +89,7 @@ function useStreakCardData(): StreakCardData | null {
         bonusPoints: enrolledCampaign.bonusPoints,
         progress: { current: enrollment.currentStreakCount, total: enrolledCampaign.ordersRequired },
         campaignName: enrolledCampaign.name,
+        imageUrl,
       };
     }
 
@@ -86,6 +100,7 @@ function useStreakCardData(): StreakCardData | null {
       progress: { current: enrollment.currentStreakCount, total: enrolledCampaign.ordersRequired },
       daysLeft: daysRemaining(enrolledCampaign.endDate),
       campaignName: enrolledCampaign.name,
+      imageUrl,
     };
   }
 
@@ -95,6 +110,7 @@ function useStreakCardData(): StreakCardData | null {
       status: 'available',
       statusText: texts.streak.homeCardAvailable,
       bonusPoints: topBonus,
+      imageUrl,
     };
   }
 
@@ -127,7 +143,13 @@ const GamifiedStreakCard: React.FC<CardStyleProps> = ({ data }) => {
 
   return (
     <Link to={routes.streak} className="block group">
-      <div className={`relative overflow-hidden rounded-2xl border-2 ${statusColors[data.status]} p-4 transition-all hover:shadow-lg hover:scale-[1.02]`}>
+      <div className={`relative overflow-hidden rounded-2xl border-2 ${statusColors[data.status]} transition-all hover:shadow-lg hover:scale-[1.02]`}>
+        {data.imageUrl && (
+          <div className="h-24 w-full overflow-hidden">
+            <img src={data.imageUrl} alt="" className="w-full h-full object-cover" />
+          </div>
+        )}
+        <div className="p-4">
         <div className="flex items-start gap-3">
           <div className={`w-10 h-10 rounded-xl bg-background/80 flex items-center justify-center shadow-sm flex-shrink-0 ${iconColor}`}>
             <StatusIcon className="h-5 w-5" />
@@ -161,6 +183,7 @@ const GamifiedStreakCard: React.FC<CardStyleProps> = ({ data }) => {
               </span>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </Link>

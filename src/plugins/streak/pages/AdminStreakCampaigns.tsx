@@ -3,7 +3,7 @@
  * Plugin: plugins/streak
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useAdminApi } from '@/admin/hooks/useAdminApi';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { Navigate } from 'react-router-dom';
@@ -27,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Flame, Plus, Pencil, Trash2, Loader2, Users, Gift, Clock, Shield } from 'lucide-react';
+import { Flame, Plus, Pencil, Trash2, Loader2, Users, Gift, Clock, Shield, ImageIcon, Upload } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import type { StreakCampaign, RecurrenceType, RewardType, ResetType, RewardStep } from '../types';
 
@@ -97,6 +97,9 @@ export default function AdminStreakCampaigns() {
     updateStreakCampaign,
     deleteStreakCampaign,
     getStreakCampaignEnrollments,
+    getSettings,
+    updateSettings,
+    uploadImage,
   } = useAdminApi();
 
   const [campaigns, setCampaigns] = useState<StreakCampaign[]>([]);
@@ -122,6 +125,11 @@ export default function AdminStreakCampaigns() {
   }>>([]);
   const [enrollmentsLoading, setEnrollmentsLoading] = useState(false);
 
+  // Home card image config
+  const [homeCardImage, setHomeCardImage] = useState<string>('');
+  const [homeCardImageSaving, setHomeCardImageSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const fetchCampaigns = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -137,6 +145,34 @@ export default function AdminStreakCampaigns() {
   useEffect(() => {
     fetchCampaigns();
   }, [fetchCampaigns]);
+
+  // Fetch home card image from settings
+  useEffect(() => {
+    (async () => {
+      try {
+        const settings = await getSettings() as Record<string, { value: string }>;
+        const img = settings?.streak_home_card_image?.value;
+        if (img) setHomeCardImage(img);
+      } catch { /* ignore */ }
+    })();
+  }, [getSettings]);
+
+  const handleHomeCardImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setHomeCardImageSaving(true);
+    try {
+      const url = await uploadImage(file);
+      await updateSettings({ streak_home_card_image: url });
+      setHomeCardImage(url);
+      toast({ title: 'Imagine salvată' });
+    } catch {
+      toast({ title: 'Eroare', description: 'Nu s-a putut salva imaginea', variant: 'destructive' });
+    } finally {
+      setHomeCardImageSaving(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  }, [uploadImage, updateSettings]);
 
   const fetchEnrollments = useCallback(
     async (campaignId: string) => {
@@ -351,6 +387,50 @@ export default function AdminStreakCampaigns() {
               ))}
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Home Card Image Config */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ImageIcon className="h-5 w-5" />
+            Imagine card Home
+          </CardTitle>
+          <CardDescription>
+            Imaginea afișată pe cardul streak din pagina Home. Recomandare: 400×200px, format landscape.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4">
+            {homeCardImage ? (
+              <div className="relative w-40 h-20 rounded-lg overflow-hidden border bg-muted">
+                <img src={homeCardImage} alt="Streak card" className="w-full h-full object-cover" />
+              </div>
+            ) : (
+              <div className="w-40 h-20 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center bg-muted/50">
+                <ImageIcon className="h-6 w-6 text-muted-foreground/50" />
+              </div>
+            )}
+            <div className="space-y-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleHomeCardImageUpload}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={homeCardImageSaving}
+              >
+                {homeCardImageSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
+                {homeCardImage ? 'Schimbă imaginea' : 'Încarcă imagine'}
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
