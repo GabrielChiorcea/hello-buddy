@@ -125,6 +125,11 @@ export default function AdminStreakCampaigns() {
   }>>([]);
   const [enrollmentsLoading, setEnrollmentsLoading] = useState(false);
 
+  // Home card image config
+  const [homeCardImage, setHomeCardImage] = useState<string>('');
+  const [homeCardImageSaving, setHomeCardImageSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const fetchCampaigns = useCallback(async () => {
     setIsLoading(true);
     try {
