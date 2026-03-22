@@ -77,7 +77,7 @@ export const buildCartItemKey = (item: {
   const configKey = (item.configuration ?? [])
     .map((group) => {
       const optionsKey = group.options
-        .map((option) => `${option.id}:${option.priceDelta ?? 0}`)
+        .map((option) => `${option.optionId}:${option.priceDelta ?? 0}`)
         .sort()
         .join('|');
       return `${group.groupId}:${optionsKey}`;
