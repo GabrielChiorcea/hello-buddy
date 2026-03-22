@@ -27,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Flame, Plus, Pencil, Trash2, Loader2, Users, Gift, Clock, Shield } from 'lucide-react';
+import { Flame, Plus, Pencil, Trash2, Loader2, Users, Gift, Clock, Shield, ImageIcon, Upload } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import type { StreakCampaign, RecurrenceType, RewardType, ResetType, RewardStep } from '../types';
 
