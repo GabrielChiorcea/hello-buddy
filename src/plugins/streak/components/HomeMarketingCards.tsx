@@ -73,6 +73,7 @@ function useStreakCardData(): StreakCardData | null {
       statusText: texts.streak.homeCardCompleted,
       bonusPoints: enrolledCampaign?.bonusPoints ?? topBonus,
       campaignName: enrolledCampaign?.name,
+      imageUrl,
     };
   }
 
@@ -88,6 +89,7 @@ function useStreakCardData(): StreakCardData | null {
         bonusPoints: enrolledCampaign.bonusPoints,
         progress: { current: enrollment.currentStreakCount, total: enrolledCampaign.ordersRequired },
         campaignName: enrolledCampaign.name,
+        imageUrl,
       };
     }
 
@@ -98,6 +100,7 @@ function useStreakCardData(): StreakCardData | null {
       progress: { current: enrollment.currentStreakCount, total: enrolledCampaign.ordersRequired },
       daysLeft: daysRemaining(enrolledCampaign.endDate),
       campaignName: enrolledCampaign.name,
+      imageUrl,
     };
   }
 
@@ -107,6 +110,7 @@ function useStreakCardData(): StreakCardData | null {
       status: 'available',
       statusText: texts.streak.homeCardAvailable,
       bonusPoints: topBonus,
+      imageUrl,
     };
   }
 
