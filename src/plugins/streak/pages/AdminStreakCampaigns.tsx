@@ -97,6 +97,9 @@ export default function AdminStreakCampaigns() {
     updateStreakCampaign,
     deleteStreakCampaign,
     getStreakCampaignEnrollments,
+    getSettings,
+    updateSettings,
+    uploadImage,
   } = useAdminApi();
 
   const [campaigns, setCampaigns] = useState<StreakCampaign[]>([]);
