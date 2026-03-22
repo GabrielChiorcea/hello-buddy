@@ -3,7 +3,7 @@
  * Plugin: plugins/streak
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useAdminApi } from '@/admin/hooks/useAdminApi';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { Navigate } from 'react-router-dom';
