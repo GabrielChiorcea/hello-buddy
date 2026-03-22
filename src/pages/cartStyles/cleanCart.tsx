@@ -15,7 +15,7 @@ import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { getImageUrl } from '@/lib/imageUrl';
 import { cn } from '@/lib/utils';
-import type { CartDisplayData } from './shared';
+import { buildCartItemKey, type CartDisplayData } from './shared';
 import type { OrderItemConfigurationGroup } from '@/types';
 
 const formatCountdown = (seconds: number) => {
@@ -118,8 +118,8 @@ export const CleanCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
         <div className="grid gap-12 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-0 min-w-0">
             <div className="space-y-0 max-h-[55vh] lg:max-h-[calc(100vh-320px)] overflow-y-auto pr-1">
-              {items.map(({ product, quantity, configuration }, i) => (
-                <div key={product.id}>
+              {items.map(({ product, quantity, configuration, unitPriceWithConfiguration }, i) => (
+                <div key={buildCartItemKey({ product, configuration, unitPriceWithConfiguration })}>
                   {i > 0 && <Separator className="my-0" />}
                   <div className="flex gap-4 py-6">
                     <img src={getImageUrl(product.image)} alt={product.name} className="h-20 w-20 rounded-md object-cover" />

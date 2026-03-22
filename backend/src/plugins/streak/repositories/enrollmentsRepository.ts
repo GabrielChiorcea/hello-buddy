@@ -65,6 +65,18 @@ export async function getEnrollmentByUserAndActive(userId: string): Promise<User
 }
 
 export async function enrollUser(userId: string, campaignId: string): Promise<UserStreakCampaign> {
+  /**
+   * Un user nu poate avea decât o înscriere „deschisă” (incompletă) odată.
+   * La join la o campanie nouă, eliminăm orice alt enrollment incomplet (alt campaign_id),
+   * ca să nu apară la două campanii în admin / să nu se acumuleze progres dublu.
+   * streak_logs se șterge în cascadă cu enrollment-ul.
+   */
+  await query(
+    `DELETE FROM user_streak_campaigns
+     WHERE user_id = ? AND completed_at IS NULL AND campaign_id <> ?`,
+    [userId, campaignId]
+  );
+
   const existing = await getEnrollment(userId, campaignId);
   if (existing) return existing;
 
@@ -109,14 +121,17 @@ export async function listEnrollmentsByCampaign(campaignId: string): Promise<Use
 
 export async function getActiveEnrollmentsForUser(userId: string): Promise<UserStreakCampaign[]> {
   const today = getTodayBucharest();
-  const rows = await query<UserStreakCampaignRow[]>(
+  /** O singură campanie activă procesată per user: ultima înscriere (join) dintre cele încă în interval. */
+  const row = await queryOne<UserStreakCampaignRow>(
     `SELECT usc.* FROM user_streak_campaigns usc
      JOIN streak_campaigns sc ON sc.id = usc.campaign_id
      WHERE usc.user_id = ? AND sc.start_date <= ? AND sc.end_date >= ?
-     AND usc.completed_at IS NULL`,
+     AND usc.completed_at IS NULL
+     ORDER BY usc.joined_at DESC
+     LIMIT 1`,
     [userId, today, today]
   );
-  return Array.isArray(rows) ? rows.map(mapRow) : [];
+  return row ? [mapRow(row)] : [];
 }
 
 export async function deleteEnrollment(enrollmentId: string): Promise<void> {

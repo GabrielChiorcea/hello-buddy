@@ -16,7 +16,7 @@ import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { getImageUrl } from '@/lib/imageUrl';
 import { cn } from '@/lib/utils';
-import type { CartDisplayData } from './shared';
+import { buildCartItemKey, type CartDisplayData } from './shared';
 import type { OrderItemConfigurationGroup } from '@/types';
 
 const formatCountdown = (seconds: number) => {
@@ -133,7 +133,7 @@ export const FriendlyCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
           <div className="lg:col-span-2 space-y-4 min-w-0">
             <div className="space-y-4 max-h-[55vh] lg:max-h-[calc(100vh-320px)] overflow-y-auto pr-1">
               {items.map(({ product, quantity, configuration, unitPriceWithConfiguration }) => (
-                <Card key={product.id} className="rounded-2xl border-border/30 shadow-sm hover:shadow-md transition-shadow">
+                <Card key={buildCartItemKey({ product, configuration, unitPriceWithConfiguration })} className="rounded-2xl border-border/30 shadow-sm hover:shadow-md transition-shadow">
                   <CardContent className="p-4">
                     <div className="flex gap-4">
                       <div className="shrink-0">

@@ -17,7 +17,7 @@ import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { getImageUrl } from '@/lib/imageUrl';
 import { cn } from '@/lib/utils';
-import type { CartDisplayData } from './shared';
+import { buildCartItemKey, type CartDisplayData } from './shared';
 import type { OrderItemConfigurationGroup } from '@/types';
 
 const formatCountdown = (seconds: number) => {
@@ -149,8 +149,8 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-4 min-w-0">
             <div className="space-y-4 max-h-[55vh] lg:max-h-[calc(100vh-320px)] overflow-y-auto pr-1">
-              {items.map(({ product, quantity, configuration }) => (
-                <Card key={product.id} className="border-primary/10 shadow-md hover:shadow-lg transition-shadow">
+              {items.map(({ product, quantity, configuration, unitPriceWithConfiguration }) => (
+                <Card key={buildCartItemKey({ product, configuration, unitPriceWithConfiguration })} className="border-primary/10 shadow-md hover:shadow-lg transition-shadow">
                   <CardContent className="p-4">
                     <div className="flex gap-4">
                       <div className="shrink-0">

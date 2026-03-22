@@ -1,11 +1,20 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, UtensilsCrossed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { texts } from "@/config/texts";
 import { motion } from "framer-motion";
+import { useAppDispatch } from "@/store";
+import { routes } from "@/config/routes";
+import { prefetchHomeCatalogData } from "@/pages/homeStyles/shared";
 
 const Welcome = () => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    prefetchHomeCatalogData(dispatch, "welcome");
+  }, [dispatch]);
 
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-primary overflow-hidden">
@@ -49,7 +58,7 @@ const Welcome = () => {
           className="flex flex-col gap-3 w-full mt-4"
         >
           <Button
-            onClick={() => navigate("/home")}
+            onClick={() => navigate(routes.home)}
             size="lg"
             className="w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90 h-14 text-base font-semibold gap-2 shadow-lg"
           >

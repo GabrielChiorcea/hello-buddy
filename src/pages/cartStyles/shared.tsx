@@ -69,6 +69,28 @@ export interface CartDisplayData {
   handleContinueShoppingWithToast: () => void;
 }
 
+export const buildCartItemKey = (item: {
+  product: { id: string };
+  configuration?: OrderItemConfigurationGroup[];
+  unitPriceWithConfiguration?: number;
+}) => {
+  const configKey = (item.configuration ?? [])
+    .map((group) => {
+      const optionsKey = group.options
+        .map((option) => `${option.id}:${option.priceDelta ?? 0}`)
+        .sort()
+        .join('|');
+      return `${group.groupId}:${optionsKey}`;
+    })
+    .sort()
+    .join('||');
+  const unitPriceKey =
+    typeof item.unitPriceWithConfiguration === 'number'
+      ? item.unitPriceWithConfiguration.toFixed(2)
+      : 'base';
+  return `${item.product.id}::${unitPriceKey}::${configKey || 'no-config'}`;
+};
+
 export function useCartData(): CartDisplayData {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();

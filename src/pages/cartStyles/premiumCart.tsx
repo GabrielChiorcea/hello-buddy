@@ -16,7 +16,7 @@ import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { getImageUrl } from '@/lib/imageUrl';
 import { cn } from '@/lib/utils';
-import type { CartDisplayData } from './shared';
+import { buildCartItemKey, type CartDisplayData } from './shared';
 import type { OrderItemConfigurationGroup } from '@/types';
 
 const formatCountdown = (seconds: number) => {
@@ -130,7 +130,7 @@ export const PremiumCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
             <div className="space-y-4 max-h-[55vh] lg:max-h-[calc(100vh-320px)] overflow-y-auto pr-1">
               {items.map(({ product, quantity, configuration, unitPriceWithConfiguration }) => (
                 <Card
-                  key={product.id}
+                  key={buildCartItemKey({ product, configuration, unitPriceWithConfiguration })}
                   className="border-border/20 bg-background/60 backdrop-blur-xl shadow-sm hover:shadow-md transition-all"
                 >
                   <CardContent className="p-5">

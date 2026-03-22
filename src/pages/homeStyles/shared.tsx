@@ -3,7 +3,8 @@
  */
 
 import { useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/store';
+import { useAppDispatch, useAppSelector, store } from '@/store';
+import type { AppDispatch } from '@/store';
 import {
   fetchProducts,
   fetchCategories,
@@ -14,6 +15,34 @@ import {
 } from '@/store/slices/productsSlice';
 
 import type { Easing } from 'framer-motion';
+
+/** Evită dublarea celor 4 request-uri dacă Welcome și Home pornesc încărcarea aproape simultan */
+let homeCatalogBundleInFlight = false;
+
+/**
+ * Încarcă în Redux aceleași date folosite pe Home (produse, categorii, recomandate, stats).
+ * - `welcome`: prefetch doar dacă încă nu avem catalog în store (evită dublu fetch după ce userul așteaptă pe Welcome).
+ * - `home`: ca înainte, pornește încărcarea la fiecare mount pe Home (dacă nu rulează deja același bundle).
+ */
+export function prefetchHomeCatalogData(
+  dispatch: AppDispatch,
+  mode: 'welcome' | 'home' = 'home'
+): void {
+  if (homeCatalogBundleInFlight) return;
+  if (mode === 'welcome') {
+    const p = store.getState().products;
+    if (p.items.length > 0 && p.categories.length > 0) return;
+  }
+  homeCatalogBundleInFlight = true;
+  Promise.all([
+    dispatch(fetchProducts()).unwrap(),
+    dispatch(fetchCategories()).unwrap(),
+    dispatch(fetchRecommendedProducts()).unwrap(),
+    dispatch(fetchAppStats()).unwrap(),
+  ]).finally(() => {
+    homeCatalogBundleInFlight = false;
+  });
+}
 
 export const easeOut: Easing = [0.16, 1, 0.3, 1];
 
@@ -61,10 +90,7 @@ export function useHomeData(): HomeDisplayData {
   } = useAppSelector((state) => state.products);
 
   useEffect(() => {
-    dispatch(fetchProducts());
-    dispatch(fetchCategories());
-    dispatch(fetchRecommendedProducts());
-    dispatch(fetchAppStats());
+    prefetchHomeCatalogData(dispatch);
   }, [dispatch]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {

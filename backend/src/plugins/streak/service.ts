@@ -76,6 +76,24 @@ function consecutiveRunLength(sortedDates: string[], endDate: string): number {
   return count;
 }
 
+function diffDaysInclusiveStart(startDate: string, endDate: string): number {
+  const start = new Date(startDate + 'T12:00:00Z');
+  const end = new Date(endDate + 'T12:00:00Z');
+  const diffMs = end.getTime() - start.getTime();
+  return Math.floor(diffMs / (24 * 60 * 60 * 1000));
+}
+
+function canStillCompleteConsecutive(
+  campaign: CampaignsRepo.StreakCampaign,
+  currentCount: number,
+  currentOrderDateStr: string
+): boolean {
+  if (currentCount >= campaign.ordersRequired) return true;
+  const remainingNeeded = campaign.ordersRequired - currentCount;
+  const remainingFutureDays = Math.max(0, diffDaysInclusiveStart(currentOrderDateStr, campaign.endDate));
+  return remainingNeeded <= remainingFutureDays;
+}
+
 /* ─── Reward calculation ───────────────────────────────────── */
 
 async function calculateStepReward(campaignId: string, currentCount: number, rewardType: CampaignsRepo.RewardType, bonusPoints: number, baseMultiplier: number, multiplierIncrement: number): Promise<number> {
@@ -212,6 +230,14 @@ export async function recordOrderDelivered(
 
       // ─── Acordăm puncte doar când ziua a fost nou inserată ───
       if (inserted) {
+        const shouldAwardStreakPoints =
+          campaign.recurrenceType !== 'consecutive' ||
+          canStillCompleteConsecutive(campaign, currentCount, orderDateStr);
+
+        if (!shouldAwardStreakPoints) {
+          continue;
+        }
+
         const pointsEnabled = await isPluginEnabled('points');
         if (pointsEnabled) {
           const { addPoints } = await import('../points/repositories/transactionsRepository.js');
