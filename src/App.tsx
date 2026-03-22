@@ -67,6 +67,7 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
 import Terms from "./pages/Terms";
+import StreakPage from "./pages/StreakPage";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
