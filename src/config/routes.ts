@@ -17,6 +17,7 @@ export const routes = {
   forgotPassword: '/forgot-password',
   resetPassword: '/reset-password/:token',
   terms: '/termeni-si-conditii',
+  streak: '/streak',
   orderSuccess: '/order-success',
   notFound: '*',
   // Admin routes
