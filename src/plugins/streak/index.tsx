@@ -10,8 +10,9 @@ import { CampaignCard } from './components/CampaignCard';
 import { CampaignJoinButton } from './components/CampaignJoinButton';
 import { StreakProgressBar } from './components/StreakProgressBar';
 import { StreakCampaignBlock } from './components/StreakCampaignBlock';
+import { HomeMarketingCards } from './components/HomeMarketingCards';
 
-export { CampaignCard, CampaignJoinButton, StreakProgressBar, StreakCampaignBlock };
+export { CampaignCard, CampaignJoinButton, StreakProgressBar, StreakCampaignBlock, HomeMarketingCards };
 export { default as AdminStreakCampaigns } from './pages/AdminStreakCampaigns';
 export type { StreakCampaign, StreakEnrollment, RecurrenceType, RewardType, ResetType } from './types';
 export { ACTIVE_STREAK_CAMPAIGN, MY_STREAK_ENROLLMENT } from './queries';
@@ -32,5 +33,6 @@ export const streakPlugin = {
     CampaignJoinButton,
     StreakProgressBar,
     StreakCampaignBlock,
+    HomeMarketingCards,
   },
 };

@@ -339,6 +339,22 @@ export const texts = {
     cartInfoNone:
       'Uneori poți primi produse gratuite pentru nivelul tău de loialitate — urmărește ofertele speciale.',
   },
+
+  // Streak V2 marketing
+  streak: {
+    pageTitle: 'Campanii Streak',
+    pageSubtitle: 'Completează provocări și câștigă puncte bonus',
+    noCampaigns: 'Momentan nu există campanii active.',
+    homeCardTitle: 'Câștigă puncte BONUS',
+    homeCardActive: 'Streak activ — continuă seria!',
+    homeCardAvailable: 'Provocări disponibile — înscrie-te acum!',
+    homeCardLost: 'Ai pierdut un streak — vezi detalii!',
+    homeCardCompleted: 'Streak completat — felicitări! 🎉',
+    homeCardCta: 'Vezi provocările',
+    homeCardPoints: '+{points} puncte posibile',
+    comboCardTitle: 'Combouri speciale',
+    comboCardSubtitle: 'În curând...',
+  },
 } as const;
 
 export type TextsType = typeof texts;

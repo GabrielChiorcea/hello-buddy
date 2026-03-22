@@ -13,7 +13,7 @@ import { Layout } from '@/components/layout/Layout';
 import { TierProgressBar } from '@/components/layout/TierProgressBar';
 import { ProductCard } from '@/components/common/ProductCard';
 import { PageLoader } from '@/components/common/Loader';
-import { StreakCampaignBlock } from '@/plugins/streak';
+import { HomeMarketingCards } from '@/plugins/streak/components/HomeMarketingCards';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { CategoryIconDisplay } from '@/config/categoryIcons';
@@ -52,7 +52,7 @@ export const CleanHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
           </div>
         </div>
       </section>
-      <StreakCampaignBlock />
+      <HomeMarketingCards />
 
       {/* Categories — text-only grid */}
       <section className="py-12">

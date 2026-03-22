@@ -15,7 +15,7 @@ import { selectCartItemCount } from '@/store/slices/cartSlice';
 import { TierProgressBar } from '@/components/layout/TierProgressBar';
 import { ProductCard } from '@/components/common/ProductCard';
 import { PageLoader } from '@/components/common/Loader';
-import { StreakCampaignBlock } from '@/plugins/streak';
+import { HomeMarketingCards } from '@/plugins/streak/components/HomeMarketingCards';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { CategoryIconDisplay } from '@/config/categoryIcons';
@@ -78,7 +78,7 @@ export const GamifiedHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
           </div>
         </div>
       </section>
-      <StreakCampaignBlock />
+      <HomeMarketingCards />
 
       {/* Categories */}
       <section className="py-12 md:py-16">
