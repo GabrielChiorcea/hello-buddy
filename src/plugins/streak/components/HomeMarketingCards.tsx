@@ -143,7 +143,13 @@ const GamifiedStreakCard: React.FC<CardStyleProps> = ({ data }) => {
 
   return (
     <Link to={routes.streak} className="block group">
-      <div className={`relative overflow-hidden rounded-2xl border-2 ${statusColors[data.status]} p-4 transition-all hover:shadow-lg hover:scale-[1.02]`}>
+      <div className={`relative overflow-hidden rounded-2xl border-2 ${statusColors[data.status]} transition-all hover:shadow-lg hover:scale-[1.02]`}>
+        {data.imageUrl && (
+          <div className="h-24 w-full overflow-hidden">
+            <img src={data.imageUrl} alt="" className="w-full h-full object-cover" />
+          </div>
+        )}
+        <div className="p-4">
         <div className="flex items-start gap-3">
           <div className={`w-10 h-10 rounded-xl bg-background/80 flex items-center justify-center shadow-sm flex-shrink-0 ${iconColor}`}>
             <StatusIcon className="h-5 w-5" />
