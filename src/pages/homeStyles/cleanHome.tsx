@@ -52,7 +52,7 @@ export const CleanHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
           </div>
         </div>
       </section>
-      <StreakCampaignBlock />
+      <HomeMarketingCards />
 
       {/* Categories — text-only grid */}
       <section className="py-12">

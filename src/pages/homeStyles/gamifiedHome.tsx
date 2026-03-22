@@ -78,7 +78,7 @@ export const GamifiedHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
           </div>
         </div>
       </section>
-      <StreakCampaignBlock />
+      <HomeMarketingCards />
 
       {/* Categories */}
       <section className="py-12 md:py-16">
