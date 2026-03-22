@@ -390,6 +390,50 @@ export default function AdminStreakCampaigns() {
         </CardContent>
       </Card>
 
+      {/* Home Card Image Config */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ImageIcon className="h-5 w-5" />
+            Imagine card Home
+          </CardTitle>
+          <CardDescription>
+            Imaginea afișată pe cardul streak din pagina Home. Recomandare: 400×200px, format landscape.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4">
+            {homeCardImage ? (
+              <div className="relative w-40 h-20 rounded-lg overflow-hidden border bg-muted">
+                <img src={homeCardImage} alt="Streak card" className="w-full h-full object-cover" />
+              </div>
+            ) : (
+              <div className="w-40 h-20 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center bg-muted/50">
+                <ImageIcon className="h-6 w-6 text-muted-foreground/50" />
+              </div>
+            )}
+            <div className="space-y-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleHomeCardImageUpload}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={homeCardImageSaving}
+              >
+                {homeCardImageSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
+                {homeCardImage ? 'Schimbă imaginea' : 'Încarcă imagine'}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Enrollments */}
       {selectedCampaignId && (
         <Card>
