@@ -146,6 +146,34 @@ export default function AdminStreakCampaigns() {
     fetchCampaigns();
   }, [fetchCampaigns]);
 
+  // Fetch home card image from settings
+  useEffect(() => {
+    (async () => {
+      try {
+        const settings = await getSettings() as Record<string, { value: string }>;
+        const img = settings?.streak_home_card_image?.value;
+        if (img) setHomeCardImage(img);
+      } catch { /* ignore */ }
+    })();
+  }, [getSettings]);
+
+  const handleHomeCardImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setHomeCardImageSaving(true);
+    try {
+      const url = await uploadImage(file);
+      await updateSettings({ streak_home_card_image: url });
+      setHomeCardImage(url);
+      toast({ title: 'Imagine salvată' });
+    } catch {
+      toast({ title: 'Eroare', description: 'Nu s-a putut salva imaginea', variant: 'destructive' });
+    } finally {
+      setHomeCardImageSaving(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  }, [uploadImage, updateSettings]);
+
   const fetchEnrollments = useCallback(
     async (campaignId: string) => {
       setEnrollmentsLoading(true);
