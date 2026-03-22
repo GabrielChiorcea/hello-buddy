@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@apollo/client';
+import { useQuery, gql } from '@apollo/client';
 import { motion } from 'framer-motion';
 import { Flame, ArrowRight, AlertTriangle, Trophy, Zap, Clock } from 'lucide-react';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
