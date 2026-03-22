@@ -16,7 +16,7 @@ import { TierProgressBar } from '@/components/layout/TierProgressBar';
 import { ProductCard } from '@/components/common/ProductCard';
 import { PageLoader } from '@/components/common/Loader';
 import { HomeMarketingCards } from '@/plugins/streak/components/HomeMarketingCards';
-import { StreakCampaignBlock } from '@/plugins/streak';
+import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { CategoryIconDisplay } from '@/config/categoryIcons';
 import type { HomeDisplayData } from './shared';
