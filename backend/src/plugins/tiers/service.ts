@@ -55,7 +55,7 @@ export async function addXpOnOrderDelivered(
       total_xp: number;
       tier_id: string | null;
     }>(
-      'SELECT id, email, total_xp, tier_id FROM users WHERE id = ?',
+      'SELECT id, email, total_xp, tier_id FROM users WHERE id = ? AND is_deleted = FALSE',
       [order.userId]
     );
     if (!userRow) return;
@@ -71,7 +71,7 @@ export async function addXpOnOrderDelivered(
       !!newTier && newTier.id !== (previousTier?.id ?? userRow.tier_id ?? null);
 
     await query(
-      'UPDATE users SET total_xp = ?, tier_id = ? WHERE id = ?',
+      'UPDATE users SET total_xp = ?, tier_id = ? WHERE id = ? AND is_deleted = FALSE',
       [newTotalXp, newTier ? newTier.id : userRow.tier_id, userRow.id]
     );
 
@@ -116,7 +116,7 @@ export async function getPointsMultiplierForUser(userId: string): Promise<number
 
   try {
     const row = await queryOne<{ total_xp: number }>(
-      'SELECT total_xp FROM users WHERE id = ?',
+      'SELECT total_xp FROM users WHERE id = ? AND is_deleted = FALSE',
       [userId]
     );
     if (!row) return 1;

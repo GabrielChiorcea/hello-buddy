@@ -17,10 +17,12 @@ function hashResetToken(token: string): string {
 // Tipuri
 export interface User {
   id: string;
-  email: string;
-  name: string;
+  email: string | null;
+  name: string | null;
   phone: string | null;
   isBlocked: boolean;
+  isDeleted: boolean;
+  deletedAt: Date | null;
   pointsBalance: number;
   welcomeBonusSeen: boolean;
   /** Total XP acumulat (nu se consumă) */
@@ -33,11 +35,13 @@ export interface User {
 
 interface UserRow {
   id: string;
-  email: string;
+  email: string | null;
   password_hash?: string; // only present in verifyCredentials
-  name: string;
+  name: string | null;
   phone: string | null;
   is_blocked: boolean;
+  is_deleted: boolean;
+  deleted_at: Date | null;
   points_balance: number;
   welcome_bonus_seen: number | boolean;
   total_xp: number;
@@ -47,7 +51,7 @@ interface UserRow {
 }
 
 /** Coloane standard selectate din users (fără password_hash) */
-const USER_COLUMNS = `id, email, name, phone, is_blocked, points_balance, welcome_bonus_seen, total_xp, tier_id, created_at, updated_at`;
+const USER_COLUMNS = `id, email, name, phone, is_blocked, is_deleted, deleted_at, points_balance, welcome_bonus_seen, total_xp, tier_id, created_at, updated_at`;
 
 export interface CreateUserInput {
   email: string;
@@ -69,6 +73,8 @@ function mapRowToUser(row: UserRow): User {
     name: row.name,
     phone: row.phone,
     isBlocked: row.is_blocked,
+    isDeleted: Boolean(row.is_deleted),
+    deletedAt: row.deleted_at ?? null,
     pointsBalance: row.points_balance ?? 0,
     welcomeBonusSeen: Boolean(row.welcome_bonus_seen),
     totalXp: row.total_xp ?? 0,
@@ -82,6 +88,15 @@ function mapRowToUser(row: UserRow): User {
  * Găsește un utilizator după ID
  */
 export async function findById(id: string): Promise<User | null> {
+  const row = await queryOne<UserRow>(
+    `SELECT ${USER_COLUMNS} FROM users WHERE id = ? AND is_deleted = FALSE`,
+    [id]
+  );
+  return row ? mapRowToUser(row) : null;
+}
+
+/** Utilizator inclusiv conturi anonimizate (ex. admin: detalii după id) */
+export async function findByIdIncludingDeleted(id: string): Promise<User | null> {
   const row = await queryOne<UserRow>(
     `SELECT ${USER_COLUMNS} FROM users WHERE id = ?`,
     [id]
@@ -107,7 +122,7 @@ export async function findByPhone(phone: string): Promise<User | null> {
   const normalized = phone.trim();
   if (!normalized) return null;
   const row = await queryOne<UserRow>(
-    `SELECT ${USER_COLUMNS} FROM users WHERE phone = ?`,
+    `SELECT ${USER_COLUMNS} FROM users WHERE phone = ? AND is_deleted = FALSE`,
     [normalized]
   );
   return row ? mapRowToUser(row) : null;
@@ -184,7 +199,7 @@ export async function create(input: CreateUserInput): Promise<User> {
  * Folosit la crearea contului pentru a atribui rank-ul "Newbe".
  */
 export async function setTierId(userId: string, tierId: string | null): Promise<void> {
-  await query('UPDATE users SET tier_id = ? WHERE id = ?', [tierId, userId]);
+  await query('UPDATE users SET tier_id = ? WHERE id = ? AND is_deleted = FALSE', [tierId, userId]);
 }
 
 /**
@@ -207,7 +222,7 @@ export async function update(id: string, input: UpdateUserInput): Promise<User |
   
   values.push(id);
   await query(
-    `UPDATE users SET ${updates.join(', ')} WHERE id = ?`,
+    `UPDATE users SET ${updates.join(', ')} WHERE id = ? AND is_deleted = FALSE`,
     values
   );
   
@@ -220,7 +235,7 @@ export async function update(id: string, input: UpdateUserInput): Promise<User |
 export async function changePassword(id: string, newPassword: string): Promise<boolean> {
   const passwordHash = await hashPassword(newPassword);
   await query(
-    'UPDATE users SET password_hash = ? WHERE id = ?',
+    'UPDATE users SET password_hash = ? WHERE id = ? AND is_deleted = FALSE',
     [passwordHash, id]
   );
   return true;
@@ -242,17 +257,30 @@ export async function markWelcomeBonusSeen(userId: string): Promise<boolean> {
  */
 export async function setBlocked(id: string, blocked: boolean): Promise<boolean> {
   await query(
-    'UPDATE users SET is_blocked = ? WHERE id = ?',
+    'UPDATE users SET is_blocked = ? WHERE id = ? AND is_deleted = FALSE',
     [blocked, id]
-  );
+ );
   return true;
 }
 
 /**
- * Șterge un utilizator
+ * GDPR: anonimizare + soft delete — păstrează id-ul pentru comenzi, puncte, streak, etc.
  */
-export async function deleteUser(id: string): Promise<boolean> {
-  await query('DELETE FROM users WHERE id = ?', [id]);
+export async function softDeleteAnonymizeUser(id: string): Promise<boolean> {
+  const randomSecret = crypto.randomBytes(48).toString('hex');
+  const passwordHash = await hashPassword(randomSecret);
+  await query('DELETE FROM password_reset_tokens WHERE user_id = ?', [id]);
+  await query(
+    `UPDATE users SET
+      email = NULL,
+      name = NULL,
+      phone = NULL,
+      password_hash = ?,
+      is_deleted = TRUE,
+      deleted_at = CURRENT_TIMESTAMP
+    WHERE id = ? AND is_deleted = FALSE`,
+    [passwordHash, id]
+  );
   return true;
 }
 
@@ -264,14 +292,14 @@ export async function findAll(
   limit = 20,
   search?: string
 ): Promise<{ users: User[]; total: number }> {
-  let countQuery = 'SELECT COUNT(*) as total FROM users';
-  let selectQuery = `SELECT ${USER_COLUMNS} FROM users`;
+  let countQuery = 'SELECT COUNT(*) as total FROM users WHERE is_deleted = FALSE';
+  let selectQuery = `SELECT ${USER_COLUMNS} FROM users WHERE is_deleted = FALSE`;
   const params: unknown[] = [];
   
   if (search) {
-    const whereClause = ' WHERE name LIKE ? OR email LIKE ?';
-    countQuery += whereClause;
-    selectQuery += whereClause;
+    const searchClause = ' AND (name LIKE ? OR email LIKE ?)';
+    countQuery += searchClause;
+    selectQuery += searchClause;
     params.push(`%${search}%`, `%${search}%`);
   }
   

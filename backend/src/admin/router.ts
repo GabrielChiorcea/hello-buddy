@@ -51,7 +51,9 @@ router.post('/upload', uploadController.postUpload);
 router.get('/dashboard', dashboardController.getDashboard);
 router.get('/dashboard/stats', dashboardController.getStats);
 
-// Analitice
+// Analitice (rute specifice înainte de /analytics dacă se adaugă parametri)
+router.get('/analytics/rollup-health', analyticsController.getAnalyticsRollupHealth);
+router.get('/analytics/product-pairs', analyticsController.getAnalyticsProductPairs);
 router.get('/analytics', analyticsController.getAnalytics);
 router.get('/analytics/backfill', analyticsController.backfillAnalytics);
 

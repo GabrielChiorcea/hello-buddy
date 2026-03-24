@@ -72,13 +72,13 @@ export async function login(req: Request, res: Response): Promise<void> {
     setAdminRefreshTokenCookie(res, refreshToken);
     
     // Log successful admin login
-    logAdminLoginSuccess(req, user.id, user.email);
+    logAdminLoginSuccess(req, user.id, user.email ?? '');
     
     res.json({
       user: {
         id: user.id,
-        email: user.email,
-        name: user.name,
+        email: user.email ?? '',
+        name: user.name ?? '',
       },
       accessToken,
       expiresIn: jwtConfig.access.expiresIn,
@@ -155,8 +155,8 @@ export async function refreshToken(req: Request, res: Response): Promise<void> {
     res.json({
       user: {
         id: user.id,
-        email: user.email,
-        name: user.name,
+        email: user.email ?? '',
+        name: user.name ?? '',
       },
       accessToken: rotationResult.accessToken,
       expiresIn: rotationResult.expiresIn,

@@ -206,8 +206,8 @@ async function startServer() {
       res.json({
         user: {
           id: user.id,
-          email: user.email,
-          name: user.name,
+          email: user.email ?? '',
+          name: user.name ?? '',
           phone: user.phone,
           pointsBalance: user.pointsBalance,
           welcomeBonusSeen: user.welcomeBonusSeen,

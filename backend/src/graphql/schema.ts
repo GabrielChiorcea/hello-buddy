@@ -15,8 +15,8 @@ const coreTypeDefs = `#graphql
   
   type User {
     id: ID!
-    email: String!
-    name: String!
+    email: String
+    name: String
     phone: String
     pointsBalance: Float!
     createdAt: String!

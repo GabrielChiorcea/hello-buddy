@@ -87,7 +87,7 @@ export async function getUsers(req: Request, res: Response): Promise<void> {
 export async function getUser(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
-    const user = await UserModel.findById(id);
+    const user = await UserModel.findByIdIncludingDeleted(id);
     
     if (!user) {
       res.status(404).json({ error: 'Utilizatorul nu a fost găsit' });

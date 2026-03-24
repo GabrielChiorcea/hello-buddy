@@ -100,6 +100,14 @@ export const useAdminApi = () => {
     [fetchWithAuth]
   );
 
+  const getAnalyticsProductPairs = useCallback(
+    (period?: string) =>
+      fetchWithAuth<{ productPairs: { productA: string; productB: string; pairCount: number }[] }>(
+        `/admin/analytics/product-pairs${period ? `?period=${period}` : ''}`
+      ),
+    [fetchWithAuth]
+  );
+
   // Produse
   const getProducts = useCallback(
     (params?: string) => fetchWithAuth<{
@@ -547,6 +555,7 @@ export const useAdminApi = () => {
     getDashboard,
     getDashboardStats,
     getAnalytics,
+    getAnalyticsProductPairs,
     // Produse
     getProducts,
     getProduct,

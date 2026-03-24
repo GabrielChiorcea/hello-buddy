@@ -17,7 +17,16 @@ const envSchema = z.object({
   DB_USER: z.string().min(1, 'DB_USER este obligatoriu'),
   DB_PASSWORD: z.string().min(1, 'DB_PASSWORD este obligatoriu'),
   DB_NAME: z.string().default('food_ordering'),
-  
+  /** Opțional: replica read-only pentru rapoarte analitice (aceiași user/parolă/DB, alt host) */
+  DB_READ_HOST: z.string().optional(),
+  DB_READ_PORT: z.string().optional().transform((v) => (v ? Number(v) : undefined)),
+
+  // Analitice admin
+  ANALYTICS_MAX_PERIOD_DAYS: z.string().default('90').transform(Number),
+  ANALYTICS_REQUEST_TIMEOUT_MS: z.string().default('25000').transform(Number),
+  /** 0 = cache dezactivat */
+  ANALYTICS_CACHE_TTL_SECONDS: z.string().default('90').transform(Number),
+
   // JWT
   JWT_ACCESS_SECRET: z.string().min(32, 'JWT_ACCESS_SECRET trebuie să aibă minim 32 caractere'),
   JWT_REFRESH_SECRET: z.string().min(32, 'JWT_REFRESH_SECRET trebuie să aibă minim 32 caractere'),

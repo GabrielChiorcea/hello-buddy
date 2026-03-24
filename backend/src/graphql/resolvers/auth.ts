@@ -109,7 +109,7 @@ export const authResolvers = {
       setRefreshTokenCookie(context.res, refreshToken);
       
       // Log successful login
-      logLoginSuccess(context.req, user.id, user.email);
+        logLoginSuccess(context.req, user.id, user.email ?? '');
       
       return {
         user,
@@ -185,7 +185,7 @@ export const authResolvers = {
       setRefreshTokenCookie(context.res, refreshToken);
       
       // Log signup
-      logSignup(context.req, userToReturn.id, userToReturn.email);
+      logSignup(context.req, userToReturn.id, userToReturn.email ?? '');
       
       return {
         user: userToReturn,
@@ -226,9 +226,14 @@ export const authResolvers = {
       if (!context.user) {
         throw new Error('Autentificare necesară');
       }
-      
+
+      const sessionEmail = context.user.email;
+      if (!sessionEmail) {
+        throw new Error('Autentificare necesară');
+      }
+
       // Verifică parola curentă
-      const user = await UserModel.verifyCredentials(context.user.email, currentPassword);
+      const user = await UserModel.verifyCredentials(sessionEmail, currentPassword);
       if (!user) {
         throw new Error('Parola curentă este incorectă');
       }
@@ -290,6 +295,11 @@ export const authResolvers = {
         throw new Error('Link-ul de resetare este invalid sau a expirat. Solicită unul nou.');
       }
 
+      const activeUser = await UserModel.findById(userId);
+      if (!activeUser) {
+        throw new Error('Acest cont nu mai este disponibil.');
+      }
+
       const passwordErrors = validatePasswordStrength(newPassword);
       if (passwordErrors.length > 0) {
         throw new Error(passwordErrors.join('. '));
@@ -318,19 +328,23 @@ export const authResolvers = {
         throw new Error('Textul de confirmare este incorect');
       }
       
+      const sessionEmail = context.user.email;
+      if (!sessionEmail) {
+        throw new Error('Autentificare necesară');
+      }
+
       // Verifică parola
-      const user = await UserModel.verifyCredentials(context.user.email, password);
+      const user = await UserModel.verifyCredentials(sessionEmail, password);
       if (!user) {
         throw new Error('Parola este incorectă');
       }
       
       const userId = context.user.id;
-      const userEmail = context.user.email;
-      
-      // Șterge contul
-      await UserModel.deleteUser(userId);
-      
-      // Șterge cookie-ul
+      const userEmail = sessionEmail;
+
+      await revokeAllUserRefreshTokens(userId);
+      await UserModel.softDeleteAnonymizeUser(userId);
+
       clearRefreshTokenCookie(context.res);
       
       // Log account deletion

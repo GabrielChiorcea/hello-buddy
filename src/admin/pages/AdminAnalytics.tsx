@@ -59,7 +59,6 @@ interface AnalyticsData {
   period: string;
   salesKpis: SalesKpis;
   topCustomers: { id: string; name: string; ordersCount: number; totalSpent: number; avgOrder: number; lastOrderAt: string }[];
-  productPairs: { productA: string; productB: string; pairCount: number }[];
   revenueByCategory: { category: string; ordersCount: number; itemsSold: number; revenue: number }[];
   fulfillmentSplit: { weekStart: string; delivery: number; inLocation: number; total: number }[];
   fulfillmentTotals: { type: string; count: number; revenue: number }[];
@@ -147,7 +146,7 @@ export default function AdminAnalytics() {
 
         {/* TAB: VÂNZĂRI */}
         <TabsContent value="sales" className="space-y-6">
-          <SalesTab data={data} />
+          <SalesTab data={data} productPairs={productPairs} pairsLoading={pairsLoading} />
         </TabsContent>
 
         {/* TAB: PUNCTE */}
@@ -170,7 +169,15 @@ export default function AdminAnalytics() {
 }
 
 // ===== SALES TAB =====
-function SalesTab({ data }: { data: AnalyticsData }) {
+function SalesTab({
+  data,
+  productPairs,
+  pairsLoading,
+}: {
+  data: AnalyticsData;
+  productPairs: ProductPairRow[];
+  pairsLoading: boolean;
+}) {
   const { salesKpis: kpi } = data;
   const totalRevenue = data.revenueByCategory.reduce((s, c) => s + c.revenue, 0);
   const totalFulfillment = data.fulfillmentTotals.reduce((s, f) => s + f.count, 0);
@@ -383,10 +390,16 @@ function SalesTab({ data }: { data: AnalyticsData }) {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            {data.productPairs.length > 0 ? (
+            {pairsLoading ? (
+              <div className="px-6 py-8 space-y-3">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
+                <Skeleton className="h-4 w-4/6" />
+              </div>
+            ) : productPairs.length > 0 ? (
               <div className="divide-y divide-border">
-                {data.productPairs.map((pair, idx) => {
-                  const maxCount = data.productPairs[0]?.pairCount || 1;
+                {productPairs.map((pair, idx) => {
+                  const maxCount = productPairs[0]?.pairCount || 1;
                   const pct = (pair.pairCount / maxCount) * 100;
                   return (
                     <div key={idx} className="px-6 py-3 space-y-1.5">
@@ -405,7 +418,9 @@ function SalesTab({ data }: { data: AnalyticsData }) {
                   );
                 })}
               </div>
-            ) : <div className="text-center py-8 text-muted-foreground text-sm">{t.noData}</div>}
+            ) : (
+              <div className="text-center py-8 text-muted-foreground text-sm">{t.noData}</div>
+            )}
           </CardContent>
         </Card>
       </div>
