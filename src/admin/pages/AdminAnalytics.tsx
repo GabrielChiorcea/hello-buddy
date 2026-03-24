@@ -55,6 +55,8 @@ interface TierAnalytics {
   userCount: number; revenue: number; ordersCount: number; avgOrder: number;
 }
 
+interface ProductPairRow { productA: string; productB: string; pairCount: number }
+
 interface AnalyticsData {
   period: string;
   salesKpis: SalesKpis;
@@ -90,10 +92,12 @@ function formatHour(h: number) {
 }
 
 export default function AdminAnalytics() {
-  const { getAnalytics } = useAdminApi();
+  const { getAnalytics, getAnalyticsProductPairs } = useAdminApi();
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [period, setPeriod] = useState('30d');
+  const [productPairs, setProductPairs] = useState<ProductPairRow[]>([]);
+  const [pairsLoading, setPairsLoading] = useState(false);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -106,6 +110,14 @@ export default function AdminAnalytics() {
       setIsLoading(false);
     }
   }, [getAnalytics, period]);
+
+  useEffect(() => {
+    setPairsLoading(true);
+    getAnalyticsProductPairs(period)
+      .then(r => setProductPairs(r.productPairs))
+      .catch(() => setProductPairs([]))
+      .finally(() => setPairsLoading(false));
+  }, [getAnalyticsProductPairs, period]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
