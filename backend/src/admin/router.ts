@@ -21,6 +21,7 @@ import { tiersPlugin } from '../plugins/tiers/index.js';
 import { freeProductsPlugin } from '../plugins/free-products/index.js';
 import * as addonsController from './controllers/addons.js';
 import * as optionTemplatesController from './controllers/optionTemplates.js';
+import * as uploadController from './controllers/upload.js';
 
 export type AdminRateLimiters = {
   adminAuthLimiter: RequestHandler;
@@ -42,6 +43,9 @@ router.post('/auth/logout', authController.logout);
 // Toate rutele de mai jos necesită autentificare admin
 // ============================================
 router.use(requireAdmin);
+
+// Upload imagini (multipart, câmp `image`)
+router.post('/upload', uploadController.postUpload);
 
 // Dashboard
 router.get('/dashboard', dashboardController.getDashboard);

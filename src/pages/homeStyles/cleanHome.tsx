@@ -19,9 +19,10 @@ import { texts } from '@/config/texts';
 import { CategoryIconDisplay } from '@/config/categoryIcons';
 import type { HomeDisplayData } from './shared';
 import { easeOut, fadeUp, staggerContainer, cardVariant } from './shared';
+import { HomeComboPill } from './HomeComboPill';
 
 export const CleanHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
-  const { items, filteredItems, categories, searchQuery, isLoading, recommendedProducts, totalProducts, handleSearch, handleCategoryClick } = data;
+  const { items, filteredItems, categories, comboCategory, searchQuery, isLoading, recommendedProducts, totalProducts, handleSearch, handleCategoryClick } = data;
 
   if (isLoading && items.length === 0) return <Layout><PageLoader /></Layout>;
 
@@ -57,9 +58,25 @@ export const CleanHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
       {/* Categories — text-only grid */}
       <section className="py-12">
         <div className="container mx-auto px-4">
-          <motion.h2 className="text-lg font-medium text-foreground mb-6" initial="hidden" whileInView="visible" viewport={{ once: true }} custom={0} variants={fadeUp}>
-            {texts.home.categories}
-          </motion.h2>
+          <div className="flex items-center gap-2 sm:gap-3 mb-6 min-w-0 w-full">
+            <motion.h2 className="text-lg font-medium text-foreground shrink-0" initial="hidden" whileInView="visible" viewport={{ once: true }} custom={0} variants={fadeUp}>
+              {texts.home.categories}
+            </motion.h2>
+            {comboCategory ? (
+              <div className="flex-1 flex justify-center min-w-0 px-1">
+                <HomeComboPill
+                  variant="clean"
+                  category={comboCategory}
+                  onNavigate={() => handleCategoryClick(comboCategory.name)}
+                />
+              </div>
+            ) : (
+              <div className="flex-1 min-w-0 shrink" aria-hidden />
+            )}
+            <Link to={routes.catalog} className="text-sm text-muted-foreground hover:text-foreground transition-colors shrink-0 whitespace-nowrap">
+              {texts.home.viewAll} →
+            </Link>
+          </div>
           <div className="overflow-x-auto scrollbar-none -mx-4 px-4">
             <motion.div className="flex gap-2 w-max" variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }}>
               {categories.map((category) => (

@@ -166,7 +166,13 @@ export const GamifiedTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
             <ChevronRight className="h-3.5 w-3.5 text-primary flex-shrink-0" />
             <span className="text-[11px] text-muted-foreground">Deblochezi:</span>
             <span className="text-[11px] font-semibold text-foreground">
-              <TierIcon badgeIcon={nextTier?.badgeIcon} size={14} className="inline text-primary" /> {nextTier.name}
+              <TierIcon
+                badgeIcon={nextTier?.badgeIcon}
+                tierLabel={nextTier.name}
+                size={15}
+                className="inline align-middle"
+              />{' '}
+              {nextTier.name}
             </span>
             <span className="ml-auto text-[10px] font-bold text-primary">x{nextMultiplier.toFixed(1)}</span>
           </div>

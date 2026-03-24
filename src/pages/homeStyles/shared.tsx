@@ -15,6 +15,8 @@ import {
 } from '@/store/slices/productsSlice';
 
 import type { Easing } from 'framer-motion';
+import type { Category } from '@/types';
+import { CATEGORY_ICON_ID_COMBO } from '@/config/categoryIcons';
 
 /** Evită dublarea celor 4 request-uri dacă Welcome și Home pornesc încărcarea aproape simultan */
 let homeCatalogBundleInFlight = false;
@@ -68,7 +70,8 @@ export const cardVariant = {
 export interface HomeDisplayData {
   items: any[];
   filteredItems: any[];
-  categories: any[];
+  categories: Category[];
+  comboCategory: Category | null;
   searchQuery: string;
   isLoading: boolean;
   recommendedProducts: any[];
@@ -105,10 +108,19 @@ export function useHomeData(): HomeDisplayData {
   const recommendedProducts =
     recommendedFromApi.length > 0 ? recommendedFromApi : [...items].slice(0, 4);
 
+  const comboCategory =
+    categories.find(
+      (c) => c.icon === CATEGORY_ICON_ID_COMBO && (c.productsCount ?? 0) > 0
+    ) ?? null;
+  const homeCategories = comboCategory
+    ? categories.filter((c) => c.id !== comboCategory.id)
+    : categories;
+
   return {
     items,
     filteredItems,
-    categories,
+    categories: homeCategories,
+    comboCategory,
     searchQuery,
     isLoading,
     recommendedProducts,

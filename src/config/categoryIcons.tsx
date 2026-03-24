@@ -76,8 +76,13 @@ export const CATEGORY_ICONS: CategoryIcon[] = [
   { id: 'fries', emoji: '🍟', label: 'Cartofi prăjiți' },
   { id: 'popcorn', emoji: '🍿', label: 'Popcorn' },
   { id: 'cheese', emoji: '🧀', label: 'Brânză' },
+  /** Folosită și pentru evidențierea categoriei „combo” pe Home (pastilă lângă titlu). */
+  { id: 'combo', emoji: '🍱', label: 'Combo / meniu' },
   { id: 'default', emoji: '📦', label: 'General' },
 ];
+
+/** Icon id pentru categorii „combo”; pe Home apare ca pastilă dacă există produse în categorie. */
+export const CATEGORY_ICON_ID_COMBO = 'combo' as const;
 
 // Mapare nume categorie -> icon id (pentru categorii existente)
 const DEFAULT_CATEGORY_MAP: Record<string, string> = {
@@ -91,6 +96,9 @@ const DEFAULT_CATEGORY_MAP: Record<string, string> = {
   mic_dejun: 'egg',
   garnituri: 'fries',
   oua: 'egg',
+  combo: 'combo',
+  combouri: 'combo',
+  meniu_combo: 'combo',
 };
 
 /**

@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/select';
 import { Flame, Plus, Pencil, Trash2, Loader2, Users, Gift, Clock, Shield, ImageIcon, Upload } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { getImageUrl } from '@/lib/imageUrl';
 import type { StreakCampaign, RecurrenceType, RewardType, ResetType, RewardStep } from '../types';
 
 const RECURRENCE_LABELS: Record<RecurrenceType, string> = {
@@ -405,7 +406,7 @@ export default function AdminStreakCampaigns() {
           <div className="flex items-center gap-4">
             {homeCardImage ? (
               <div className="relative w-40 h-20 rounded-lg overflow-hidden border bg-muted">
-                <img src={homeCardImage} alt="Streak card" className="w-full h-full object-cover" />
+                <img src={getImageUrl(homeCardImage)} alt="Streak card" className="w-full h-full object-cover" />
               </div>
             ) : (
               <div className="w-40 h-20 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center bg-muted/50">

@@ -78,7 +78,9 @@ export function useTierDisplayData(): TierDisplayData | null {
   }
 
   const tierName = user?.tier?.name ?? 'Începător';
-  const currentBadgeIcon = <TierIcon badgeIcon={user?.tier?.badgeIcon} />;
+  const currentBadgeIcon = (
+    <TierIcon badgeIcon={user?.tier?.badgeIcon} tierLabel={tierName} size={26} />
+  );
   const multiplier = user?.tier?.pointsMultiplier ?? 1;
   const nextMultiplier = nextTier?.pointsMultiplier ?? 1;
 

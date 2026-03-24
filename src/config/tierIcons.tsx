@@ -1,6 +1,6 @@
 /**
- * Iconițe SVG pentru niveluri de loialitate (tiers)
- * Folosesc Lucide React — culorile se moștenesc prin text-current / tokens semantice.
+ * Badge-uri tier: emoji native (glyph colorat) mapat 1:1 pe id-urile de rank,
+ * echivalent semantic cu iconițele SVG Lucide din listă — nu catalogul de categorii food.
  */
 
 import React from 'react';
@@ -22,6 +22,7 @@ import {
   Moon,
   type LucideProps,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export interface TierBadgeIcon {
   id: string;
@@ -29,7 +30,31 @@ export interface TierBadgeIcon {
   icon: React.FC<LucideProps>;
 }
 
-/** Lista de iconițe relevante pentru rank-uri / niveluri */
+/** Emoji echivalent fiecărui id tier (aceleași chei ca în DB / picker). */
+export const TIER_BADGE_EMOJI: Record<string, string> = {
+  star: '⭐',
+  stars: '🌟',
+  sparkles: '✨',
+  'medal-bronze': '🥉',
+  'medal-silver': '🥈',
+  'medal-gold': '🥇',
+  trophy: '🏆',
+  crown: '👑',
+  'crown-gold': '👑',
+  gem: '💎',
+  fire: '🔥',
+  rocket: '🚀',
+  heart: '❤️',
+  badge: '🎖️',
+  ribbon: '🎀',
+  newbe: '🌱',
+  leaf: '🍀',
+  sun: '☀️',
+  moon: '🌙',
+  default: '⭐',
+};
+
+/** Lista de iconițe rank (id + label + referință Lucide pentru tooling / viitor SVG). */
 export const TIER_BADGE_ICONS: TierBadgeIcon[] = [
   { id: 'star', icon: Star, label: 'Stea' },
   { id: 'stars', icon: Sparkles, label: 'Stele strălucitoare' },
@@ -53,10 +78,20 @@ export const TIER_BADGE_ICONS: TierBadgeIcon[] = [
   { id: 'default', icon: Star, label: 'Implicit' },
 ];
 
+const TIER_ID_SET = new Set(TIER_BADGE_ICONS.map((i) => i.id));
+
+function looksLikeRawEmoji(value: string): boolean {
+  if (value.length > 16) return false;
+  return /\p{Extended_Pictographic}/u.test(value);
+}
+
+export function getTierBadgeEmoji(badgeIcon?: string | null): string {
+  if (badgeIcon == null || badgeIcon === '') return TIER_BADGE_EMOJI.default;
+  return TIER_BADGE_EMOJI[badgeIcon] ?? TIER_BADGE_EMOJI.default;
+}
+
 /**
- * Returnează componenta Lucide pentru badge-ul de tier.
- * Dacă badgeIcon este un id cunoscut → returnează iconița corespunzătoare.
- * Altfel returnează Star (default).
+ * Returnează componenta Lucide pentru badge-ul de tier (ex. exporturi, preview SVG).
  */
 export function getTierBadgeIconComponent(badgeIcon?: string | null): React.FC<LucideProps> {
   if (badgeIcon == null || badgeIcon === '') return Star;
@@ -64,15 +99,58 @@ export function getTierBadgeIconComponent(badgeIcon?: string | null): React.FC<L
   return found ? found.icon : Star;
 }
 
-/**
- * Componentă helper care randează iconița de tier la dimensiunea dorită.
- * Moștenește culoarea de la parent prin `text-current`.
- */
+const TierEmojiGlyph: React.FC<{
+  emoji: string;
+  tierLabel: string;
+  className?: string;
+  size: number;
+}> = ({ emoji, tierLabel, className = '', size }) => (
+  <span
+    className={cn(className)}
+    style={{
+      fontSize: size,
+      lineHeight: 1,
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    }}
+    role="img"
+    aria-label={tierLabel}
+  >
+    {emoji}
+  </span>
+);
+
 export const TierIcon: React.FC<{
   badgeIcon?: string | null;
+  tierLabel?: string;
   className?: string;
   size?: number;
-}> = ({ badgeIcon, className = '', size = 20 }) => {
-  const IconComponent = getTierBadgeIconComponent(badgeIcon);
-  return <IconComponent size={size} className={className} />;
+}> = ({ badgeIcon, tierLabel = 'Nivel', className = '', size = 20 }) => {
+  if (badgeIcon == null || badgeIcon === '') {
+    return (
+      <TierEmojiGlyph emoji={TIER_BADGE_EMOJI.default} tierLabel={tierLabel} className={className} size={size} />
+    );
+  }
+
+  if (TIER_ID_SET.has(badgeIcon)) {
+    return (
+      <TierEmojiGlyph
+        emoji={getTierBadgeEmoji(badgeIcon)}
+        tierLabel={tierLabel}
+        className={className}
+        size={size}
+      />
+    );
+  }
+
+  if (looksLikeRawEmoji(badgeIcon)) {
+    return (
+      <TierEmojiGlyph emoji={badgeIcon} tierLabel={tierLabel} className={className} size={size} />
+    );
+  }
+
+  return (
+    <TierEmojiGlyph emoji={TIER_BADGE_EMOJI.default} tierLabel={tierLabel} className={className} size={size} />
+  );
 };

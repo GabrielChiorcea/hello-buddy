@@ -446,40 +446,46 @@ export default function AdminTiers() {
               </div>
 
               <div className="space-y-2">
-                <Label>Badge / Icon</Label>
-                <div className="grid grid-cols-8 gap-2 max-h-40 overflow-y-auto border rounded-lg p-2">
-                  {TIER_BADGE_ICONS.map((icon) => (
-                    <button
-                      key={icon.id}
-                      type="button"
-                      className={cn(
-                        'flex h-9 w-9 items-center justify-center rounded-lg text-lg transition-colors hover:bg-muted',
-                        (formData.badgeIcon ?? '') === icon.id &&
-                          'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2'
-                      )}
-                      onClick={() => setFormData((prev) => ({ ...prev, badgeIcon: icon.id }))}
-                      title={icon.label}
-                    >
-                      <icon.icon size={18} />
-                    </button>
-                  ))}
+                <Label>Badge / icon</Label>
+                <p className="text-xs text-muted-foreground">
+                  Emoji colorate, câte unul pentru fiecare tip de rank (aceleași id-uri ca înainte în baza de date).
+                </p>
+                <div className="grid grid-cols-8 gap-2 max-h-48 overflow-y-auto border rounded-lg p-2">
+                  {TIER_BADGE_ICONS.map((icon) => {
+                    const selected = (formData.badgeIcon ?? '') === icon.id;
+                    return (
+                      <button
+                        key={icon.id}
+                        type="button"
+                        className={cn(
+                          'flex h-9 w-9 items-center justify-center rounded-lg text-lg transition-colors hover:bg-muted',
+                          selected && 'bg-primary ring-2 ring-primary ring-offset-2'
+                        )}
+                        onClick={() => setFormData((prev) => ({ ...prev, badgeIcon: icon.id }))}
+                        title={`${icon.label} (${icon.id})`}
+                      >
+                        <TierIcon badgeIcon={icon.id} tierLabel={icon.label} size={22} />
+                      </button>
+                    );
+                  })}
                 </div>
                 <div className="flex items-center gap-2">
                   <Label htmlFor="badgeIconCustom" className="text-xs text-muted-foreground shrink-0">
-                    Sau custom (emoji sau id):
+                    Sau alt emoji (lipit direct):
                   </Label>
                   <Input
                     id="badgeIconCustom"
-                    className="h-8 max-w-[8rem]"
+                    className="h-8 max-w-[10rem]"
                     value={
-                      formData.badgeIcon && !TIER_BADGE_ICONS.some((i) => i.id === (formData.badgeIcon ?? ''))
+                      formData.badgeIcon &&
+                      !TIER_BADGE_ICONS.some((i) => i.id === (formData.badgeIcon ?? ''))
                         ? (formData.badgeIcon ?? '')
                         : ''
                     }
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, badgeIcon: e.target.value || undefined }))
                     }
-                    placeholder="Ex: crown-gold"
+                    placeholder="Ex: 🦅"
                   />
                 </div>
               </div>

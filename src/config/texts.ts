@@ -354,6 +354,23 @@ export const texts = {
     homeCardPoints: '+{points} puncte posibile',
     comboCardTitle: 'Combouri speciale',
     comboCardSubtitle: 'În curând...',
+
+    /** Home card — doar varianta gamified (deal + urgență + CTA) */
+    homeGamifiedDealUnit: 'puncte bonus',
+    homeGamifiedUrgencyDays: 'Mai ai {days} zile',
+    homeGamifiedUrgencyTwo: 'Ultimele 2 zile',
+    homeGamifiedUrgencyLast: 'Ultima zi — nu pierde bonusul',
+    homeGamifiedTrustAvailable: 'Exclusiv din provocări — bonus mai mare decât la o simplă comandă.',
+    homeGamifiedHeadlineAvailable: 'Cea mai bună ofertă de puncte',
+    homeGamifiedHeadlineActive: 'Bonus mare la finalul provocării',
+    homeGamifiedSubActive: 'Mai ai nevoie de comenzi — nu întrerupe seria.',
+    homeGamifiedHeadlineLost: 'Poți începe din nou o provocare',
+    homeGamifiedHeadlineCompleted: 'Ai deblocat bonusul',
+    homeGamifiedSubCompleted: 'Felicitări — punctele sunt ale tale.',
+    homeGamifiedCtaAvailable: 'Înscrie-te și câștigă',
+    homeGamifiedCtaActive: 'Continuă provocarea',
+    homeGamifiedCtaLost: 'Vezi provocările',
+    homeGamifiedCtaCompleted: 'Descoperă alte oferte',
   },
 } as const;
 

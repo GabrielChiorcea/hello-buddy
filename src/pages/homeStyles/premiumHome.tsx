@@ -19,9 +19,10 @@ import { texts } from '@/config/texts';
 import { CategoryIconDisplay } from '@/config/categoryIcons';
 import type { HomeDisplayData } from './shared';
 import { easeOut, fadeUp, staggerContainer, cardVariant } from './shared';
+import { HomeComboPill } from './HomeComboPill';
 
 export const PremiumHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
-  const { items, filteredItems, categories, searchQuery, isLoading, recommendedProducts, totalProducts, handleSearch, handleCategoryClick } = data;
+  const { items, filteredItems, categories, comboCategory, searchQuery, isLoading, recommendedProducts, totalProducts, handleSearch, handleCategoryClick } = data;
 
   if (isLoading && items.length === 0) return <Layout><PageLoader /></Layout>;
 
@@ -62,11 +63,24 @@ export const PremiumHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
       {/* Categories */}
       <section className="py-14 md:py-20">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-10">
-            <motion.h2 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight" initial="hidden" whileInView="visible" viewport={{ once: true }} custom={0} variants={fadeUp}>
+          <div className="flex items-center gap-2 sm:gap-3 mb-10 min-w-0 w-full">
+            <motion.h2 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight shrink-0" initial="hidden" whileInView="visible" viewport={{ once: true }} custom={0} variants={fadeUp}>
               {texts.home.categories}
             </motion.h2>
-            <Button variant="ghost" asChild className="text-muted-foreground"><Link to={routes.catalog} className="flex items-center gap-2">{texts.home.viewAll}<ArrowRight className="h-4 w-4" /></Link></Button>
+            {comboCategory ? (
+              <div className="flex-1 flex justify-center min-w-0 px-1">
+                <HomeComboPill
+                  variant="premium"
+                  category={comboCategory}
+                  onNavigate={() => handleCategoryClick(comboCategory.name)}
+                />
+              </div>
+            ) : (
+              <div className="flex-1 min-w-0 shrink" aria-hidden />
+            )}
+            <Button variant="ghost" asChild className="text-muted-foreground shrink-0">
+              <Link to={routes.catalog} className="flex items-center gap-2">{texts.home.viewAll}<ArrowRight className="h-4 w-4" /></Link>
+            </Button>
           </div>
           <div className="overflow-x-auto scrollbar-none -mx-4 px-4">
             <motion.div className="flex gap-3 w-max" variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }}>
