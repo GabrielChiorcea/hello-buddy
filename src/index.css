@@ -85,6 +85,16 @@
     --sidebar-accent-foreground: 20 14.3% 4.1%;
     --sidebar-border: 20 15% 90%;
     --sidebar-ring: 16 90% 50%;
+
+    /* Grafice analitice (serii multi-culoare) — HSL fără hsl() */
+    --chart-1: 16 90% 50%;
+    --chart-2: 142 76% 36%;
+    --chart-3: 217 91% 60%;
+    --chart-4: 271 91% 65%;
+    --chart-5: 45 93% 47%;
+    --chart-6: 340 75% 55%;
+    --chart-7: 180 60% 45%;
+    --chart-8: 30 80% 55%;
   }
 
   /* Dark mode tokens vin din tema activă (applyTheme)
