@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { Save, Loader2, Puzzle } from 'lucide-react';
+import { Save, Loader2, Puzzle, Coins } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -41,6 +41,7 @@ interface EditableSettings {
   plugin_tiers_enabled: boolean;
    plugin_free_products_enabled: boolean;
   has_tables: boolean;
+  points_per_order: string;
 }
 
 function parseSettings(map: SettingsMap): EditableSettings {
@@ -59,6 +60,7 @@ function parseSettings(map: SettingsMap): EditableSettings {
     plugin_tiers_enabled: (map.plugin_tiers_enabled?.value ?? 'true') === 'true',
     plugin_free_products_enabled: (map.plugin_free_products_enabled?.value ?? 'false') === 'true',
     has_tables: (map.has_tables?.value ?? 'true') === 'true',
+    points_per_order: map.points_per_order?.value ?? '5',
   };
 }
 
@@ -112,6 +114,7 @@ export default function AdminSettings() {
         plugin_tiers_enabled: settings.plugin_tiers_enabled ? 'true' : 'false',
         plugin_free_products_enabled: settings.plugin_free_products_enabled ? 'true' : 'false',
         has_tables: settings.has_tables ? 'true' : 'false',
+        points_per_order: settings.points_per_order,
       });
       toast({
         title: 'Setări salvate',
@@ -290,7 +293,32 @@ export default function AdminSettings() {
         </CardContent>
       </Card>
 
-
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Coins className="h-5 w-5" />
+            Puncte după comandă livrată
+          </CardTitle>
+          <CardDescription>
+            Regulă de magazin: câte puncte se acordă la fiecare comandă trecută în starea „livrată” (valoare fixă, înainte de multiplicatorii din niveluri).
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <Label htmlFor="pointsPerOrder">Puncte per comandă</Label>
+          <Input
+            id="pointsPerOrder"
+            type="number"
+            min={0}
+            step={1}
+            className="max-w-[12rem]"
+            value={settings.points_per_order}
+            onChange={(e) => updateField('points_per_order', e.target.value)}
+          />
+          <p className="text-sm text-muted-foreground">
+            Exemplu: 5 sau 7. Fără sistem de puncte pornit în Plugin-uri, această valoare nu produce efect.
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Plugin-uri */}
       <Card>
@@ -332,7 +360,7 @@ export default function AdminSettings() {
             <div>
               <Label>Puncte cadou la prima autentificare</Label>
               <p className="text-sm text-muted-foreground">
-                Popup „Ai câștigat X puncte” și alocare puncte la înregistrare (folosește setarea puncte cadou din plugin Puncte)
+                Popup și alocare la înregistrare. Câte puncte se oferă se setează în pagina „Bonus bun venit” din meniu.
               </p>
             </div>
             <Switch

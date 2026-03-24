@@ -21,6 +21,7 @@ import {
   DollarSign,
   Settings2,
 } from 'lucide-react';
+import { ConfettiIcon } from '@/admin/components/ConfettiIcon';
 import { pointsPlugin } from '@/plugins/points';
 import { streakPlugin } from '@/plugins/streak';
 import { tiersPlugin } from '@/plugins/tiers';
@@ -72,6 +73,7 @@ export function AdminSidebar() {
   const mainNavItems = [
     ...baseNavItems,
     ...(pointsEnabled ? pointsPlugin.navItems : []),
+    { title: 'Bonus bun venit', url: '/admin/welcome-bonus', icon: ConfettiIcon },
     ...(streakEnabled ? streakPlugin.navItems : []),
     ...(tiersEnabled ? tiersPlugin.navItems : []),
     ...(freeProductsEnabled

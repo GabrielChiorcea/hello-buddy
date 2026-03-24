@@ -87,6 +87,7 @@ import { AdminPoints } from "./plugins/points";
 import { AdminStreakCampaigns } from "./plugins/streak";
 import { AdminTiers } from "./plugins/tiers";
 import AdminSettings from "./admin/pages/AdminSettings";
+import AdminWelcomeBonus from "./admin/pages/AdminWelcomeBonus";
 import AdminAnalytics from "./admin/pages/AdminAnalytics";
 import AdminAddonRules from "./admin/pages/AdminAddonRules";
 import AdminFreeProductCampaigns from "./admin/pages/AdminFreeProductCampaigns";
@@ -192,6 +193,7 @@ const App = () => (
                   <Route path="products" element={<AdminProducts />} />
                   <Route path="categories" element={<AdminCategories />} />
                   <Route path="points" element={<AdminPoints />} />
+                  <Route path="welcome-bonus" element={<AdminWelcomeBonus />} />
                   <Route path="streak" element={<AdminStreakCampaigns />} />
                   <Route path="tiers" element={<AdminTiers />} />
                   <Route path="free-products" element={<AdminFreeProductCampaigns />} />

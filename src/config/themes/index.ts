@@ -81,7 +81,7 @@ export const STYLES = {
   checkout: 'gamified' as StyleName,
 
   /** Pagina Home (Hero, Categorii, Recomandate, CTA) */
-  home: 'clean' as StyleName,
+  home: 'gamified' as StyleName,
 
   /** Footer */
   footer: 'gamified' as StyleName,

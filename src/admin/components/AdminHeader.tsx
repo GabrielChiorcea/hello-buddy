@@ -28,6 +28,7 @@ const routeTitles: Record<string, string> = {
   '/admin/orders': 'Comenzi',
   '/admin/users': 'Utilizatori',
   '/admin/points': 'Puncte',
+  '/admin/welcome-bonus': 'Bonus bun venit',
   '/admin/streak': 'Streak',
   '/admin/tiers': 'Niveluri',
   '/admin/free-products': 'Produse gratis pe rank',
