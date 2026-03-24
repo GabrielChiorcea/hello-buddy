@@ -55,6 +55,8 @@ interface TierAnalytics {
   userCount: number; revenue: number; ordersCount: number; avgOrder: number;
 }
 
+interface ProductPairRow { productA: string; productB: string; pairCount: number }
+
 interface AnalyticsData {
   period: string;
   salesKpis: SalesKpis;
