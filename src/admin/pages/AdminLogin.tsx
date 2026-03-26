@@ -90,13 +90,13 @@ export default function AdminLogin() {
     const result = await dispatch(adminLogin({ email, password }));
 
     if (adminLogin.fulfilled.match(result)) {
-      toast({ title: 'Autentificare reușită' });
+      toast({ title: texts.admin.loginSuccess });
       const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/admin';
       navigate(from, { replace: true });
     } else if (adminLogin.rejected.match(result)) {
       toast({
         title: texts.common.error,
-        description: (result.payload as string) || 'Autentificare eșuată',
+        description: (result.payload as string) || texts.admin.loginFailed,
         variant: 'destructive',
       });
     }
@@ -109,9 +109,9 @@ export default function AdminLogin() {
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-primary">
             <ChefHat className="h-7 w-7 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl">Food Admin</CardTitle>
+          <CardTitle className="text-2xl">{texts.admin.loginTitle}</CardTitle>
           <CardDescription>
-            Autentifică-te pentru a accesa panoul de administrare
+            {texts.admin.loginSubtitle}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -136,7 +136,7 @@ export default function AdminLogin() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Parolă</Label>
+              <Label htmlFor="password">{texts.admin.loginPasswordLabel}</Label>
               <Input
                 id="password"
                 name="password"
@@ -158,10 +158,10 @@ export default function AdminLogin() {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Se autentifică...
+                  {texts.admin.loginAuthenticating}
                 </>
               ) : (
-                'Autentificare'
+                texts.admin.loginButton
               )}
             </Button>
           </form>
@@ -169,7 +169,7 @@ export default function AdminLogin() {
           {import.meta.env.DEV && (
             <div className="mt-6 text-center">
               <p className="text-xs text-muted-foreground">
-                Credențiale implicite: admin@foodorder.com / admin123secure
+                {texts.admin.loginDevCredentials}
               </p>
             </div>
           )}

@@ -6,6 +6,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
+import { texts } from '@/config/texts';
 
 interface Props {
   children: ReactNode;
@@ -49,15 +50,14 @@ export class ErrorBoundary extends Component<Props, State> {
           </div>
           <div className="space-y-2">
             <h1 className="text-xl font-semibold text-foreground">
-              A apărut o eroare
+              {texts.admin.errorOccurred}
             </h1>
             <p className="max-w-md text-sm text-muted-foreground">
-              {this.props.fallbackMessage ??
-                'Ceva nu a mers bine. Poți încerca să reîncarci pagina.'}
+              {this.props.fallbackMessage ?? texts.admin.errorFallbackMessage}
             </p>
           </div>
           <Button onClick={this.handleReload} variant="default">
-            Reîncarcă pagina
+            {texts.admin.reloadPage}
           </Button>
         </div>
       );
