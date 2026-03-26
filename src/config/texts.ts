@@ -652,7 +652,7 @@ export const texts = {
     tierLtv: 'Value per tier',
   },
 
-  // Free products plugin (free products by tier)
+  // Free products plugin 
   freeProducts: {
     adminTitle: 'Free product campaigns by tier',
     adminSubtitle:
