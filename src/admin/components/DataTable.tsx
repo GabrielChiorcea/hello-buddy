@@ -62,13 +62,13 @@ export function DataTable<T extends { id: string }>({
   columns,
   data,
   isLoading = false,
-  searchPlaceholder = 'Caută...',
+  searchPlaceholder = texts.admin.search,
   searchValue = '',
   onSearchChange,
   pagination,
   onPageChange,
   onLimitChange,
-  emptyMessage = 'Nu există date de afișat',
+  emptyMessage = texts.admin.noData,
 }: DataTableProps<T>) {
   return (
     <div className="space-y-4">
@@ -144,7 +144,7 @@ export function DataTable<T extends { id: string }>({
       {pagination && pagination.pages > 1 && (
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Rânduri pe pagină:</span>
+            <span className="text-sm text-muted-foreground">{texts.admin.rowsPerPage}</span>
             <Select
               value={String(pagination.limit)}
               onValueChange={(value) => onLimitChange?.(Number(value))}

@@ -28,17 +28,13 @@ export function useFooterData(): FooterDisplayData {
       { path: routes.catalog, label: texts.nav.catalog },
       { path: routes.cart, label: texts.nav.cart },
       { path: routes.profile, label: texts.nav.profile },
-      { path: routes.terms, label: 'Termeni și Condiții' },
+      { path: routes.terms, label: texts.footer.termsAndConditions },
     ],
     contact: {
-      phone: '0800 123 456',
-      email: 'contact@foodorder.ro',
-      location: 'București, România',
+      phone: texts.footer.phone,
+      email: texts.footer.email,
+      location: texts.footer.location,
     },
-    hours: [
-      'Luni - Vineri: 10:00 - 23:00',
-      'Sâmbătă: 11:00 - 24:00',
-      'Duminică: 11:00 - 22:00',
-    ],
+    hours: texts.footer.hours as unknown as string[],
   };
 }

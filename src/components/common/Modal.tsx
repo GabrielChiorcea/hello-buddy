@@ -108,7 +108,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
             onClick={onConfirm}
             disabled={isLoading}
           >
-            {isLoading ? 'Se procesează...' : confirmText}
+            {isLoading ? texts.modal.processing : confirmText}
           </Button>
         </div>
       }
