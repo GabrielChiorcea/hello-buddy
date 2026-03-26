@@ -19,21 +19,22 @@ import {
 } from '@/components/ui/breadcrumb';
 import { Bell, Sun, Moon } from 'lucide-react';
 import { useAdminDarkModeCtx } from './AdminLayout';
+import { texts } from '@/config/texts';
 
 const routeTitles: Record<string, string> = {
-  '/admin': 'Dashboard',
-  '/admin/analytics': 'Analitice',
-  '/admin/products': 'Produse',
-  '/admin/categories': 'Categorii',
-  '/admin/orders': 'Comenzi',
-  '/admin/users': 'Utilizatori',
-  '/admin/points': 'Puncte',
-  '/admin/welcome-bonus': 'Bonus bun venit',
+  '/admin': texts.admin.navDashboard,
+  '/admin/analytics': texts.admin.navAnalytics,
+  '/admin/products': texts.admin.navProducts,
+  '/admin/categories': texts.admin.navCategories,
+  '/admin/orders': texts.admin.navOrders,
+  '/admin/users': texts.admin.navUsers,
+  '/admin/points': 'Points',
+  '/admin/welcome-bonus': texts.admin.navWelcomeBonus,
   '/admin/streak': 'Streak',
-  '/admin/tiers': 'Niveluri',
-  '/admin/free-products': 'Produse gratis pe rank',
-  '/admin/settings': 'Setări',
-  '/admin/addon-rules': 'Reguli Add-on',
+  '/admin/tiers': 'Tiers',
+  '/admin/free-products': texts.admin.navFreeProducts,
+  '/admin/settings': texts.admin.navSettings,
+  '/admin/addon-rules': texts.admin.navAddonRules,
 };
 
 export function AdminHeader() {
@@ -51,7 +52,7 @@ export function AdminHeader() {
         return title;
       }
     }
-    return 'Dashboard';
+    return texts.admin.navDashboard;
   };
 
   const pageTitle = getPageTitle();
@@ -86,7 +87,7 @@ export function AdminHeader() {
             <>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>Detalii</BreadcrumbPage>
+                <BreadcrumbPage>Details</BreadcrumbPage>
               </BreadcrumbItem>
             </>
           )}
@@ -99,7 +100,7 @@ export function AdminHeader() {
         size="icon"
         onClick={toggle}
         className="h-9 w-9 rounded-md text-muted-foreground hover:text-foreground"
-        aria-label={isDark ? 'Comută la modul luminos' : 'Comută la modul întunecat'}
+        aria-label={isDark ? texts.admin.headerToggleLight : texts.admin.headerToggleDark}
       >
         {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
       </Button>
@@ -116,10 +117,10 @@ export function AdminHeader() {
           {newOrdersCount > 0 ? (
             <>
               <Bell className="h-4 w-4" />
-              <span className="font-medium">{newOrdersCount} Comenzi</span>
+              <span className="font-medium">{newOrdersCount} {texts.admin.navOrders}</span>
             </>
           ) : (
-            <span className="text-sm font-medium">Comenzi</span>
+            <span className="text-sm font-medium">{texts.admin.navOrders}</span>
           )}
         </Link>
       </Button>
