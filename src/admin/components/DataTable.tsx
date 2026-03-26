@@ -6,6 +6,7 @@
  */
 
 import React from 'react';
+import { texts } from '@/config/texts';
 import {
   Table,
   TableBody,
