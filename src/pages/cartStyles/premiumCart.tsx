@@ -112,7 +112,7 @@ export const PremiumCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                 <span className="text-xs text-muted-foreground">
                   {freeProductProgress.unlocked
                     ? `${freeProductProgress.productNames.join(', ')} — gratis`
-                    : `Mai adaugă ${freeProductProgress.remaining.toFixed(0)} ${texts.common.currency} — ${freeProductProgress.productNames[0] ?? 'produs'} gratis`}
+                    : `Mai adaugă ${freeProductProgress.remaining.toFixed(0)} ${texts.common.currency} — ${freeProductProgress.productNames[0] ?? 'categorie'} gratis`}
                 </span>
               </div>
               <Progress

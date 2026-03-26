@@ -45,6 +45,8 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
     handleContinueShoppingWithToast,
   } = data;
 
+  // UI-only: instrumentation removed
+
   if (items.length === 0) {
     return (
       <Layout>
@@ -93,24 +95,44 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
         {/* Urgency progress bars */}
         <div className="space-y-3 mb-6">
           {/* Free delivery progress */}
-          <div className={cn(
-            'rounded-xl border p-4 transition-all',
-            freeDeliveryProgress.unlocked
-              ? 'bg-success/10 border-success/30'
-              : 'bg-card border-primary/15'
-          )}>
+          <div
+            className={cn(
+              'rounded-xl border p-4 transition-colors',
+              freeDeliveryProgress.unlocked
+                ? 'bg-success/10 border-success/30'
+                : 'bg-card border-primary/15'
+            )}
+          >
             <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Truck className={cn('h-4 w-4', freeDeliveryProgress.unlocked ? 'text-success' : 'text-primary')} />
-                <span className="text-sm font-bold text-foreground">
+              <div className="flex items-center gap-2 min-w-0">
+                <span
+                  className={cn(
+                    'inline-flex h-9 w-9 items-center justify-center rounded-lg border',
+                    freeDeliveryProgress.unlocked
+                      ? 'bg-success/15 border-success/30 text-success'
+                      : 'bg-primary/10 border-primary/20 text-primary'
+                  )}
+                >
+                  <Truck
+                    className={cn('h-5 w-5', freeDeliveryProgress.unlocked ? 'animate-bounce' : '')}
+                    strokeWidth={2.5}
+                  />
+                </span>
+                <span className="flex-1 min-w-0 text-sm font-bold text-foreground whitespace-nowrap overflow-hidden text-ellipsis">
                   {freeDeliveryProgress.unlocked
-                    ? '🎉 Livrare GRATUITĂ deblocată!'
+                      ? 'Livrare GRATUITĂ deblocată!'
                     : `Mai adaugă ${freeDeliveryProgress.remaining.toFixed(0)} ${texts.common.currency} pentru livrare GRATUITĂ!`}
                 </span>
               </div>
-              {freeDeliveryProgress.unlocked && (
-                <Badge className="bg-success text-success-foreground border-0 text-xs">-{summaryDelivery === 0 ? '10' : '10'} RON</Badge>
-              )}
+              <Badge
+                className={cn(
+                  'bg-success text-success-foreground border-0 text-xs transition-opacity',
+                  freeDeliveryProgress.unlocked ? 'opacity-100' : 'opacity-0'
+                )}
+                aria-hidden={!freeDeliveryProgress.unlocked}
+              >
+                -{summaryDelivery === 0 ? '10' : '10'} RON
+              </Badge>
             </div>
             <Progress
               value={freeDeliveryProgress.percent}
@@ -121,18 +143,27 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
           {/* Free product progress */}
           {freeProductProgress && (
             <div className={cn(
-              'rounded-xl border p-4 transition-all',
+              'rounded-xl border p-4 transition-colors',
               freeProductProgress.unlocked
                 ? 'bg-success/10 border-success/30'
                 : 'bg-card border-primary/15'
             )}>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <Gift className={cn('h-4 w-4', freeProductProgress.unlocked ? 'text-success' : 'text-primary')} />
+                  <span
+                    className={cn(
+                      'inline-flex h-9 w-9 items-center justify-center rounded-lg border',
+                      freeProductProgress.unlocked
+                        ? 'bg-success/15 border-success/30 text-success'
+                        : 'bg-primary/10 border-primary/20 text-primary'
+                    )}
+                  >
+                    <Gift className="h-5 w-5" strokeWidth={2.5} />
+                  </span>
                   <span className="text-sm font-bold text-foreground">
                     {freeProductProgress.unlocked
-                      ? `🎁 Produse GRATIS deblocate: ${freeProductProgress.productNames.join(', ')}!`
-                      : `Mai adaugă ${freeProductProgress.remaining.toFixed(0)} ${texts.common.currency} și primești ${freeProductProgress.productNames[0] ?? 'produs'} GRATIS!`}
+                      ? `Produse GRATIS deblocate: ${freeProductProgress.productNames.join(', ')}!`
+                      : `Mai adaugă ${freeProductProgress.remaining.toFixed(0)} ${texts.common.currency} și primești ${freeProductProgress.productNames[0] ?? 'categorie'} GRATIS!`}
                   </span>
                 </div>
               </div>

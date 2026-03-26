@@ -94,7 +94,7 @@ export const FriendlyCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
               <Truck className={cn('h-4 w-4', freeDeliveryProgress.unlocked ? 'text-success' : 'text-primary')} />
               <span className="text-sm text-foreground">
                 {freeDeliveryProgress.unlocked
-                  ? '🚚 Livrare gratuită!'
+                  ? 'Livrare gratuită!'
                   : `Mai adaugă ${freeDeliveryProgress.remaining.toFixed(0)} ${texts.common.currency} pentru livrare gratuită`}
               </span>
             </div>
@@ -115,8 +115,8 @@ export const FriendlyCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                 <Gift className={cn('h-4 w-4', freeProductProgress.unlocked ? 'text-success' : 'text-primary')} />
                 <span className="text-sm text-foreground">
                   {freeProductProgress.unlocked
-                    ? `🎁 ${freeProductProgress.productNames[0] ?? 'Produs'} gratis deblocat!`
-                    : `Mai adaugă ${freeProductProgress.remaining.toFixed(0)} ${texts.common.currency} și primești ${freeProductProgress.productNames[0] ?? 'produs'} gratis`}
+                    ? `${freeProductProgress.productNames[0] ?? 'Categorie'} gratis deblocat!`
+                    : `Mai adaugă ${freeProductProgress.remaining.toFixed(0)} ${texts.common.currency} și primești ${freeProductProgress.productNames[0] ?? 'categorie'} gratis`}
                 </span>
               </div>
               <Progress

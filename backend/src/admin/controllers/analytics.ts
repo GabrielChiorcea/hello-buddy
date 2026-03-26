@@ -6,7 +6,7 @@ import { Request, Response } from 'express';
 import { logError } from '../../utils/safeErrorLogger.js';
 import { logger } from '../../config/logger.js';
 import { env } from '../../config/env.js';
-import { query, analyticsQuery } from '../../config/database.js';
+import { analyticsQuery } from '../../config/database.js';
 import {
   fetchDailyRevenueTrendHybrid,
   fetchFulfillmentSplitHybrid,
@@ -373,69 +373,4 @@ export async function getAnalyticsRollupHealth(req: Request, res: Response): Pro
 function formatHealthDate(d: Date | string): string {
   if (typeof d === 'string') return d.slice(0, 10);
   return d.toISOString().slice(0, 10);
-}
-
-/**
- * GET /admin/analytics/backfill
- */
-export async function backfillAnalytics(req: Request, res: Response): Promise<void> {
-  try {
-    const maxDays = Math.min(parseInt(req.query.days as string) || 90, 365);
-
-    for (let i = maxDays; i >= 1; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().split('T')[0];
-
-      await query(
-        `INSERT INTO analytics_daily_sales (
-          report_date, total_orders, cancelled_orders, gross_revenue, net_revenue,
-          total_delivery_fees, avg_order_value, unique_customers, new_customers,
-          delivery_count, in_location_count
-        )
-        SELECT
-          ?, COUNT(CASE WHEN o.status != 'cancelled' THEN 1 END),
-          COUNT(CASE WHEN o.status = 'cancelled' THEN 1 END),
-          COALESCE(SUM(CASE WHEN o.status != 'cancelled' THEN o.total ELSE 0 END), 0),
-          COALESCE(SUM(CASE WHEN o.status != 'cancelled' THEN o.total - o.delivery_fee ELSE 0 END), 0),
-          COALESCE(SUM(CASE WHEN o.status != 'cancelled' THEN o.delivery_fee ELSE 0 END), 0),
-          COALESCE(AVG(CASE WHEN o.status != 'cancelled' THEN o.total END), 0),
-          COUNT(DISTINCT CASE WHEN o.status != 'cancelled' THEN o.user_id END),
-          (SELECT COUNT(*) FROM users u2 WHERE DATE(u2.created_at) = ?),
-          COUNT(CASE WHEN o.status != 'cancelled' AND COALESCE(o.fulfillment_type, 'delivery') = 'delivery' THEN 1 END),
-          COUNT(CASE WHEN o.status != 'cancelled' AND o.fulfillment_type = 'in_location' THEN 1 END)
-        FROM orders o WHERE DATE(o.created_at) = ?
-        ON DUPLICATE KEY UPDATE
-          total_orders = VALUES(total_orders), gross_revenue = VALUES(gross_revenue)`,
-        [dateStr, dateStr, dateStr]
-      );
-
-      await query(
-        `DELETE FROM analytics_daily_category WHERE report_date = ?`,
-        [dateStr]
-      );
-      await query(
-        `INSERT INTO analytics_daily_category (
-          report_date, category_id, category_name, orders_count, items_sold, revenue
-        )
-        SELECT
-          ?, c.id, c.display_name,
-          COUNT(DISTINCT o.id),
-          COALESCE(SUM(oi.quantity), 0),
-          COALESCE(SUM(oi.quantity * oi.price_at_order), 0)
-        FROM categories c
-        INNER JOIN products p ON c.id = p.category_id
-        INNER JOIN order_items oi ON p.id = oi.product_id
-        INNER JOIN orders o ON oi.order_id = o.id
-        WHERE o.status != 'cancelled' AND DATE(o.created_at) = ?
-        GROUP BY c.id, c.display_name`,
-        [dateStr, dateStr]
-      );
-    }
-
-    res.json({ message: `Backfill complet pentru ${maxDays} zile` });
-  } catch (error) {
-    logError('analytics-backfill', error);
-    res.status(500).json({ error: 'Eroare la backfill' });
-  }
 }

@@ -55,7 +55,6 @@ router.get('/dashboard/stats', dashboardController.getStats);
 router.get('/analytics/rollup-health', analyticsController.getAnalyticsRollupHealth);
 router.get('/analytics/product-pairs', analyticsController.getAnalyticsProductPairs);
 router.get('/analytics', analyticsController.getAnalytics);
-router.get('/analytics/backfill', analyticsController.backfillAnalytics);
 
 // Produse
 router.get('/products', productsController.getProducts);

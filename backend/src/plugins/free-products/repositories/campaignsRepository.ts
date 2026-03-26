@@ -35,12 +35,18 @@ export interface FreeProductCampaign {
   updatedAt: string;
 }
 
+const APP_TIMEZONE = 'Europe/Bucharest';
+
 function toDateString(v: Date | string): string {
-  if (v instanceof Date) return v.toISOString().slice(0, 10);
+  if (v instanceof Date) {
+    // DATE-only values may be materialized as Date objects with implicit timezone shifts.
+    // Normalize using the app timezone to avoid off-by-one-day issues.
+    return v.toLocaleDateString('en-CA', { timeZone: APP_TIMEZONE });
+  }
   const s = String(v);
   if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
   const d = new Date(s);
-  return isNaN(d.getTime()) ? s : d.toISOString().slice(0, 10);
+  return isNaN(d.getTime()) ? s : d.toLocaleDateString('en-CA', { timeZone: APP_TIMEZONE });
 }
 
 function toISOString(v: Date | string): string {
@@ -51,10 +57,7 @@ function toISOString(v: Date | string): string {
 }
 
 function getTodayLocal(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
-    d.getDate()
-  ).padStart(2, '0')}`;
+  return new Date().toLocaleDateString('en-CA', { timeZone: APP_TIMEZONE });
 }
 
 function mapRow(row: FreeProductCampaignRow): FreeProductCampaign {
@@ -108,8 +111,8 @@ export async function createCampaign(data: {
       data.name,
       data.tierId,
       data.categoryId,
-      data.startDate,
-      data.endDate,
+      toDateString(data.startDate),
+      toDateString(data.endDate),
       data.minOrderValue ?? 0,
       data.customText ?? null,
     ]
@@ -150,7 +153,10 @@ export async function updateCampaign(
   for (const [key, column] of Object.entries(fieldMap)) {
     if ((data as any)[key] !== undefined) {
       setters.push(`${column} = ?`);
-      values.push((data as any)[key]);
+      const rawValue = (data as any)[key];
+      // Normalize DATE-only values to avoid implicit timezone shifts.
+      if (key === 'startDate' || key === 'endDate') values.push(toDateString(rawValue));
+      else values.push(rawValue);
     }
   }
 

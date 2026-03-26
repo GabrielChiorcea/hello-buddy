@@ -709,9 +709,9 @@ export const texts = {
       'You currently have no free products for your tier, but special campaigns may appear for you at any time.',
     rankInfoActivePrefix: 'You have active free products for your tier:',
     rankInfoMinOrder:
-      'Order at least {amount} USD in your cart and get 1 unit of each product below for free.',
+      'Order at least {amount} USD in your cart and get 1 unit of each product from the categories below for free.',
     rankInfoNoMinOrder:
-      'Add a product from the list below to your cart and get it for free (1 unit).',
+      'Add a product from the categories below to your cart and get it for free (1 unit).',
     rankInfoCta: 'Add to cart to take advantage.',
     cartGridTitle: 'Free products for your tier',
     cartDiscountLabel: 'Free products',

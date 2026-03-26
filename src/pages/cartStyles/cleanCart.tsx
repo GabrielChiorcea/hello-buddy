@@ -100,8 +100,8 @@ export const CleanCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                   <Gift className="h-3.5 w-3.5" />
                   <span>
                     {freeProductProgress.unlocked
-                      ? `${freeProductProgress.productNames[0] ?? 'Produs'} gratis deblocat`
-                      : `Mai adaugă ${freeProductProgress.remaining.toFixed(0)} ${texts.common.currency} — ${freeProductProgress.productNames[0] ?? 'produs'} gratis`}
+                      ? `${freeProductProgress.productNames[0] ?? 'Categorie'} gratis deblocat`
+                      : `Mai adaugă ${freeProductProgress.remaining.toFixed(0)} ${texts.common.currency} — ${freeProductProgress.productNames[0] ?? 'categorie'} gratis`}
                   </span>
                 </div>
               </div>

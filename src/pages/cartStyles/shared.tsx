@@ -152,9 +152,16 @@ export function useCartData(): CartDisplayData {
     const unlocked = orderPreview
       ? (orderPreview.discountFromFreeProducts ?? 0) > 0
       : fullSubtotal >= requiredSubtotal && Array.from(freeProductIds).some((id) => items.some((i) => i.product.id === id));
-    const allNames: string[] = [];
+    // We want to display only the free *category* names (ex: Pizza),
+    // not each individual product name (ex: Pizza Margherita).
+    const allCategoryNames = new Set<string>();
     for (const c of campaigns) {
-      allNames.push(...c.products);
+      if (c.categoryName) allCategoryNames.add(c.categoryName);
+      if (c.productDetails) {
+        for (const p of c.productDetails) {
+          if (p.categoryName) allCategoryNames.add(p.categoryName);
+        }
+      }
     }
 
     return {
@@ -163,7 +170,9 @@ export function useCartData(): CartDisplayData {
       currentSubtotal: fullSubtotal,
       remaining,
       unlocked,
-      productNames: [...new Set(allNames)].slice(0, 3),
+      // Keep the field name to avoid touching all cart variants.
+      // Semantically these are category names now.
+      productNames: Array.from(allCategoryNames).slice(0, 3),
     };
   }, [user?.freeProductCampaignsSummary, items, orderPreview]);
 
@@ -203,10 +212,15 @@ export function useCartData(): CartDisplayData {
         : subtotal;
     const current = effectiveSubtotalForDelivery;
     const remaining = Math.max(0, freeDeliveryThreshold - current);
-    const unlocked = orderPreview ? (orderPreview.deliveryFee ?? deliveryFee) === 0 : current >= freeDeliveryThreshold;
+    const unlocked = orderPreview
+      ? (orderPreview.deliveryFee ?? deliveryFee) === 0
+      : current >= freeDeliveryThreshold;
     const percent = Math.min(100, (current / freeDeliveryThreshold) * 100);
+
     return { threshold: freeDeliveryThreshold, current, remaining, unlocked, percent };
   }, [subtotal, freeDeliveryThreshold, orderPreview, deliveryFee]);
+
+  // No extra UI-stable state; unlocked visuals are driven directly by freeDeliveryProgress.
 
   // Fake countdown timer (15 min from mount, UI only)
   const [countdownSeconds, setCountdownSeconds] = useState(15 * 60);

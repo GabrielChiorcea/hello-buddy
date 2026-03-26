@@ -8,41 +8,36 @@ import { texts } from '@/config/texts';
 type Summary = {
   id: string;
   name: string;
+  categoryName: string | null;
   products: string[];
   minOrderValue?: number;
   productDetails?: { id: string; name: string; categoryName: string; categoryIcon?: string | null }[];
 };
 
-const DEFAULT_EMOJI = '🎁';
+function collectUniqueFreeCategories(
+  summaries: Summary[]
+): { key: string; categoryName: string; categoryIcon?: string | null }[] {
+  const byCategory = new Map<string, { key: string; categoryName: string; categoryIcon?: string | null }>();
 
-function collectUniqueProducts(summaries: Summary[]): { id: string; name: string; categoryName: string; categoryIcon?: string | null }[] {
-  const byId = new Map<string, { id: string; name: string; categoryName: string; categoryIcon?: string | null }>();
   for (const s of summaries) {
-    const details = s.productDetails ?? [];
-    for (const p of details) {
-      if (p?.id && !byId.has(p.id)) {
-        byId.set(p.id, {
-          id: p.id,
-          name: p.name,
-          categoryName: p.categoryName ?? '',
-          categoryIcon: p.categoryIcon,
-        });
-      }
+    // Prefer the campaign-level display name when present; otherwise take it from productDetails.
+    const labelFromCampaign = s.categoryName ?? '';
+    const firstDetail = s.productDetails?.[0];
+    const labelFromDetails = firstDetail?.categoryName ?? '';
+
+    const categoryLabel = labelFromCampaign || labelFromDetails;
+    if (!categoryLabel) continue;
+
+    if (!byCategory.has(categoryLabel)) {
+      byCategory.set(categoryLabel, {
+        key: categoryLabel,
+        categoryName: categoryLabel,
+        categoryIcon: firstDetail?.categoryIcon ?? null,
+      });
     }
   }
-  let list = Array.from(byId.values());
-  if (list.length === 0) {
-    const namesSeen = new Set<string>();
-    for (const s of summaries) {
-      for (const name of s.products ?? []) {
-        if (name && !namesSeen.has(name)) {
-          namesSeen.add(name);
-          list.push({ id: `name-${name}`, name, categoryName: '', categoryIcon: null });
-        }
-      }
-    }
-  }
-  return list;
+
+  return Array.from(byCategory.values());
 }
 
 function getEffectiveMinOrder(summaries: Summary[]): number {
@@ -54,8 +49,8 @@ function getEffectiveMinOrder(summaries: Summary[]): number {
 }
 
 export const FreeProductsTierGrid: React.FC<{ summaries: Summary[] }> = ({ summaries }) => {
-  const products = collectUniqueProducts(summaries);
-  if (products.length === 0) return null;
+  const freeCategories = collectUniqueFreeCategories(summaries);
+  if (freeCategories.length === 0) return null;
 
   const effectiveMin = getEffectiveMinOrder(summaries);
   const hintText =
@@ -66,26 +61,27 @@ export const FreeProductsTierGrid: React.FC<{ summaries: Summary[] }> = ({ summa
   return (
     <div className="mt-2 space-y-2">
       <p className="text-[10px] text-muted-foreground">{hintText}</p>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-        {products.map((p) => (
-        <div
-          key={p.id}
-          className="relative flex items-center gap-1.5 rounded-lg border border-primary/15 bg-primary/5 px-2 py-1.5"
-        >
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {freeCategories.map((c) => (
+          <div
+            key={c.key}
+            className="relative flex items-center gap-2 rounded-xl border border-primary/15 bg-primary/5 px-3 py-2"
+          >
           {/* GRATIS badge */}
-          <span className="absolute -top-1.5 -right-1 rounded-full bg-primary text-primary-foreground text-[7px] font-bold px-1.5 py-0.5 uppercase shadow-sm">
-            Gratis
-          </span>
-          <span className="text-lg shrink-0" title={p.categoryName || p.name}>
-            {p.categoryName || p.categoryIcon
-              ? <CategoryIconDisplay categoryName={p.categoryName} iconId={p.categoryIcon} size={18} />
-              : <span style={{ fontSize: 18 }}>{DEFAULT_EMOJI}</span>}
-          </span>
-          <span className="text-[10px] font-medium text-foreground truncate" title={p.name}>
-            {p.name}
-          </span>
-        </div>
-      ))}
+            <span className="absolute -top-2 -right-1 rounded-full bg-primary text-primary-foreground text-[8px] font-bold px-2 py-0.5 uppercase shadow-sm">
+              Gratis
+            </span>
+            <span className="shrink-0" title={c.categoryName}>
+              <CategoryIconDisplay categoryName={c.categoryName} iconId={c.categoryIcon} size={24} />
+            </span>
+            <span
+              className="text-[12px] font-semibold text-foreground truncate"
+              title={c.categoryName}
+            >
+              {c.categoryName}
+            </span>
+          </div>
+        ))}
       </div>
       <p className="text-[10px] font-semibold text-primary/80">
         🎯 Disponibil doar pentru rangul tău — comandă acum!
