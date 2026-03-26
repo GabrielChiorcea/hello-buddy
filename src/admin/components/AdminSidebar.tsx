@@ -44,18 +44,20 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { adminLogout } from '@/store/slices/adminSlice';
 import { Separator } from '@/components/ui/separator';
 
+import { texts } from '@/config/texts';
+
 const baseNavItems = [
-  { title: 'Dashboard', url: '/admin', icon: LayoutDashboard },
-  { title: 'Analitice', url: '/admin/analytics', icon: BarChart3 },
-  { title: 'Produse', url: '/admin/products', icon: Package },
-  { title: 'Categorii', url: '/admin/categories', icon: FolderOpen },
-  { title: 'Opțiuni produs', url: '/admin/product-options', icon: Settings2 },
-  { title: 'Comenzi', url: '/admin/orders', icon: ShoppingCart },
-  { title: 'Utilizatori', url: '/admin/users', icon: Users },
+  { title: texts.admin.navDashboard, url: '/admin', icon: LayoutDashboard },
+  { title: texts.admin.navAnalytics, url: '/admin/analytics', icon: BarChart3 },
+  { title: texts.admin.navProducts, url: '/admin/products', icon: Package },
+  { title: texts.admin.navCategories, url: '/admin/categories', icon: FolderOpen },
+  { title: texts.admin.navProductOptions, url: '/admin/product-options', icon: Settings2 },
+  { title: texts.admin.navOrders, url: '/admin/orders', icon: ShoppingCart },
+  { title: texts.admin.navUsers, url: '/admin/users', icon: Users },
 ];
 
 const settingsNavItems = [
-  { title: 'Setări', url: '/admin/settings', icon: Settings },
+  { title: texts.admin.navSettings, url: '/admin/settings', icon: Settings },
 ];
 
 export function AdminSidebar() {
@@ -73,13 +75,13 @@ export function AdminSidebar() {
   const mainNavItems = [
     ...baseNavItems,
     ...(pointsEnabled ? pointsPlugin.navItems : []),
-    { title: 'Bonus bun venit', url: '/admin/welcome-bonus', icon: ConfettiIcon },
+    { title: texts.admin.navWelcomeBonus, url: '/admin/welcome-bonus', icon: ConfettiIcon },
     ...(streakEnabled ? streakPlugin.navItems : []),
     ...(tiersEnabled ? tiersPlugin.navItems : []),
     ...(freeProductsEnabled
-      ? [{ title: 'Produse gratis pe rank', url: '/admin/free-products', icon: DollarSign }]
+      ? [{ title: texts.admin.navFreeProducts, url: '/admin/free-products', icon: DollarSign }]
       : []),
-    ...(addonsEnabled ? [{ title: 'Reguli Add-on', url: '/admin/addon-rules', icon: Puzzle }] : []),
+    ...(addonsEnabled ? [{ title: texts.admin.navAddonRules, url: '/admin/addon-rules', icon: Puzzle }] : []),
   ];
 
   const isActive = (path: string) => {
@@ -107,7 +109,7 @@ export function AdminSidebar() {
                 Food Admin
               </span>
               <span className="text-xs text-muted-foreground">
-                Panou de control
+                {texts.admin.controlPanel}
               </span>
             </div>
           )}
@@ -120,7 +122,7 @@ export function AdminSidebar() {
         {/* Navigare principală */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground">
-            Principal
+            {texts.admin.sidebarMain}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -150,7 +152,7 @@ export function AdminSidebar() {
         {/* Setări */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground">
-            Sistem
+            {texts.admin.sidebarSystem}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -196,7 +198,7 @@ export function AdminSidebar() {
           className="w-full justify-start text-muted-foreground hover:text-destructive"
         >
           <LogOut className="h-4 w-4" />
-          {!collapsed && <span className="ml-3">Deconectare</span>}
+          {!collapsed && <span className="ml-3">{texts.admin.sidebarLogout}</span>}
         </Button>
       </SidebarFooter>
     </Sidebar>
