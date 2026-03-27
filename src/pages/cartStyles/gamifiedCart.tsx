@@ -124,7 +124,7 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
               </span>
               {freeDeliveryProgress.unlocked && (
                 <Badge className="shrink-0 bg-success text-success-foreground border-0 text-xs">
-                  -{DELIVERY_FEE} {texts.common.currency}
+                  -{data.summaryDelivery === 0 ? orderPreview?.freeDeliveryThreshold ?? freeDeliveryProgress.threshold : freeDeliveryProgress.threshold} {texts.common.currency}
                 </Badge>
               )}
             </div>
