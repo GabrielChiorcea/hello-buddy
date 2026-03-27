@@ -141,12 +141,12 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
           {/* Free product progress */}
           {freeProductProgress && (
             <div className={cn(
-              'rounded-xl border p-4 transition-colors',
+              'rounded-xl border p-4 transition-colors min-h-[5.75rem] max-[399px]:min-h-[6.5rem]',
               freeProductProgress.unlocked
                 ? 'bg-success/10 border-success/30'
                 : 'bg-card border-primary/15'
             )}>
-              <div className="flex items-center gap-2 mb-2 overflow-hidden">
+              <div className="grid grid-cols-[auto,minmax(0,1fr)] items-start gap-x-2 gap-y-1.5 mb-2">
                 <span
                   className={cn(
                     'inline-flex shrink-0 h-8 w-8 items-center justify-center rounded-lg border',
@@ -157,7 +157,7 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                 >
                   <Gift className="h-4 w-4" strokeWidth={2.5} />
                 </span>
-                <span className="flex-1 min-w-0 text-sm font-bold text-foreground truncate">
+                <span className="min-w-0 pt-1 text-sm font-bold leading-tight text-foreground sm:pt-0">
                   {freeProductProgress.unlocked
                     ? `Produse GRATIS deblocate: ${freeProductProgress.productNames.join(', ')}!`
                     : `Mai adaugă ${freeProductProgress.remaining.toFixed(0)} ${texts.common.currency} și primești ${freeProductProgress.productNames[0] ?? 'categorie'} GRATIS!`}
