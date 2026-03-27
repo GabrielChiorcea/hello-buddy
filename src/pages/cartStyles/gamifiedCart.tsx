@@ -142,24 +142,22 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                 ? 'bg-success/10 border-success/30'
                 : 'bg-card border-primary/15'
             )}>
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={cn(
-                      'inline-flex h-9 w-9 items-center justify-center rounded-lg border',
-                      freeProductProgress.unlocked
-                        ? 'bg-success/15 border-success/30 text-success'
-                        : 'bg-primary/10 border-primary/20 text-primary'
-                    )}
-                  >
-                    <Gift className="h-5 w-5" strokeWidth={2.5} />
-                  </span>
-                  <span className="text-sm font-bold text-foreground">
-                    {freeProductProgress.unlocked
-                      ? `Produse GRATIS deblocate: ${freeProductProgress.productNames.join(', ')}!`
-                      : `Mai adaugă ${freeProductProgress.remaining.toFixed(0)} ${texts.common.currency} și primești ${freeProductProgress.productNames[0] ?? 'categorie'} GRATIS!`}
-                  </span>
-                </div>
+              <div className="flex items-center gap-2 mb-2 overflow-hidden">
+                <span
+                  className={cn(
+                    'inline-flex shrink-0 h-8 w-8 items-center justify-center rounded-lg border',
+                    freeProductProgress.unlocked
+                      ? 'bg-success/15 border-success/30 text-success'
+                      : 'bg-primary/10 border-primary/20 text-primary'
+                  )}
+                >
+                  <Gift className="h-4 w-4" strokeWidth={2.5} />
+                </span>
+                <span className="flex-1 min-w-0 text-sm font-bold text-foreground truncate">
+                  {freeProductProgress.unlocked
+                    ? `Produse GRATIS deblocate: ${freeProductProgress.productNames.join(', ')}!`
+                    : `Mai adaugă ${freeProductProgress.remaining.toFixed(0)} ${texts.common.currency} și primești ${freeProductProgress.productNames[0] ?? 'categorie'} GRATIS!`}
+                </span>
               </div>
               <Progress
                 value={Math.min(100, (freeProductProgress.currentSubtotal / freeProductProgress.eligibilityThreshold) * 100)}
