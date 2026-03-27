@@ -3,13 +3,14 @@
  * Subtle gradients, muted tones, refined typography, no flashy animations
  */
 import React from 'react';
-import { Flame, Gift, Calendar, Target, XCircle } from 'lucide-react';
+import { Flame, Gift, Calendar, Target, XCircle, Clock } from 'lucide-react';
 import type { StreakCampaign, StreakEnrollment } from '../../types';
 import { StreakProgressBar } from '../StreakProgressBar';
 import { CampaignJoinButton } from '../CampaignJoinButton';
 import { Skeleton } from '@/components/ui/skeleton';
 import { buildRuleDescription, formatDate, daysRemaining } from '../campaignUtils';
 import { RewardStepsLadder } from '../RewardStepsLadder';
+import { getImageUrl } from '@/lib/imageUrl';
 
 interface Props {
   campaign: StreakCampaign;
@@ -32,6 +33,14 @@ export const PremiumCard: React.FC<Props> = ({
     <div className={`rounded-2xl bg-card h-full flex flex-col shadow-lg shadow-foreground/5 border border-border/50 overflow-hidden ${isFailed ? 'opacity-80' : ''}`}>
       {/* Elegant top accent line */}
       <div className={`h-1 bg-gradient-to-r ${isFailed ? 'from-destructive/40 via-destructive/60 to-destructive/40' : 'from-primary/60 via-primary to-primary/60'}`} />
+
+      {campaign.imageUrl && (
+        <div className="px-5 pt-5 pb-1">
+          <div className="h-32 rounded-xl overflow-hidden border border-border/60 bg-muted/40">
+            <img src={getImageUrl(campaign.imageUrl)} alt={campaign.name} className="w-full h-full object-cover" />
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       <div className="p-5 pb-3">
@@ -79,7 +88,10 @@ export const PremiumCard: React.FC<Props> = ({
         <Calendar className="h-3 w-3 flex-shrink-0" />
         <span className="tracking-wide">{formatDate(campaign.startDate)} — {formatDate(campaign.endDate)}</span>
         {!isFailed && remaining > 0 && remaining <= 14 && (
-          <span className="text-primary/70 font-medium">{remaining} {remaining === 1 ? 'zi' : 'zile'}</span>
+          <span className="text-primary/70 font-medium inline-flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            {remaining} {remaining === 1 ? 'zi' : 'zile'}
+          </span>
         )}
       </div>
 

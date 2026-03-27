@@ -23,6 +23,7 @@ export interface StreakCampaignRow {
   base_multiplier: number;
   multiplier_increment: number;
   custom_text: string | null;
+  image_url: string | null;
   start_date: Date | string;
   end_date: Date | string;
   reset_type: string;
@@ -42,6 +43,7 @@ export interface StreakCampaign {
   baseMultiplier: number;
   multiplierIncrement: number;
   customText: string | null;
+  imageUrl: string | null;
   startDate: string;
   endDate: string;
   resetType: ResetType;
@@ -109,6 +111,7 @@ function mapRow(r: StreakCampaignRow): StreakCampaign {
     baseMultiplier: Number(r.base_multiplier) || 1,
     multiplierIncrement: Number(r.multiplier_increment) || 0,
     customText: r.custom_text,
+    imageUrl: r.image_url,
     startDate: toDateString(r.start_date),
     endDate: toDateString(r.end_date),
     resetType: (r.reset_type || 'hard') as ResetType,
@@ -165,6 +168,7 @@ export async function createCampaign(data: {
   baseMultiplier?: number;
   multiplierIncrement?: number;
   customText: string | null;
+  imageUrl?: string | null;
   startDate: string;
   endDate: string;
   resetType?: ResetType;
@@ -176,8 +180,8 @@ export async function createCampaign(data: {
       id, name, streak_type, rolling_window_days, orders_required, bonus_points,
       reward_type, base_multiplier, multiplier_increment,
       custom_text, start_date, end_date,
-      reset_type, min_order_value
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      image_url, reset_type, min_order_value
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       id,
       data.name,
@@ -191,6 +195,7 @@ export async function createCampaign(data: {
       data.customText ?? null,
       data.startDate,
       data.endDate,
+      data.imageUrl ?? null,
       data.resetType ?? 'hard',
       data.minOrderValue ?? 0,
     ]
@@ -212,6 +217,7 @@ export async function updateCampaign(
     baseMultiplier: number;
     multiplierIncrement: number;
     customText: string | null;
+    imageUrl: string | null;
     startDate: string;
     endDate: string;
     resetType: ResetType;
@@ -228,6 +234,7 @@ export async function updateCampaign(
     baseMultiplier: 'base_multiplier',
     multiplierIncrement: 'multiplier_increment',
     customText: 'custom_text',
+    imageUrl: 'image_url',
     startDate: 'start_date',
     endDate: 'end_date',
     resetType: 'reset_type',

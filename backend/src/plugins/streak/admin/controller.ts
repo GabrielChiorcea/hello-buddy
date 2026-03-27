@@ -81,6 +81,7 @@ export async function createCampaign(req: Request, res: Response): Promise<void>
       baseMultiplier: body.baseMultiplier ?? 1,
       multiplierIncrement: body.multiplierIncrement ?? 0,
       customText: body.customText ?? null,
+      imageUrl: body.imageUrl ?? null,
       startDate: body.startDate,
       endDate: body.endDate,
       resetType: body.resetType ?? 'hard',
@@ -125,7 +126,7 @@ export async function updateCampaign(req: Request, res: Response): Promise<void>
     const fields = [
       'name', 'recurrenceType', 'rollingWindowDays', 'ordersRequired', 'bonusPoints',
       'rewardType', 'baseMultiplier', 'multiplierIncrement', 'customText',
-      'startDate', 'endDate', 'resetType', 'minOrderValue',
+      'imageUrl', 'startDate', 'endDate', 'resetType', 'minOrderValue',
     ] as const;
     for (const f of fields) {
       if (body[f] !== undefined) (updates as any)[f] = body[f];

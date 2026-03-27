@@ -14,9 +14,9 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children, showFooter = true }) => {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col overflow-x-hidden">
       <Navbar />
-      <main className="flex-1 pb-20 md:pb-0">{children}</main>
+      <main className="flex-1 pb-20 md:pb-0 w-full min-w-0 overflow-x-hidden">{children}</main>
       {showFooter && <Footer />}
       <MobileBottomNav />
     </div>

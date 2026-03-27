@@ -3,13 +3,14 @@
  * Uses card/primary tokens instead of reward tokens
  */
 import React from 'react';
-import { Flame, Gift, Calendar, Target, Shield, XCircle } from 'lucide-react';
+import { Flame, Gift, Calendar, Target, Shield, XCircle, Clock } from 'lucide-react';
 import type { StreakCampaign, StreakEnrollment } from '../../types';
 import { StreakProgressBar } from '../StreakProgressBar';
 import { CampaignJoinButton } from '../CampaignJoinButton';
 import { Skeleton } from '@/components/ui/skeleton';
 import { buildRuleDescription, formatDate, daysRemaining } from '../campaignUtils';
 import { RewardStepsLadder } from '../RewardStepsLadder';
+import { getImageUrl } from '@/lib/imageUrl';
 
 interface Props {
   campaign: StreakCampaign;
@@ -30,6 +31,14 @@ export const CleanCard: React.FC<Props> = ({
 
   return (
     <div className={`rounded-xl bg-card border border-border h-full flex flex-col ${isFailed ? 'opacity-80' : ''}`}>
+      {campaign.imageUrl && (
+        <div className="p-4 pb-0">
+          <div className="h-32 rounded-lg overflow-hidden border bg-muted/40">
+            <img src={getImageUrl(campaign.imageUrl)} alt={campaign.name} className="w-full h-full object-cover" />
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="p-4 pb-3">
         <div className="flex items-center gap-3">
@@ -76,7 +85,8 @@ export const CleanCard: React.FC<Props> = ({
         <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
         <span>{formatDate(campaign.startDate)} — {formatDate(campaign.endDate)}</span>
         {!isFailed && remaining > 0 && remaining <= 14 && (
-          <span className="bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-[10px] font-medium">
+          <span className="bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-[10px] font-medium inline-flex items-center gap-1">
+            <Clock className="h-3 w-3" />
             {remaining} {remaining === 1 ? 'zi' : 'zile'}
           </span>
         )}

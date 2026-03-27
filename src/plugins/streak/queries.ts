@@ -17,6 +17,7 @@ export const ACTIVE_STREAK_CAMPAIGN = gql`
       baseMultiplier
       multiplierIncrement
       customText
+      imageUrl
       startDate
       endDate
       resetType
@@ -45,6 +46,7 @@ export const ACTIVE_STREAK_CAMPAIGNS = gql`
       baseMultiplier
       multiplierIncrement
       customText
+      imageUrl
       startDate
       endDate
       resetType
@@ -83,6 +85,7 @@ export const MY_STREAK_ENROLLMENT = gql`
         baseMultiplier
         multiplierIncrement
         customText
+        imageUrl
         startDate
         endDate
         resetType

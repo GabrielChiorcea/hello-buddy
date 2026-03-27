@@ -437,7 +437,6 @@ export const SubmitButton: React.FC<{ isLoading: boolean; savings?: number }> = 
 
 /** Checkout template used by all style variants */
 export const CheckoutTemplate: React.FC<{ data: CheckoutDisplayData; variant: StyleName }> = ({ data, variant }) => {
-
   if (data.isCartEmpty && !data.isSuccess) return null;
 
   if (data.isSuccess) {
@@ -481,11 +480,11 @@ export const CheckoutTemplate: React.FC<{ data: CheckoutDisplayData; variant: St
   return (
     <ProtectedRoute>
       <Layout>
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 w-full min-w-0">
           <h1 className={titleCn}>{texts.checkout.title}</h1>
           <form onSubmit={data.handleSubmit}>
-            <div className="grid gap-8 lg:grid-cols-3">
-              <div className="lg:col-span-2 space-y-6">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 min-w-0">
+              <div className="lg:col-span-2 space-y-6 min-w-0">
                 <Card className={cardCn}>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2"><MapPin className="h-5 w-5" />{texts.checkout.deliveryInfo}</CardTitle>
@@ -507,7 +506,7 @@ export const CheckoutTemplate: React.FC<{ data: CheckoutDisplayData; variant: St
                   </CardContent>
                 </Card>
               </div>
-              <div>
+              <div className="min-w-0">
                 <Card className={summaryCn}>
                   <OrderSummaryContent data={data} />
                   <CardFooter>

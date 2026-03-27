@@ -37,6 +37,7 @@ export const streakSchemaExtension = `#graphql
     baseMultiplier: Float!
     multiplierIncrement: Float!
     customText: String
+    imageUrl: String
     startDate: String!
     endDate: String!
     resetType: ResetType!

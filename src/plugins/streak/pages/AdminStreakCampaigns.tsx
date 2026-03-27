@@ -66,6 +66,7 @@ interface FormData {
   baseMultiplier: number;
   multiplierIncrement: number;
   customText: string;
+  imageUrl: string;
   startDate: string;
   endDate: string;
   resetType: ResetType;
@@ -83,6 +84,7 @@ const defaultForm: FormData = {
   baseMultiplier: 1,
   multiplierIncrement: 0.5,
   customText: '',
+  imageUrl: '',
   startDate: '',
   endDate: '',
   resetType: 'hard',
@@ -129,7 +131,9 @@ export default function AdminStreakCampaigns() {
   // Home card image config
   const [homeCardImage, setHomeCardImage] = useState<string>('');
   const [homeCardImageSaving, setHomeCardImageSaving] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const homeCardFileInputRef = useRef<HTMLInputElement>(null);
+  const campaignImageInputRef = useRef<HTMLInputElement>(null);
+  const [campaignImageSaving, setCampaignImageSaving] = useState(false);
 
   const fetchCampaigns = useCallback(async () => {
     setIsLoading(true);
@@ -171,9 +175,25 @@ export default function AdminStreakCampaigns() {
       toast({ title: 'Eroare', description: 'Nu s-a putut salva imaginea', variant: 'destructive' });
     } finally {
       setHomeCardImageSaving(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      if (homeCardFileInputRef.current) homeCardFileInputRef.current.value = '';
     }
   }, [uploadImage, updateSettings]);
+
+  const handleCampaignImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCampaignImageSaving(true);
+    try {
+      const url = await uploadImage(file);
+      setFormData((p) => ({ ...p, imageUrl: url }));
+      toast({ title: 'Imagine campanie încărcată' });
+    } catch {
+      toast({ title: 'Eroare', description: 'Nu s-a putut încărca imaginea campaniei', variant: 'destructive' });
+    } finally {
+      setCampaignImageSaving(false);
+      if (campaignImageInputRef.current) campaignImageInputRef.current.value = '';
+    }
+  }, [uploadImage]);
 
   const fetchEnrollments = useCallback(
     async (campaignId: string) => {
@@ -213,6 +233,7 @@ export default function AdminStreakCampaigns() {
       baseMultiplier: c.baseMultiplier,
       multiplierIncrement: c.multiplierIncrement,
       customText: c.customText ?? '',
+      imageUrl: c.imageUrl ?? '',
       startDate: c.startDate,
       endDate: c.endDate,
       resetType: c.resetType,
@@ -415,7 +436,7 @@ export default function AdminStreakCampaigns() {
             )}
             <div className="space-y-2">
               <input
-                ref={fileInputRef}
+                ref={homeCardFileInputRef}
                 type="file"
                 accept="image/*"
                 className="hidden"
@@ -424,7 +445,7 @@ export default function AdminStreakCampaigns() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => homeCardFileInputRef.current?.click()}
                 disabled={homeCardImageSaving}
               >
                 {homeCardImageSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
@@ -508,6 +529,51 @@ export default function AdminStreakCampaigns() {
                 rows={2}
                 disabled={isActive}
               />
+            </div>
+            <div>
+              <Label>Imagine reprezentativă campanie (opțional)</Label>
+              <div className="mt-2 flex items-center gap-4">
+                {formData.imageUrl ? (
+                  <div className="relative w-44 h-24 rounded-lg overflow-hidden border bg-muted">
+                    <img src={getImageUrl(formData.imageUrl)} alt="Campanie streak" className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-44 h-24 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center bg-muted/50">
+                    <ImageIcon className="h-6 w-6 text-muted-foreground/50" />
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <input
+                    ref={campaignImageInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleCampaignImageUpload}
+                    disabled={isActive}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => campaignImageInputRef.current?.click()}
+                    disabled={isActive || campaignImageSaving}
+                  >
+                    {campaignImageSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
+                    {formData.imageUrl ? 'Schimbă imaginea' : 'Încarcă imagine'}
+                  </Button>
+                  {formData.imageUrl && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setFormData((p) => ({ ...p, imageUrl: '' }))}
+                      disabled={isActive || campaignImageSaving}
+                    >
+                      Șterge imaginea
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>

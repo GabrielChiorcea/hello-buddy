@@ -3,13 +3,14 @@
  * Rounded shapes, soft shadows, warm accent colors, playful but not over-the-top
  */
 import React from 'react';
-import { Flame, Gift, Calendar, Target, XCircle } from 'lucide-react';
+import { Flame, Gift, Calendar, Target, XCircle, Frown, Clock } from 'lucide-react';
 import type { StreakCampaign, StreakEnrollment } from '../../types';
 import { StreakProgressBar } from '../StreakProgressBar';
 import { CampaignJoinButton } from '../CampaignJoinButton';
 import { Skeleton } from '@/components/ui/skeleton';
 import { buildRuleDescription, formatDate, daysRemaining } from '../campaignUtils';
 import { RewardStepsLadder } from '../RewardStepsLadder';
+import { getImageUrl } from '@/lib/imageUrl';
 
 interface Props {
   campaign: StreakCampaign;
@@ -30,6 +31,14 @@ export const FriendlyCard: React.FC<Props> = ({
 
   return (
     <div className={`rounded-2xl bg-accent/30 border-2 ${isFailed ? 'border-destructive/30' : 'border-accent'} h-full flex flex-col shadow-md`}>
+      {campaign.imageUrl && (
+        <div className="p-4 pb-0">
+          <div className="h-32 rounded-xl overflow-hidden border border-accent/40 bg-muted/30">
+            <img src={getImageUrl(campaign.imageUrl)} alt={campaign.name} className="w-full h-full object-cover" />
+          </div>
+        </div>
+      )}
+
       {/* Header with warm background */}
       <div className={`p-4 pb-3 rounded-t-2xl ${isFailed ? 'bg-destructive/5' : 'bg-gradient-to-b from-accent/50 to-transparent'}`}>
         <div className="flex items-center gap-3">
@@ -51,8 +60,9 @@ export const FriendlyCard: React.FC<Props> = ({
           <div className="flex items-start gap-2 rounded-xl border border-destructive/20 bg-destructive/5 px-3 py-2.5">
             <XCircle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-xs font-semibold text-destructive">
-                {failReason === 'broken' ? 'Streak-ul s-a întrerupt 😞' : 'Nu mai sunt suficiente zile 😔'}
+              <p className="text-xs font-semibold text-destructive inline-flex items-center gap-1">
+                <Frown className="h-3.5 w-3.5 flex-shrink-0" />
+                {failReason === 'broken' ? 'Streak-ul s-a întrerupt' : 'Nu mai sunt suficiente zile'}
               </p>
               <p className="text-[10px] text-muted-foreground mt-0.5">
                 Poți părăsi campania și te poți înscrie la alta.
@@ -76,8 +86,9 @@ export const FriendlyCard: React.FC<Props> = ({
         <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
         <span>{formatDate(campaign.startDate)} — {formatDate(campaign.endDate)}</span>
         {!isFailed && remaining > 0 && remaining <= 14 && (
-          <span className="bg-warning/20 text-warning-foreground rounded-full px-2 py-0.5 text-[10px] font-medium">
-            ⏰ {remaining} {remaining === 1 ? 'zi' : 'zile'}
+          <span className="bg-warning/20 text-warning-foreground rounded-full px-2 py-0.5 text-[10px] font-medium inline-flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            {remaining} {remaining === 1 ? 'zi' : 'zile'}
           </span>
         )}
       </div>

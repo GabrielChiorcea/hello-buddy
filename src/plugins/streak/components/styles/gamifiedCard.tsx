@@ -5,13 +5,14 @@
  */
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Flame, Gift, Sparkles, Shield, Calendar, Target, TrendingUp, AlertTriangle, Users, Zap, XCircle } from 'lucide-react';
+import { Flame, Gift, Sparkles, Shield, Calendar, Target, TrendingUp, AlertTriangle, Users, Zap, XCircle, Clock } from 'lucide-react';
 import type { StreakCampaign, StreakEnrollment } from '../../types';
 import { StreakProgressBar } from '../StreakProgressBar';
 import { CampaignJoinButton } from '../CampaignJoinButton';
 import { Skeleton } from '@/components/ui/skeleton';
 import { buildRuleDescription, formatDate, daysRemaining } from '../campaignUtils';
 import { RewardStepsLadder } from '../RewardStepsLadder';
+import { getImageUrl } from '@/lib/imageUrl';
 
 interface Props {
   campaign: StreakCampaign;
@@ -92,6 +93,18 @@ export const GamifiedCard: React.FC<Props> = ({
         </motion.div>
       )}
 
+      {campaign.imageUrl && (
+        <div className="relative z-10 px-5 pt-5 pb-2">
+          <div className="h-36 rounded-xl overflow-hidden border border-reward/20 bg-muted/40">
+            <img
+              src={getImageUrl(campaign.imageUrl)}
+              alt={campaign.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="relative z-10 p-5 pb-3">
         <div className="flex items-center gap-3">
@@ -160,13 +173,15 @@ export const GamifiedCard: React.FC<Props> = ({
           {formatDate(campaign.startDate)} — {formatDate(campaign.endDate)}
         </span>
         {!isFailed && isUrgent && (
-          <span className="gamified-casino-badge-label bg-destructive/20 text-destructive rounded-full px-2.5 py-0.5 font-semibold">
-            ⏰ {remaining} zile rămase
+          <span className="gamified-casino-badge-label bg-destructive/20 text-destructive rounded-full px-2.5 py-0.5 font-semibold inline-flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            {remaining} zile rămase
           </span>
         )}
         {!isFailed && isLastChance && (
-          <span className="gamified-casino-badge-label bg-destructive text-destructive-foreground rounded-full px-2.5 py-0.5 font-bold animate-pulse">
-            🔥 {remaining} {remaining === 1 ? 'zi' : 'zile'} rămase!
+          <span className="gamified-casino-badge-label bg-destructive text-destructive-foreground rounded-full px-2.5 py-0.5 font-bold animate-pulse inline-flex items-center gap-1">
+            <Flame className="h-3 w-3" />
+            {remaining} {remaining === 1 ? 'zi' : 'zile'} rămase!
           </span>
         )}
         {!isFailed && remaining > 7 && remaining <= 14 && (

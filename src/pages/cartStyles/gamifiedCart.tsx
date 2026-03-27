@@ -9,7 +9,7 @@ import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Zap, Clock, Truck, Gift, 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
+// import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Layout } from '@/components/layout/Layout';
 import { CartAddonSectionWrapped } from '@/plugins/addons';
@@ -45,18 +45,16 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
     handleContinueShoppingWithToast,
   } = data;
 
-  // UI-only: instrumentation removed
-
   if (items.length === 0) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 w-full min-w-0">
           <h1 className="text-3xl font-extrabold mb-4 text-foreground flex items-center gap-3">
             <Zap className="h-7 w-7 text-primary" />
             {texts.cart.title}
           </h1>
         </div>
-        <div className="container mx-auto px-4 py-16">
+        <div className="container mx-auto px-4 py-16 w-full min-w-0">
           <div className="max-w-md mx-auto text-center">
             <div className="mb-6 flex justify-center">
               <div className="rounded-full bg-primary/20 p-6 shadow-lg shadow-primary/20">
@@ -79,7 +77,7 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 w-full min-w-0">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-3xl font-extrabold text-foreground flex items-center gap-3">
             <Zap className="h-7 w-7 text-primary" />
@@ -122,7 +120,7 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                   ? 'Livrare GRATUITĂ deblocată!'
                   : `Mai adaugă ${freeDeliveryProgress.remaining.toFixed(0)} ${texts.common.currency} pentru livrare GRATUITĂ!`}
               </span>
-              <Badge
+              {/* <Badge
                 className={cn(
                   'shrink-0 justify-self-end self-start border-0 bg-success text-xs text-success-foreground max-[399px]:col-start-2 max-[399px]:justify-self-start',
                   freeDeliveryProgress.unlocked ? 'opacity-100' : 'pointer-events-none opacity-0'
@@ -130,7 +128,7 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                 aria-hidden={!freeDeliveryProgress.unlocked}
               >
                 -{summaryDelivery || 10} {texts.common.currency}
-              </Badge>
+              </Badge> */}
             </div>
             <Progress
               value={freeDeliveryProgress.percent}
@@ -172,8 +170,8 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 pb-8">
-        <div className="grid gap-8 lg:grid-cols-3">
+      <div className="container mx-auto px-4 pb-8 w-full min-w-0">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 min-w-0">
           <div className="lg:col-span-2 space-y-4 min-w-0">
             <div className="space-y-4 max-h-[55vh] lg:max-h-[calc(100vh-320px)] overflow-y-auto pr-1">
               {items.map(({ product, quantity, configuration, unitPriceWithConfiguration }) => (
@@ -246,7 +244,7 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
             </div>
           </div>
 
-          <div>
+          <div className="min-w-0">
             <Card className="sticky top-24 border-primary/20 shadow-xl bg-gradient-to-b from-primary/5 to-background">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 font-extrabold">

@@ -25,6 +25,7 @@ export const JOIN_STREAK_CAMPAIGN = gql`
         bonusPoints
         rewardType
         customText
+        imageUrl
         startDate
         endDate
         rewardSteps {

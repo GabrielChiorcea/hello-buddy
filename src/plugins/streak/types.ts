@@ -23,6 +23,7 @@ export interface StreakCampaign {
   baseMultiplier: number;
   multiplierIncrement: number;
   customText: string | null;
+  imageUrl: string | null;
   startDate: string;
   endDate: string;
   resetType: ResetType;
