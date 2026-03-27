@@ -402,3 +402,10 @@ export const GET_TIERS_ECONOMY_SETTINGS = gql`
     points_per_ron: appSetting(key: "points_per_ron")
   }
 `;
+
+/** Prag livrare gratuită pentru fallback UI în coș */
+export const GET_FREE_DELIVERY_THRESHOLD_SETTING = gql`
+  query GetFreeDeliveryThresholdSetting {
+    free_delivery_threshold: appSetting(key: "free_delivery_threshold")
+  }
+`;

@@ -471,6 +471,7 @@ export async function computeOrderTotal(
     for (const row of settingsRows) settingsMap.set(row.id, row.value);
     baseFee = parseFloat(settingsMap.get('delivery_fee') ?? '10');
     freeDeliveryThreshold = parseFloat(settingsMap.get('free_delivery_threshold') ?? '0');
+
   }
   const subtotal = baseSubtotal;
 

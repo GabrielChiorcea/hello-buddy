@@ -131,6 +131,7 @@ export async function updateSettings(req: Request, res: Response): Promise<void>
          ON DUPLICATE KEY UPDATE value = VALUES(value), updated_by = VALUES(updated_by)`,
         [key, String(value), req.user?.id || null]
       );
+
     }
     
     // Returnează setările actualizate

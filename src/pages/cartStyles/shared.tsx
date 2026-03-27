@@ -12,7 +12,7 @@ import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { toast } from '@/hooks/use-toast';
 import { FREE_DELIVERY_THRESHOLD, DELIVERY_FEE } from '@/config/cart';
-import { GET_ORDER_PREVIEW } from '@/graphql/queries';
+import { GET_FREE_DELIVERY_THRESHOLD_SETTING, GET_ORDER_PREVIEW } from '@/graphql/queries';
 
 export interface OrderPreviewData {
   subtotal: number;
@@ -109,6 +109,27 @@ export function useCartData(): CartDisplayData {
     fetchPolicy: 'cache-and-network',
   });
   const orderPreview = previewData?.orderPreview ?? null;
+  const { data: deliveryThresholdData } = useQuery<{ free_delivery_threshold: string | null }>(
+    GET_FREE_DELIVERY_THRESHOLD_SETTING,
+    { fetchPolicy: 'cache-first' }
+  );
+  const configuredFreeDeliveryThreshold = useMemo(() => {
+    const raw = deliveryThresholdData?.free_delivery_threshold;
+    const parsed = raw != null ? parseFloat(raw) : NaN;
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }, [deliveryThresholdData?.free_delivery_threshold]);
+  const [lastKnownFreeDeliveryThreshold, setLastKnownFreeDeliveryThreshold] = useState<number | null>(null);
+  useEffect(() => {
+    const t = orderPreview?.freeDeliveryThreshold;
+    if (typeof t === 'number' && t > 0) setLastKnownFreeDeliveryThreshold(t);
+  }, [orderPreview?.freeDeliveryThreshold]);
+  useEffect(() => {
+    if (configuredFreeDeliveryThreshold != null) {
+      setLastKnownFreeDeliveryThreshold((prev) =>
+        prev == null || prev === FREE_DELIVERY_THRESHOLD ? configuredFreeDeliveryThreshold : prev
+      );
+    }
+  }, [configuredFreeDeliveryThreshold]);
 
   const freeProductProgress = useMemo<FreeProductProgress | null>(() => {
     const campaigns = user?.freeProductCampaignsSummary;
@@ -203,7 +224,11 @@ export function useCartData(): CartDisplayData {
   };
 
   // Free delivery progress
-  const freeDeliveryThreshold = orderPreview?.freeDeliveryThreshold ?? FREE_DELIVERY_THRESHOLD;
+  const freeDeliveryThreshold =
+    orderPreview?.freeDeliveryThreshold ??
+    lastKnownFreeDeliveryThreshold ??
+    configuredFreeDeliveryThreshold ??
+    FREE_DELIVERY_THRESHOLD;
   const freeDeliveryProgress = useMemo<FreeDeliveryProgress>(() => {
     // Keep progress aligned with backend rule: delivery threshold is checked on subtotal after free-product discount.
     const effectiveSubtotalForDelivery =
@@ -212,13 +237,17 @@ export function useCartData(): CartDisplayData {
         : subtotal;
     const current = effectiveSubtotalForDelivery;
     const remaining = Math.max(0, freeDeliveryThreshold - current);
-    const unlocked = orderPreview
-      ? (orderPreview.deliveryFee ?? deliveryFee) === 0
-      : current >= freeDeliveryThreshold;
+    // Unlock based on amount vs threshold (not on preview deliveryFee), to keep UI behavior tied to sum.
+    // If authenticated and threshold is still unknown (no preview yet), keep locked to avoid false positives.
+    const thresholdReady = orderPreview?.freeDeliveryThreshold != null || lastKnownFreeDeliveryThreshold != null;
+    const unlocked =
+      isAuthenticated && items.length > 0 && !thresholdReady
+        ? false
+        : current >= freeDeliveryThreshold;
     const percent = Math.min(100, (current / freeDeliveryThreshold) * 100);
 
     return { threshold: freeDeliveryThreshold, current, remaining, unlocked, percent };
-  }, [subtotal, freeDeliveryThreshold, orderPreview, deliveryFee]);
+  }, [subtotal, freeDeliveryThreshold, orderPreview, deliveryFee, isAuthenticated, items.length, lastKnownFreeDeliveryThreshold]);
 
   // No extra UI-stable state; unlocked visuals are driven directly by freeDeliveryProgress.
 
