@@ -97,13 +97,13 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
           {/* Free delivery progress */}
           <div
             className={cn(
-              'rounded-xl border p-4 transition-colors',
+              'rounded-xl border p-4 transition-colors min-h-[5.75rem] max-[399px]:min-h-[6.5rem]',
               freeDeliveryProgress.unlocked
                 ? 'bg-success/10 border-success/30'
                 : 'bg-card border-primary/15'
             )}
           >
-            <div className="flex items-center gap-2 mb-2 overflow-hidden">
+            <div className="grid grid-cols-[auto,minmax(0,1fr),auto] items-start gap-x-2 gap-y-1.5 mb-2 max-[399px]:grid-cols-[auto,minmax(0,1fr)]">
               <span
                 className={cn(
                   'inline-flex shrink-0 h-8 w-8 items-center justify-center rounded-lg border',
@@ -113,20 +113,24 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                 )}
               >
                 <Truck
-                  className={cn('h-4 w-4', freeDeliveryProgress.unlocked ? 'animate-bounce' : '')}
+                  className={cn('h-4 w-4', freeDeliveryProgress.unlocked ? 'animate-bounce max-[399px]:animate-none' : '')}
                   strokeWidth={2.5}
                 />
               </span>
-              <span className="flex-1 min-w-0 text-sm font-bold text-foreground truncate">
+              <span className="min-w-0 pt-1 text-sm font-bold leading-tight text-foreground sm:pt-0">
                 {freeDeliveryProgress.unlocked
-                    ? 'Livrare GRATUITĂ deblocată!'
+                  ? 'Livrare GRATUITĂ deblocată!'
                   : `Mai adaugă ${freeDeliveryProgress.remaining.toFixed(0)} ${texts.common.currency} pentru livrare GRATUITĂ!`}
               </span>
-              {freeDeliveryProgress.unlocked && (
-                <Badge className="shrink-0 bg-success text-success-foreground border-0 text-xs">
-                  -{summaryDelivery || 10} {texts.common.currency}
-                </Badge>
-              )}
+              <Badge
+                className={cn(
+                  'shrink-0 justify-self-end self-start border-0 bg-success text-xs text-success-foreground max-[399px]:col-start-2 max-[399px]:justify-self-start',
+                  freeDeliveryProgress.unlocked ? 'opacity-100' : 'pointer-events-none opacity-0'
+                )}
+                aria-hidden={!freeDeliveryProgress.unlocked}
+              >
+                -{summaryDelivery || 10} {texts.common.currency}
+              </Badge>
             </div>
             <Progress
               value={freeDeliveryProgress.percent}
@@ -137,12 +141,12 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
           {/* Free product progress */}
           {freeProductProgress && (
             <div className={cn(
-              'rounded-xl border p-4 transition-colors',
+              'rounded-xl border p-4 transition-colors min-h-[5.75rem] max-[399px]:min-h-[6.5rem]',
               freeProductProgress.unlocked
                 ? 'bg-success/10 border-success/30'
                 : 'bg-card border-primary/15'
             )}>
-              <div className="flex items-center gap-2 mb-2 overflow-hidden">
+              <div className="grid grid-cols-[auto,minmax(0,1fr)] items-start gap-x-2 gap-y-1.5 mb-2">
                 <span
                   className={cn(
                     'inline-flex shrink-0 h-8 w-8 items-center justify-center rounded-lg border',
@@ -153,7 +157,7 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                 >
                   <Gift className="h-4 w-4" strokeWidth={2.5} />
                 </span>
-                <span className="flex-1 min-w-0 text-sm font-bold text-foreground truncate">
+                <span className="min-w-0 pt-1 text-sm font-bold leading-tight text-foreground sm:pt-0">
                   {freeProductProgress.unlocked
                     ? `Produse GRATIS deblocate: ${freeProductProgress.productNames.join(', ')}!`
                     : `Mai adaugă ${freeProductProgress.remaining.toFixed(0)} ${texts.common.currency} și primești ${freeProductProgress.productNames[0] ?? 'categorie'} GRATIS!`}
