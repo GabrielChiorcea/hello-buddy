@@ -103,36 +103,30 @@ export const GamifiedCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                 : 'bg-card border-primary/15'
             )}
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <span
-                  className={cn(
-                    'inline-flex h-9 w-9 items-center justify-center rounded-lg border',
-                    freeDeliveryProgress.unlocked
-                      ? 'bg-success/15 border-success/30 text-success'
-                      : 'bg-primary/10 border-primary/20 text-primary'
-                  )}
-                >
-                  <Truck
-                    className={cn('h-5 w-5', freeDeliveryProgress.unlocked ? 'animate-bounce' : '')}
-                    strokeWidth={2.5}
-                  />
-                </span>
-                <span className="flex-1 min-w-0 text-sm font-bold text-foreground whitespace-nowrap overflow-hidden text-ellipsis">
-                  {freeDeliveryProgress.unlocked
-                      ? 'Livrare GRATUITĂ deblocată!'
-                    : `Mai adaugă ${freeDeliveryProgress.remaining.toFixed(0)} ${texts.common.currency} pentru livrare GRATUITĂ!`}
-                </span>
-              </div>
-              <Badge
+            <div className="flex items-center gap-2 mb-2 overflow-hidden">
+              <span
                 className={cn(
-                  'bg-success text-success-foreground border-0 text-xs transition-opacity',
-                  freeDeliveryProgress.unlocked ? 'opacity-100' : 'opacity-0'
+                  'inline-flex shrink-0 h-8 w-8 items-center justify-center rounded-lg border',
+                  freeDeliveryProgress.unlocked
+                    ? 'bg-success/15 border-success/30 text-success'
+                    : 'bg-primary/10 border-primary/20 text-primary'
                 )}
-                aria-hidden={!freeDeliveryProgress.unlocked}
               >
-                -{summaryDelivery === 0 ? '10' : '10'} RON
-              </Badge>
+                <Truck
+                  className={cn('h-4 w-4', freeDeliveryProgress.unlocked ? 'animate-bounce' : '')}
+                  strokeWidth={2.5}
+                />
+              </span>
+              <span className="flex-1 min-w-0 text-sm font-bold text-foreground truncate">
+                {freeDeliveryProgress.unlocked
+                    ? 'Livrare GRATUITĂ deblocată!'
+                  : `Mai adaugă ${freeDeliveryProgress.remaining.toFixed(0)} ${texts.common.currency} pentru livrare GRATUITĂ!`}
+              </span>
+              {freeDeliveryProgress.unlocked && (
+                <Badge className="shrink-0 bg-success text-success-foreground border-0 text-xs">
+                  -{DELIVERY_FEE} {texts.common.currency}
+                </Badge>
+              )}
             </div>
             <Progress
               value={freeDeliveryProgress.percent}
