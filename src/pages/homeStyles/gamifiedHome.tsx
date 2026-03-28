@@ -5,13 +5,13 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Zap, ShoppingBag, Star } from 'lucide-react';
+import { ArrowRight, ShoppingBag } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Layout } from '@/components/layout/Layout';
 import { useAppSelector } from '@/store';
 import { selectCartItemCount } from '@/store/slices/cartSlice';
-import { TierProgressBar } from '@/components/layout/TierProgressBar';
+import { GamifiedHeroHub } from './GamifiedHeroHub';
 import { ProductCard } from '@/components/common/ProductCard';
 import { PageLoader } from '@/components/common/Loader';
 import { HomeMarketingCards } from '@/plugins/streak/components/HomeMarketingCards';
