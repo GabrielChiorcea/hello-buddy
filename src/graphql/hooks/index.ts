@@ -16,7 +16,7 @@
  * import { useProducts, useLogin } from '@/graphql/hooks';
  * 
  * Categorii de hook-uri:
- * - Produse: useProducts, useProduct, useProductsByCategory, useSearchProducts, useCategories
+ * - Produse: useProducts, useProduct, useProductsByCategory, useCategories
  * - Autentificare: useCurrentUser, useLogin, useSignup, useLogout, etc.
  * - Profil: useUpdateProfile
  * - Adrese: useUserAddresses, useCreateAddress, useUpdateAddress, etc.
@@ -28,12 +28,11 @@
 // HOOK-URI PRODUSE
 // ============================================================================
 
-export { 
-  useProducts,           // Obține toate produsele
-  useProduct,            // Obține un produs după ID
+export {
+  useProducts, // Obține toate produsele
+  useProduct, // Obține un produs după ID
   useProductsByCategory, // Filtrează după categorie
-  useSearchProducts,     // Caută produse
-  useCategories          // Obține lista categoriilor
+  useCategories, // Obține lista categoriilor
 } from './useProducts';
 
 // ============================================================================

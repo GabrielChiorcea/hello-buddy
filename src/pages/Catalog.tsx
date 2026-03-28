@@ -14,7 +14,6 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import {
   fetchProducts,
   fetchCategories,
-  setSearchQuery,
   setSelectedCategory,
   clearFilters,
 } from '@/store/slices/productsSlice';
@@ -53,7 +52,6 @@ const Catalog: React.FC = () => {
     filteredItems,
     categories,
     selectedCategory,
-    searchQuery,
     isLoading,
   } = useAppSelector((state) => state.products);
   
@@ -72,7 +70,7 @@ const Catalog: React.FC = () => {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedCategory, searchQuery]);
+  }, [selectedCategory]);
 
   const handleCategoryClick = useCallback(
     (categoryName: string | null) => {
@@ -197,7 +195,6 @@ const Catalog: React.FC = () => {
           <p className="text-muted-foreground">
             {totalItems} {totalItems === 1 ? 'produs găsit' : 'produse găsite'}
             {selectedCategory && ` în categoria "${getCategoryDisplayName(selectedCategory)}"`}
-            {searchQuery && ` pentru "${searchQuery}"`}
           </p>
         </div>
 
@@ -217,7 +214,7 @@ const Catalog: React.FC = () => {
           <>
             <AnimatePresence mode="wait">
               <motion.div
-                key={`${selectedCategory ?? 'all'}-${searchQuery}-${currentPage}`}
+                key={`${selectedCategory ?? 'all'}-${currentPage}`}
                 className="flex flex-col gap-3 md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:gap-6 2xl:gap-7"
                 variants={
                   reduceMotion

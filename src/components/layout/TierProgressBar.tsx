@@ -79,15 +79,6 @@ export const TierProgressBar: React.FC = () => {
               </p>
             </div>
 
-            <div>
-              <h3 className="text-sm sm:text-base font-semibold text-foreground">
-                Sistem de Loialitate
-              </h3>
-              <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
-                Autentifică-te pentru a începe să câștigi XP și recompense exclusive.
-              </p>
-            </div>
-
             {tiers.length > 0 && (
               <div className="grid grid-cols-3 gap-3">
                 {tiers.map((tier) => (

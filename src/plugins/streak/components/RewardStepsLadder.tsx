@@ -36,13 +36,13 @@ export const RewardStepsLadder: React.FC<RewardStepsLadderProps> = ({
     pointsReached: string;
   }> = {
     gamified: {
-      track: 'bg-reward-surface-foreground/10',
+      track: 'bg-border',
       reachedTrack: 'bg-reward/50',
-      dot: 'border-reward/40 bg-reward-surface',
+      dot: 'border-border bg-card',
       dotReached: 'bg-reward shadow-md shadow-reward/40',
-      label: 'text-reward-surface-foreground/60',
-      labelReached: 'text-reward',
-      points: 'text-reward-surface-foreground/40',
+      label: 'text-muted-foreground',
+      labelReached: 'text-foreground',
+      points: 'text-muted-foreground/70',
       pointsReached: 'text-reward',
     },
     premium: {
@@ -106,12 +106,12 @@ export const RewardStepsLadder: React.FC<RewardStepsLadderProps> = ({
                           reached ? 'gamified-step-done' : 'gamified-step-pending'
                         )}
                       >
-                        {reached ? <Check className="h-4 w-4" /> : <span className="w-1.5 h-1.5 rounded-full bg-white/20" />}
+                        {reached ? <Check className="h-4 w-4" /> : <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40" />}
                       </div>
-                      <span className={cn('mt-1 leading-snug line-clamp-2 max-w-[90px] text-center text-[10px] sm:text-xs gamified-casino-badge-label', reached ? 'text-reward-surface-foreground' : 'text-reward-surface-foreground/70')} title={label}>
+                      <span className={cn('mt-1 leading-snug line-clamp-2 max-w-[90px] text-center text-[10px] sm:text-xs gamified-casino-badge-label', reached ? 'text-foreground' : 'text-muted-foreground')} title={label}>
                         {label}
                       </span>
-                      <span className={cn('mt-0.5 font-semibold tabular-nums text-[10px] sm:text-xs', reached ? 'text-reward-light' : 'text-reward-surface-foreground/60')}>
+                      <span className={cn('mt-0.5 font-semibold tabular-nums text-[10px] sm:text-xs', reached ? 'text-reward' : 'text-muted-foreground')}>
                         +{step.pointsAwarded} pt
                       </span>
                     </div>
@@ -128,7 +128,7 @@ export const RewardStepsLadder: React.FC<RewardStepsLadderProps> = ({
 
             {bonusPoints && bonusPoints > 0 && (
               <div className="flex justify-center">
-                <span className={cn('mt-1 rounded-full px-2.5 py-0.5 text-[10px] font-medium tabular-nums', completed ? 'bg-success/20 text-success' : 'text-reward-surface-foreground/80 bg-reward-surface-foreground/10')}>
+                <span className={cn('mt-1 rounded-full px-2.5 py-0.5 text-[10px] font-medium tabular-nums', completed ? 'bg-success/20 text-success' : 'text-muted-foreground bg-card border border-border')}>
                   Bonus completare: +{bonusPoints} pt
                 </span>
               </div>

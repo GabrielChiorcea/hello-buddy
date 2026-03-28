@@ -5,10 +5,9 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ArrowRight, Crown } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Layout } from '@/components/layout/Layout';
 import { TierProgressBar } from '@/components/layout/TierProgressBar';
 import { ProductCard } from '@/components/common/ProductCard';
@@ -20,9 +19,10 @@ import { CategoryIconDisplay } from '@/config/categoryIcons';
 import type { HomeDisplayData } from './shared';
 import { easeOut, fadeUp, staggerContainer, cardVariant } from './shared';
 import { HomeComboPill } from './HomeComboPill';
+import { HomeHeroLogo } from './HomeHeroLogo';
 
 export const PremiumHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
-  const { items, filteredItems, categories, comboCategory, searchQuery, isLoading, recommendedProducts, totalProducts, handleSearch, handleCategoryClick } = data;
+  const { items, categories, comboCategory, isLoading, recommendedProducts, totalProducts, handleCategoryClick } = data;
 
   if (isLoading && items.length === 0) return <Layout><PageLoader /></Layout>;
 
@@ -33,20 +33,13 @@ export const PremiumHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
         <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-background to-accent/10" />
         <div className="container mx-auto px-4 relative">
           <div className="max-w-3xl mx-auto text-center">
-            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="inline-flex items-center gap-2 mb-8">
-              <Crown className="h-4 w-4 text-primary" />
-              <span className="text-xs font-medium text-muted-foreground tracking-widest uppercase">Premium Experience</span>
-            </motion.div>
+            <HomeHeroLogo variant="premium" />
+            <motion.p className="text-xs font-medium text-muted-foreground tracking-widest uppercase mb-6">
+              Premium Experience
+            </motion.p>
             <motion.h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold mb-6 text-foreground tracking-tight" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: easeOut }}>
               {texts.home.heroTitle}
             </motion.h1>
-            <motion.p className="text-lg text-muted-foreground mb-10 leading-relaxed" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15, ease: easeOut }}>
-              {texts.home.heroSubtitle}
-            </motion.p>
-            <motion.div className="relative max-w-xl mx-auto" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.3, ease: easeOut }}>
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50" />
-              <Input type="text" placeholder={texts.home.searchPlaceholder} value={searchQuery} onChange={handleSearch} className="pl-12 pr-4 h-14 text-lg rounded-2xl border-border/20 bg-background/60 backdrop-blur-xl focus-visible:ring-primary/20" />
-            </motion.div>
           </div>
         </div>
       </section>
@@ -97,19 +90,7 @@ export const PremiumHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
         </div>
       </section>
 
-      {searchQuery && (
-        <section className="py-8">
-          <div className="container mx-auto px-4">
-            <h2 className="text-xl font-semibold mb-6 text-foreground">Rezultate pentru "{searchQuery}" ({filteredItems.length})</h2>
-            {filteredItems.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">{filteredItems.map((p) => <ProductCard key={p.id} product={p} />)}</div>
-            ) : <p className="text-muted-foreground">{texts.catalog.noProducts}</p>}
-          </div>
-        </section>
-      )}
-
-      {!searchQuery && (
-        <section className="py-14 md:py-20 bg-muted/20">
+      <section className="py-14 md:py-20 bg-muted/20">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between mb-10">
               <div>
@@ -125,7 +106,6 @@ export const PremiumHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
             </motion.div>
           </div>
         </section>
-      )}
 
       {/* CTA — glass */}
       <section className="py-20 md:py-28">

@@ -9,7 +9,6 @@
  * - useProducts: obține toate produsele
  * - useProduct: obține un singur produs după ID
  * - useProductsByCategory: filtrează produsele după categorie
- * - useSearchProducts: caută produse după text
  * - useCategories: obține lista categoriilor
  * 
  * Toate hook-urile gestionează automat:
@@ -19,13 +18,12 @@
  * =============================================================================
  */
 
-import { useQuery, useLazyQuery } from '@apollo/client';
-import { 
-  GET_PRODUCTS, 
-  GET_PRODUCT_BY_ID, 
+import { useQuery } from '@apollo/client';
+import {
+  GET_PRODUCTS,
+  GET_PRODUCT_BY_ID,
   GET_PRODUCTS_BY_CATEGORY,
-  SEARCH_PRODUCTS,
-  GET_CATEGORIES 
+  GET_CATEGORIES,
 } from '../queries';
 import { Product, ProductCategory } from '@/types';
 
@@ -46,11 +44,6 @@ interface ProductData {
 /** Structura răspunsului pentru categorii */
 interface CategoriesData {
   categories: ProductCategory[];
-}
-
-/** Structura răspunsului pentru căutare */
-interface SearchData {
-  searchProducts: Product[];
 }
 
 // ============================================================================
@@ -126,42 +119,6 @@ export const useProductsByCategory = (category: ProductCategory | null) => {
   
   return {
     products: data?.productsByCategory || [],
-    loading,
-    error: error?.message || null,
-  };
-};
-
-/**
- * Hook pentru căutare produse
- * Folosește useLazyQuery pentru a permite căutarea la cerere
- * 
- * @returns {Object} Obiect cu:
- *   - searchProducts: funcție pentru executarea căutării
- *   - results: rezultatele căutării
- *   - loading: true în timpul căutării
- *   - error: mesajul de eroare sau null
- * 
- * @example
- * const { searchProducts, results } = useSearchProducts();
- * searchProducts('pizza margherita');
- */
-export const useSearchProducts = () => {
-  // useLazyQuery permite executarea manuală a query-ului
-  const [search, { data, loading, error }] = useLazyQuery<SearchData>(SEARCH_PRODUCTS);
-  
-  /**
-   * Funcție pentru executarea căutării
-   * Ignoră căutările cu text gol
-   */
-  const searchProducts = (query: string) => {
-    if (query.trim()) {
-      search({ variables: { query } });
-    }
-  };
-  
-  return {
-    searchProducts,
-    results: data?.searchProducts || [],
     loading,
     error: error?.message || null,
   };

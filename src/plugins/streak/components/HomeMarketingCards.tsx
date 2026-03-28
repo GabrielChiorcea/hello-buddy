@@ -294,19 +294,16 @@ const GamifiedStreakCardBody: React.FC<{ data: StreakCardData }> = ({ data }) =>
 
   return (
     <div className="p-4">
-      {urgency ? (
-        <div className="mb-3">
-          <span
-            className={`inline-block rounded-md px-2 py-0.5 text-[11px] font-medium leading-tight ${urgencyChipClass(urgency.tone)}`}
-            role="status"
-          >
-            {urgency.text}
-          </span>
-        </div>
-      ) : null}
-
       <div className="flex gap-4 items-start">
         <div className="flex flex-col items-center shrink-0 w-[4.75rem] pt-0.5">
+          {urgency ? (
+            <span
+              className={`mb-2 inline-block rounded-md px-2 py-0.5 text-[11px] font-medium leading-tight ${urgencyChipClass(urgency.tone)}`}
+              role="status"
+            >
+              {urgency.text}
+            </span>
+          ) : null}
           <span className="text-3xl font-extrabold tabular-nums text-primary leading-none tracking-tight">
             +{pts}
           </span>

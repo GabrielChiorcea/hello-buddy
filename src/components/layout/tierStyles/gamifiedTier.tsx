@@ -4,7 +4,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, ChevronRight, Zap, Gift, Star, TrendingUp, ShoppingBag } from 'lucide-react';
+import { Sparkles, ChevronRight, Zap, Gift, TrendingUp, ShoppingBag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { texts } from '@/config/texts';
 import { TierIcon } from '@/config/tierIcons';
@@ -65,7 +65,6 @@ export const GamifiedTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
     currentBenefit,
     xpFormulaText,
     nextTier,
-    nextBenefitText,
     nextMultiplier,
     hasFreeProductBenefits,
     freeProductCampaignsSummary,
@@ -108,10 +107,14 @@ export const GamifiedTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
 
       {/* Progress */}
       <div className="px-4 pb-2">
-        <GradientProgressBar percent={progressPercent} />
         {!isMaxLevel && xpToNextLevel != null && (
-          <div className="mt-1 flex items-center justify-between">
-            {/* Milestone messages */}
+          <p className="mb-1 text-[10px] text-muted-foreground text-right tabular-nums">
+            Încă <span className="font-semibold text-foreground">{xpToNextLevel}</span> XP
+          </p>
+        )}
+        <GradientProgressBar percent={progressPercent} />
+        {!isMaxLevel && xpToNextLevel != null && (isAlmostThere || isHalfway) && (
+          <div className="mt-1">
             {isAlmostThere && (
               <motion.p
                 initial={{ opacity: 0 }}
@@ -122,14 +125,10 @@ export const GamifiedTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
               </motion.p>
             )}
             {isHalfway && !isAlmostThere && (
-              <p className="text-[10px] font-medium text-primary">
-                Ești la jumătate! Nu te opri acum 💪
+              <p className="text-sm font-medium text-primary">
+                Ești la jumătate! Nu te opri acum
               </p>
             )}
-            {!isHalfway && !isAlmostThere && <span />}
-            <p className="text-[10px] text-muted-foreground text-right tabular-nums">
-              Încă <span className="font-semibold text-foreground">{xpToNextLevel}</span> XP
-            </p>
           </div>
         )}
       </div>
@@ -137,7 +136,7 @@ export const GamifiedTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
       {/* Benefits */}
       <div className="px-4 pb-3 space-y-1.5">
         <InfoPill icon={<Gift className="h-3 w-3" />} variant="highlight">
-          <span className="font-medium">Acum:</span> {currentBenefit}
+          <span className="font-medium">{currentBenefit}</span>
         </InfoPill>
         <InfoPill icon={<TrendingUp className="h-3 w-3" />}>
           <span className="font-medium">Cum câștigi XP:</span> {xpFormulaText}
@@ -176,22 +175,14 @@ export const GamifiedTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
             </span>
             <span className="ml-auto text-[10px] font-bold text-primary">x{nextMultiplier.toFixed(1)}</span>
           </div>
-          {nextBenefitText && (
-            <div className="flex items-center gap-2 pl-5">
-              <Star className="h-3 w-3 text-primary/60 flex-shrink-0" />
-              <span className="text-[10px] text-muted-foreground line-clamp-1">
-                <span className="font-medium text-foreground">{nextBenefitText}</span>
-              </span>
-            </div>
-          )}
           {/* Micro-CTA */}
           <Link
             to={routes.catalog}
-            className="mt-1 ml-5 inline-flex items-center gap-1.5 text-[10px] font-semibold text-primary hover:text-primary/80 transition-colors"
+            className="mt-1 flex w-full items-center justify-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
           >
-            <ShoppingBag className="h-3 w-3" />
+            <ShoppingBag className="h-4 w-4 flex-shrink-0" />
             Comandă acum pentru XP
-            <ArrowRight className="h-3 w-3" />
+            <ArrowRight className="h-4 w-4 flex-shrink-0" />
           </Link>
         </div>
       )}

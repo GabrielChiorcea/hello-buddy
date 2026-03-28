@@ -111,7 +111,7 @@ const GamifiedProgress: React.FC<StreakProgressBarProps> = ({
                   {filled ? (
                     <Check className="h-4 w-4" />
                   ) : (
-                    <span className="w-2 h-2 rounded-full bg-white/20" />
+                    <span className="w-2 h-2 rounded-full bg-muted-foreground/45" />
                   )}
                 </motion.div>
               )}

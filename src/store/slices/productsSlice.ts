@@ -1,6 +1,6 @@
 /**
  * Products slice for Redux store
- * Manages product listing, filtering, and search
+ * Manages product listing and category filtering
  */
 
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
@@ -8,7 +8,6 @@ import { Product, Category } from '@/types';
 import {
   fetchProductsApi,
   fetchCategoriesApi,
-  searchProductsApi,
   fetchRecommendedProductsApi,
   fetchAppStatsApi,
 } from '@/api/api';
@@ -18,7 +17,6 @@ interface ProductsState {
   filteredItems: Product[];
   categories: Category[];
   selectedCategory: string | null;
-  searchQuery: string;
   isLoading: boolean;
   error: string | null;
   recommendedProducts: Product[];
@@ -30,7 +28,6 @@ const initialState: ProductsState = {
   filteredItems: [],
   categories: [],
   selectedCategory: null,
-  searchQuery: '',
   isLoading: false,
   error: null,
   recommendedProducts: [],
@@ -55,17 +52,6 @@ export const fetchCategories = createAsyncThunk(
     const response = await fetchCategoriesApi();
     if (!response.success || !response.data) {
       return rejectWithValue(response.error || 'Failed to fetch categories');
-    }
-    return response.data;
-  }
-);
-
-export const searchProducts = createAsyncThunk(
-  'products/searchProducts',
-  async (query: string, { rejectWithValue }) => {
-    const response = await searchProductsApi(query);
-    if (!response.success || !response.data) {
-      return rejectWithValue(response.error || 'Search failed');
     }
     return response.data;
   }
@@ -97,11 +83,10 @@ export const fetchAppStats = createAsyncThunk(
 const filterProducts = (
   items: Product[],
   categoryName: string | null, // Acesta e category.name (slug) din categories
-  searchQuery: string,
   categories: Category[]
 ): Product[] => {
   let filtered = items;
-  
+
   if (categoryName) {
     // Găsește categoria după name (slug)
     const category = categories.find(c => c.name === categoryName);
@@ -117,16 +102,7 @@ const filterProducts = (
       });
     }
   }
-  
-  if (searchQuery.trim()) {
-    const query = searchQuery.toLowerCase();
-    filtered = filtered.filter(
-      p =>
-        p.name.toLowerCase().includes(query) ||
-        (p.description || '').toLowerCase().includes(query)
-    );
-  }
-  
+
   return filtered;
 };
 
@@ -136,27 +112,11 @@ const productsSlice = createSlice({
   reducers: {
     setSelectedCategory: (state, action: PayloadAction<string | null>) => {
       state.selectedCategory = action.payload;
-      state.filteredItems = filterProducts(
-        state.items,
-        action.payload,
-        state.searchQuery,
-        state.categories
-      );
+      state.filteredItems = filterProducts(state.items, action.payload, state.categories);
     },
-    
-    setSearchQuery: (state, action: PayloadAction<string>) => {
-      state.searchQuery = action.payload;
-      state.filteredItems = filterProducts(
-        state.items,
-        state.selectedCategory,
-        action.payload,
-        state.categories
-      );
-    },
-    
+
     clearFilters: (state) => {
       state.selectedCategory = null;
-      state.searchQuery = '';
       state.filteredItems = state.items;
     },
   },
@@ -170,12 +130,7 @@ const productsSlice = createSlice({
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.isLoading = false;
         state.items = action.payload;
-        state.filteredItems = filterProducts(
-          action.payload,
-          state.selectedCategory,
-          state.searchQuery,
-          state.categories
-        );
+        state.filteredItems = filterProducts(action.payload, state.selectedCategory, state.categories);
       })
       .addCase(fetchProducts.rejected, (state, action) => {
         state.isLoading = false;
@@ -189,23 +144,10 @@ const productsSlice = createSlice({
         state.filteredItems = filterProducts(
           state.items,
           state.selectedCategory,
-          state.searchQuery,
           action.payload
         );
       })
-    
-    // Search Products
-      .addCase(searchProducts.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(searchProducts.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.filteredItems = action.payload;
-      })
-      .addCase(searchProducts.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
+
       // Recommended products
       .addCase(fetchRecommendedProducts.fulfilled, (state, action) => {
         state.recommendedProducts = action.payload;
@@ -217,7 +159,7 @@ const productsSlice = createSlice({
   },
 });
 
-export const { setSelectedCategory, setSearchQuery, clearFilters } = productsSlice.actions;
+export const { setSelectedCategory, clearFilters } = productsSlice.actions;
 export default productsSlice.reducer;
 
 // Selectors
@@ -225,7 +167,6 @@ export const selectAllProducts = (state: { products: ProductsState }) => state.p
 export const selectFilteredProducts = (state: { products: ProductsState }) => state.products.filteredItems;
 export const selectCategories = (state: { products: ProductsState }) => state.products.categories;
 export const selectSelectedCategory = (state: { products: ProductsState }) => state.products.selectedCategory;
-export const selectSearchQuery = (state: { products: ProductsState }) => state.products.searchQuery;
 export const selectProductsLoading = (state: { products: ProductsState }) => state.products.isLoading;
 export const selectRecommendedProducts = (state: { products: ProductsState }) => state.products.recommendedProducts;
 export const selectTotalProducts = (state: { products: ProductsState }) => state.products.totalProducts;

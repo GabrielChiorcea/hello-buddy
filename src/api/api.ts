@@ -16,7 +16,6 @@ import {
   GET_APP_STATS,
   GET_ADDON_PRODUCTS,
   GET_SUGGESTED_ADDONS_FOR_CART,
-  SEARCH_PRODUCTS,
   GET_CATEGORIES,
   GET_CURRENT_USER,
   GET_USER_ORDERS,
@@ -399,20 +398,6 @@ export const fetchSuggestedAddonsForCartApi = async (
   } catch (error) {
     console.error('Fetch suggested addons API error:', error);
     return { success: false, error: 'Eroare la încărcarea sugestiilor add-on' };
-  }
-};
-
-export const searchProductsApi = async (query: string): Promise<ApiResponse<Product[]>> => {
-  try {
-    const { data } = await apolloClient.query<{ searchProducts: Product[] }>({
-      query: SEARCH_PRODUCTS,
-      variables: { query },
-    });
-    
-    return { success: true, data: data?.searchProducts || [] };
-  } catch (error) {
-    console.error('Search products API error:', error);
-    return { success: false, error: 'Eroare la căutare' };
   }
 };
 

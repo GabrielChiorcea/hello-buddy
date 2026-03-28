@@ -6,12 +6,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ShoppingCart, User, LogOut, Crown, Search, X } from 'lucide-react';
+import { ShoppingCart, User, LogOut, Crown } from 'lucide-react';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { cn } from '@/lib/utils';
@@ -19,9 +18,8 @@ import type { NavbarDisplayData } from './shared';
 
 export const PremiumNav: React.FC<{ data: NavbarDisplayData }> = ({ data }) => {
   const {
-    showSearch, setShowSearch, localSearch, setLocalSearch,
     isAuthenticated, user, cartItemCount,
-    handleLogout, handleSearchSubmit, handleSearchClear, navLinks, isActive,
+    handleLogout, navLinks, isActive,
   } = data;
 
   return (
@@ -35,9 +33,9 @@ export const PremiumNav: React.FC<{ data: NavbarDisplayData }> = ({ data }) => {
 
           <nav className="flex items-center gap-1">
             {navLinks.map(({ path, label }) => (
-              <Link 
-                key={path} 
-                to={path} 
+              <Link
+                key={path}
+                to={path}
                 className={cn(
                   'text-[13px] font-medium transition-all duration-200 px-4 py-1.5 rounded-[2rem]',
                   isActive(path)
@@ -50,31 +48,7 @@ export const PremiumNav: React.FC<{ data: NavbarDisplayData }> = ({ data }) => {
             ))}
           </nav>
 
-          <form onSubmit={handleSearchSubmit} className="hidden lg:flex items-center relative w-52">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <Input 
-              type="text" 
-              placeholder="Caută..." 
-              value={localSearch} 
-              onChange={(e) => setLocalSearch(e.target.value)} 
-              className="pl-8 pr-7 h-9 rounded-xl border-border/20 bg-accent/30 text-xs font-medium placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-primary/30 focus-visible:bg-accent/50 transition-all"
-            />
-            {localSearch && (
-              <button type="button" onClick={handleSearchClear} className="absolute right-2.5 top-1/2 -translate-y-1/2">
-                <X className="h-3 w-3 text-muted-foreground" />
-              </button>
-            )}
-          </form>
-
           <div className="flex items-center gap-1.5">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden h-9 w-9 rounded-xl hover:bg-accent/50"
-              onClick={() => setShowSearch(!showSearch)}
-            >
-              <Search className="h-4 w-4" />
-            </Button>
             <Link to={routes.cart}>
               <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-xl hover:bg-accent/50">
                 <ShoppingCart className="h-4 w-4" />
@@ -125,4 +99,3 @@ export const PremiumNav: React.FC<{ data: NavbarDisplayData }> = ({ data }) => {
     </header>
   );
 };
-

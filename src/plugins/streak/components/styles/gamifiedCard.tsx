@@ -5,7 +5,7 @@
  */
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Flame, Gift, Sparkles, Shield, Calendar, Target, TrendingUp, AlertTriangle, Users, Zap, XCircle, Clock } from 'lucide-react';
+import { Flame, Gift, Sparkles, Calendar, Target, TrendingUp, AlertTriangle, Users, Zap, XCircle, Clock } from 'lucide-react';
 import type { StreakCampaign, StreakEnrollment } from '../../types';
 import { StreakProgressBar } from '../StreakProgressBar';
 import { CampaignJoinButton } from '../CampaignJoinButton';
@@ -115,9 +115,17 @@ export const GamifiedCard: React.FC<Props> = ({
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="gamified-casino-title truncate">{campaign.name}</h3>
-            <p className="gamified-casino-body text-xs mt-0.5 opacity-90">
-              {campaign.recurrenceType === 'consecutive' ? 'Zile consecutive' : campaign.recurrenceType === 'rolling' ? `Fereastră mobilă (${campaign.rollingWindowDays} zile)` : campaign.recurrenceType}
-            </p>
+            <div className="mt-0.5 flex items-center gap-2 flex-wrap">
+              <p className="gamified-casino-body text-xs opacity-90">
+                {campaign.recurrenceType === 'consecutive' ? 'Zile consecutive' : campaign.recurrenceType === 'rolling' ? `Fereastră mobilă (${campaign.rollingWindowDays} zile)` : campaign.recurrenceType}
+              </p>
+              {!isFailed && (
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-card/90 border border-border px-2.5 py-1">
+                  <Users className="h-3 w-3 text-reward/80" />
+                  <span className="text-[10px] font-medium text-muted-foreground">{participants} participanți</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -145,16 +153,6 @@ export const GamifiedCard: React.FC<Props> = ({
             </div>
           </div>
         </motion.div>
-      )}
-
-      {/* Social proof — hide when failed */}
-      {!isFailed && (
-        <div className="relative z-10 px-5 pb-2">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-reward-surface-foreground/[0.06] border border-reward-surface-foreground/10 px-2.5 py-1">
-            <Users className="h-3 w-3 text-reward/80" />
-            <span className="text-[10px] font-medium text-muted-foreground">{participants} participanți</span>
-          </div>
-        </div>
       )}
 
       {/* Rule description */}
@@ -185,7 +183,7 @@ export const GamifiedCard: React.FC<Props> = ({
           </span>
         )}
         {!isFailed && remaining > 7 && remaining <= 14 && (
-          <span className="gamified-casino-badge-label bg-reward/30 text-reward-surface-foreground rounded-full px-2.5 py-0.5">
+          <span className="gamified-casino-badge-label bg-reward/20 text-foreground rounded-full px-2.5 py-0.5">
             {remaining} zile rămase
           </span>
         )}
@@ -235,13 +233,12 @@ export const GamifiedCard: React.FC<Props> = ({
         <div className="relative z-10 px-5 pb-2 flex flex-wrap gap-2">
           <div className="gamified-badge-orders inline-flex items-center gap-1.5 rounded-full px-2.5 py-1">
             <Target className="h-3 w-3 text-reward flex-shrink-0" />
-            <span className="gamified-casino-badge-label text-reward-surface-foreground">{campaign.ordersRequired} comenzi necesare</span>
+            <span className="gamified-casino-badge-label text-foreground">{campaign.ordersRequired} comenzi necesare</span>
           </div>
-          {campaign.resetType === 'soft_decay' && (
-            <div className="gamified-badge-softdecay inline-flex items-center gap-1.5 rounded-full px-2.5 py-1">
-              <Shield className="h-3 w-3 text-status-confirmed flex-shrink-0" />
-              <span className="gamified-casino-badge-label text-reward-surface-foreground">Soft Decay</span>
-            </div>
+          {hasValidation && (
+            <span className="gamified-badge-min gamified-casino-badge-label text-muted-foreground rounded-full px-3 py-1">
+              Min. {campaign.minOrderValue} RON/comandă
+            </span>
           )}
         </div>
       )}
@@ -249,10 +246,10 @@ export const GamifiedCard: React.FC<Props> = ({
       {/* Steps ladder — only when not enrolled and not failed */}
       {hasSteps && !isEnrolled && !isFailed && (
         <div className="relative z-10 px-5 pb-3">
-          <div className="rounded-xl p-3 bg-reward-surface-foreground/[0.04] border border-reward-surface-foreground/10">
+          <div className="rounded-xl p-3 bg-card/85 border border-border">
             <div className="flex items-center gap-1.5 mb-2">
-              <TrendingUp className="h-3.5 w-3.5 text-reward-surface-foreground/90" />
-              <span className="gamified-casino-badge-label text-reward-surface-foreground uppercase tracking-wider">Praguri recompensă</span>
+              <TrendingUp className="h-3.5 w-3.5 text-foreground/80" />
+              <span className="gamified-casino-badge-label text-foreground uppercase tracking-wider">Praguri recompensă</span>
             </div>
             <RewardStepsLadder
               steps={campaign.rewardSteps}
@@ -268,10 +265,10 @@ export const GamifiedCard: React.FC<Props> = ({
       {/* Multiplier info — hide when failed */}
       {campaign.rewardType === 'multiplier' && !isFailed && (
         <div className="relative z-10 px-5 pb-3">
-          <div className="rounded-xl p-3 bg-reward-surface-foreground/[0.04] border border-reward-surface-foreground/10">
+          <div className="rounded-xl p-3 bg-card/85 border border-border">
             <div className="flex items-center gap-1.5 mb-1">
-              <TrendingUp className="h-3.5 w-3.5 text-reward-surface-foreground/90" />
-              <span className="gamified-casino-badge-label text-reward-surface-foreground uppercase tracking-wider">Multiplicator</span>
+              <TrendingUp className="h-3.5 w-3.5 text-foreground/80" />
+              <span className="gamified-casino-badge-label text-foreground uppercase tracking-wider">Multiplicator</span>
             </div>
             <p className="gamified-casino-body text-xs">
               Baza {campaign.baseMultiplier}× · +{campaign.multiplierIncrement}× per pas · Aplicat la {campaign.bonusPoints} puncte
@@ -280,20 +277,11 @@ export const GamifiedCard: React.FC<Props> = ({
         </div>
       )}
 
-      {/* Min. order — hide when failed */}
-      {hasValidation && !isFailed && (
-        <div className="relative z-10 px-5 pb-2 flex flex-wrap gap-2">
-          <span className="gamified-badge-min gamified-casino-badge-label text-reward-surface-foreground rounded-full px-3 py-1">
-            Min. {campaign.minOrderValue} RON/comandă
-          </span>
-        </div>
-      )}
-
       {/* Progress — step nodes when enrolled and not failed */}
       {isEnrolled && !isFailed && (
         <div className="relative z-10 px-5 pb-4 flex-1 flex flex-col">
           {enrollmentLoading && !enrollment ? (
-            <Skeleton className="h-12 w-full bg-reward-surface-foreground/10 rounded-lg" />
+            <Skeleton className="h-12 w-full bg-muted rounded-lg" />
           ) : (
             <StreakProgressBar
               current={enrollment!.currentStreakCount}

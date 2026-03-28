@@ -211,7 +211,6 @@ export interface ProductsState {
   filteredItems: Product[];
   categories: ProductCategory[];
   selectedCategory: ProductCategory | null;
-  searchQuery: string;
   isLoading: boolean;
   error: string | null;
 }

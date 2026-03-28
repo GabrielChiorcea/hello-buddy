@@ -5,10 +5,9 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Layout } from '@/components/layout/Layout';
 import { TierProgressBar } from '@/components/layout/TierProgressBar';
 import { ProductCard } from '@/components/common/ProductCard';
@@ -20,9 +19,10 @@ import { CategoryIconDisplay } from '@/config/categoryIcons';
 import type { HomeDisplayData } from './shared';
 import { easeOut, fadeUp, staggerContainer, cardVariant } from './shared';
 import { HomeComboPill } from './HomeComboPill';
+import { HomeHeroLogo } from './HomeHeroLogo';
 
 export const CleanHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
-  const { items, filteredItems, categories, comboCategory, searchQuery, isLoading, recommendedProducts, totalProducts, handleSearch, handleCategoryClick } = data;
+  const { items, categories, comboCategory, isLoading, recommendedProducts, totalProducts, handleCategoryClick } = data;
 
   if (isLoading && items.length === 0) return <Layout><PageLoader /></Layout>;
 
@@ -32,16 +32,10 @@ export const CleanHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
       <section className="py-20 md:py-32">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl">
+            <HomeHeroLogo variant="clean" align="start" />
             <motion.h1 className="text-3xl md:text-4xl lg:text-5xl font-medium text-foreground tracking-tight leading-tight" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: easeOut }}>
               {texts.home.heroTitle}
             </motion.h1>
-            <motion.p className="text-base text-muted-foreground mt-4 mb-8 max-w-lg" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.2 }}>
-              {texts.home.heroSubtitle}
-            </motion.p>
-            <motion.div className="relative max-w-md" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, delay: 0.3 }}>
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
-              <Input type="text" placeholder={texts.home.searchPlaceholder} value={searchQuery} onChange={handleSearch} className="pl-10 pr-4 h-10 text-sm rounded-md border-border/40" />
-            </motion.div>
           </div>
         </div>
       </section>
@@ -92,19 +86,7 @@ export const CleanHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
         </div>
       </section>
 
-      {searchQuery && (
-        <section className="py-8">
-          <div className="container mx-auto px-4">
-            <h2 className="text-sm font-medium text-muted-foreground mb-6">Rezultate pentru "{searchQuery}" ({filteredItems.length})</h2>
-            {filteredItems.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">{filteredItems.map((p) => <ProductCard key={p.id} product={p} />)}</div>
-            ) : <p className="text-sm text-muted-foreground">{texts.catalog.noProducts}</p>}
-          </div>
-        </section>
-      )}
-
-      {!searchQuery && (
-        <section className="py-12">
+      <section className="py-12">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between mb-6">
               <div>
@@ -120,7 +102,6 @@ export const CleanHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
             </motion.div>
           </div>
         </section>
-      )}
 
       {/* CTA — minimal */}
       <section className="py-16">

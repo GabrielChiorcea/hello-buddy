@@ -5,10 +5,9 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Layout } from '@/components/layout/Layout';
 import { TierProgressBar } from '@/components/layout/TierProgressBar';
 import { ProductCard } from '@/components/common/ProductCard';
@@ -20,9 +19,10 @@ import { CategoryIconDisplay } from '@/config/categoryIcons';
 import type { HomeDisplayData } from './shared';
 import { easeOut, fadeUp, staggerContainer, cardVariant } from './shared';
 import { HomeComboPill } from './HomeComboPill';
+import { HomeHeroLogo } from './HomeHeroLogo';
 
 export const FriendlyHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
-  const { items, filteredItems, categories, comboCategory, searchQuery, isLoading, recommendedProducts, totalProducts, handleSearch, handleCategoryClick } = data;
+  const { items, categories, comboCategory, isLoading, recommendedProducts, totalProducts, handleCategoryClick } = data;
 
   if (isLoading && items.length === 0) return <Layout><PageLoader /></Layout>;
 
@@ -32,16 +32,10 @@ export const FriendlyHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
       <section className="relative bg-gradient-to-br from-primary/10 via-background to-secondary/20 py-16 md:py-24 overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
+            <HomeHeroLogo variant="friendly" />
             <motion.h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-foreground" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: easeOut }}>
               {texts.home.heroTitle}
             </motion.h1>
-            <motion.p className="text-lg md:text-xl text-muted-foreground mb-8" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15, ease: easeOut }}>
-              {texts.home.heroSubtitle}
-            </motion.p>
-            <motion.div className="relative max-w-xl mx-auto" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.3, ease: easeOut }}>
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input type="text" placeholder={texts.home.searchPlaceholder} value={searchQuery} onChange={handleSearch} className="pl-12 pr-4 h-14 text-lg rounded-full border-2 focus-visible:ring-primary" />
-            </motion.div>
           </div>
         </div>
       </section>
@@ -92,19 +86,7 @@ export const FriendlyHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
         </div>
       </section>
 
-      {searchQuery && (
-        <section className="py-8">
-          <div className="container mx-auto px-4">
-            <h2 className="text-xl font-semibold mb-6 text-foreground">Rezultate pentru "{searchQuery}" ({filteredItems.length})</h2>
-            {filteredItems.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">{filteredItems.map((p) => <ProductCard key={p.id} product={p} />)}</div>
-            ) : <p className="text-muted-foreground">{texts.catalog.noProducts}</p>}
-          </div>
-        </section>
-      )}
-
-      {!searchQuery && (
-        <section className="py-12 md:py-16 bg-muted/30">
+      <section className="py-12 md:py-16 bg-muted/30">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between mb-8">
               <div>
@@ -120,7 +102,6 @@ export const FriendlyHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
             </motion.div>
           </div>
         </section>
-      )}
 
       {/* CTA */}
       <section className="py-16 md:py-24">

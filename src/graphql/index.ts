@@ -45,7 +45,7 @@ export { apolloClient } from './client';
 /**
  * Query-uri pentru citirea datelor
  * - GET_PRODUCTS, GET_PRODUCT_BY_ID, GET_PRODUCTS_BY_CATEGORY
- * - SEARCH_PRODUCTS, GET_CATEGORIES
+ * - GET_CATEGORIES
  * - GET_CURRENT_USER, GET_USER_ORDERS, GET_ORDER_BY_ID
  * - GET_USER_ADDRESSES
  * 
@@ -86,7 +86,7 @@ export * from './types';
 
 /**
  * Hook-uri pentru utilizare în componente React
- * - useProducts, useProduct, useProductsByCategory, useSearchProducts
+ * - useProducts, useProduct, useProductsByCategory
  * - useCurrentUser, useLogin, useSignup, useLogout
  * - useUpdateProfile
  * - useUserAddresses, useCreateAddress, useUpdateAddress, useDeleteAddress

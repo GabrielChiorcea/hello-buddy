@@ -3,7 +3,7 @@
  * Uses card/primary tokens instead of reward tokens
  */
 import React from 'react';
-import { Flame, Gift, Calendar, Target, Shield, XCircle, Clock } from 'lucide-react';
+import { Flame, Gift, Calendar, Target, XCircle, Clock } from 'lucide-react';
 import type { StreakCampaign, StreakEnrollment } from '../../types';
 import { StreakProgressBar } from '../StreakProgressBar';
 import { CampaignJoinButton } from '../CampaignJoinButton';
@@ -103,12 +103,6 @@ export const CleanCard: React.FC<Props> = ({
             <Target className="h-3 w-3" />
             {campaign.ordersRequired} comenzi
           </span>
-          {campaign.resetType === 'soft_decay' && (
-            <span className="inline-flex items-center gap-1.5 bg-muted text-muted-foreground rounded-md px-2.5 py-1 text-xs">
-              <Shield className="h-3 w-3" />
-              Soft Decay
-            </span>
-          )}
         </div>
       )}
 

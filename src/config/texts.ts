@@ -404,8 +404,6 @@ export const texts = {
   // Home page
   home: {
     heroTitle: 'Delicious Food at Your Door',
-    heroSubtitle: 'Discover the best dishes in your area',
-    searchPlaceholder: 'Search dishes or restaurants...',
     categories: 'Categories',
     recommended: 'Recommended for you',
     totalProductsInMenu: '{count} products in menu',

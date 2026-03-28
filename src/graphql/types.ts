@@ -53,14 +53,6 @@ export interface GetProductsByCategoryResponse {
 }
 
 /**
- * Răspuns pentru query-ul SearchProducts
- * Conține produsele care corespund căutării
- */
-export interface SearchProductsResponse {
-  searchProducts: Product[];
-}
-
-/**
  * Răspuns pentru query-ul GetCategories
  * Conține lista numelor categoriilor
  */

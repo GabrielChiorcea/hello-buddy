@@ -10,7 +10,6 @@ import {
   fetchCategories,
   fetchRecommendedProducts,
   fetchAppStats,
-  setSearchQuery,
   setSelectedCategory,
 } from '@/store/slices/productsSlice';
 
@@ -69,14 +68,11 @@ export const cardVariant = {
 
 export interface HomeDisplayData {
   items: any[];
-  filteredItems: any[];
   categories: Category[];
   comboCategory: Category | null;
-  searchQuery: string;
   isLoading: boolean;
   recommendedProducts: any[];
   totalProducts: number;
-  handleSearch: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleCategoryClick: (name: string) => void;
 }
 
@@ -84,9 +80,7 @@ export function useHomeData(): HomeDisplayData {
   const dispatch = useAppDispatch();
   const {
     items,
-    filteredItems,
     categories,
-    searchQuery,
     isLoading,
     recommendedProducts: recommendedFromApi,
     totalProducts,
@@ -95,10 +89,6 @@ export function useHomeData(): HomeDisplayData {
   useEffect(() => {
     prefetchHomeCatalogData(dispatch);
   }, [dispatch]);
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(setSearchQuery(e.target.value));
-  };
 
   const handleCategoryClick = (categoryName: string) => {
     dispatch(setSelectedCategory(categoryName));
@@ -118,14 +108,11 @@ export function useHomeData(): HomeDisplayData {
 
   return {
     items,
-    filteredItems,
     categories: homeCategories,
     comboCategory,
-    searchQuery,
     isLoading,
     recommendedProducts,
     totalProducts,
-    handleSearch,
     handleCategoryClick,
   };
 }
