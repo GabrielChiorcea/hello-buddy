@@ -21,7 +21,7 @@ import { CategoryIconDisplay } from '@/config/categoryIcons';
 import type { HomeDisplayData } from './shared';
 import { easeOut, fadeUp, staggerContainer, cardVariant } from './shared';
 import { HomeComboPill } from './HomeComboPill';
-import { HomeHeroLogo } from './HomeHeroLogo';
+
 
 export const GamifiedHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
   const { items, categories, comboCategory, isLoading, recommendedProducts, totalProducts, handleCategoryClick } = data;
