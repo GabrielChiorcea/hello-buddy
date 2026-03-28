@@ -25,74 +25,15 @@ import { HomeHeroLogo } from './HomeHeroLogo';
 
 export const GamifiedHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
   const { items, categories, comboCategory, isLoading, recommendedProducts, totalProducts, handleCategoryClick } = data;
-  const { isAuthenticated, user } = useAppSelector((s) => s.user);
   const cartItemCount = useAppSelector(selectCartItemCount);
   const cartSubtotal = useAppSelector((s) => s.cart.subtotal);
-  const hasFreeProductCampaigns = (user?.freeProductCampaignsSummary?.length ?? 0) > 0;
 
   if (isLoading && items.length === 0) return <Layout><PageLoader /></Layout>;
 
   return (
     <Layout>
-      {/* Hero */}
-      <section className="relative bg-gradient-to-br from-primary via-primary/90 to-primary/70 py-16 md:py-24 overflow-hidden text-primary-foreground">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
-        <div className="container mx-auto px-4 relative">
-          <div className="max-w-3xl mx-auto text-center">
-            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }} className="inline-flex items-center gap-2 bg-primary-foreground/15 rounded-full px-4 py-1.5 mb-6 text-sm font-bold">
-              <Zap className="h-4 w-4" /> Comandă acum!
-            </motion.div>
-            <HomeHeroLogo variant="gamified" />
-            <motion.h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: easeOut }}>
-              {isAuthenticated && user
-                ? <>Bine ai revenit, <span className="text-primary-foreground/90">{user.name?.split(' ')[0]}</span>!</>
-                : texts.home.heroTitle}
-            </motion.h1>
-            {isAuthenticated &&
-              user &&
-              ((user.pointsBalance ?? 0) > 0 || user.tier?.name) && (
-                <motion.p
-                  className="text-lg md:text-xl text-primary-foreground/80 mb-4"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.15, ease: easeOut }}
-                >
-                  {(user.pointsBalance ?? 0) > 0 && (
-                    <>
-                      Ai <strong>{user.pointsBalance} puncte</strong> de folosit
-                      {user.tier?.name ? ' · ' : ''}
-                    </>
-                  )}
-                  {user.tier?.name && (
-                    <span>
-                      Nivel: <strong>{user.tier.name}</strong>
-                    </span>
-                  )}
-                </motion.p>
-              )}
-            {/* Limited offer banner */}
-            {isAuthenticated && hasFreeProductCampaigns && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="inline-flex items-center gap-2 bg-primary-foreground/20 border border-primary-foreground/30 rounded-full px-5 py-2 mb-6 text-sm font-bold"
-              >
-                <Star className="h-4 w-4 fill-primary-foreground" />
-                Produse GRATIS pentru nivelul tău — doar astăzi!
-              </motion.div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      <section className="pb-4">
-        <div className="container mx-auto px-4 mt-4">
-          <div className="max-w-xl mx-auto">
-            <TierProgressBar />
-          </div>
-        </div>
-      </section>
+      {/* Combined Hero + Tier Hub */}
+      <GamifiedHeroHub />
       <HomeMarketingCards />
 
       {/* Categories */}
