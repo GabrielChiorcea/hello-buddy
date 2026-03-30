@@ -40,6 +40,7 @@ interface EditableSettings {
   plugin_addons_enabled: boolean;
   plugin_tiers_enabled: boolean;
    plugin_free_products_enabled: boolean;
+  plugin_coupons_enabled: boolean;
   has_tables: boolean;
   points_per_order: string;
 }
@@ -59,6 +60,7 @@ function parseSettings(map: SettingsMap): EditableSettings {
     plugin_addons_enabled: (map.plugin_addons_enabled?.value ?? 'true') === 'true',
     plugin_tiers_enabled: (map.plugin_tiers_enabled?.value ?? 'true') === 'true',
     plugin_free_products_enabled: (map.plugin_free_products_enabled?.value ?? 'false') === 'true',
+    plugin_coupons_enabled: (map.plugin_coupons_enabled?.value ?? 'true') === 'true',
     has_tables: (map.has_tables?.value ?? 'true') === 'true',
     points_per_order: map.points_per_order?.value ?? '5',
   };
@@ -113,6 +115,7 @@ export default function AdminSettings() {
         plugin_addons_enabled: settings.plugin_addons_enabled ? 'true' : 'false',
         plugin_tiers_enabled: settings.plugin_tiers_enabled ? 'true' : 'false',
         plugin_free_products_enabled: settings.plugin_free_products_enabled ? 'true' : 'false',
+        plugin_coupons_enabled: settings.plugin_coupons_enabled ? 'true' : 'false',
         has_tables: settings.has_tables ? 'true' : 'false',
         points_per_order: settings.points_per_order,
       });
@@ -402,6 +405,18 @@ export default function AdminSettings() {
             <Switch
               checked={settings.plugin_free_products_enabled}
               onCheckedChange={(checked) => updateField('plugin_free_products_enabled', checked)}
+            />
+          </div>
+          <div className="flex items-center justify-between pt-4 border-t">
+            <div>
+              <Label>Plugin cupoane</Label>
+              <p className="text-sm text-muted-foreground">
+                Catalog cupoane, activare cu puncte și aplicare la checkout.
+              </p>
+            </div>
+            <Switch
+              checked={settings.plugin_coupons_enabled}
+              onCheckedChange={(checked) => updateField('plugin_coupons_enabled', checked)}
             />
           </div>
         </CardContent>

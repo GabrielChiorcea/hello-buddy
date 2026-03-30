@@ -465,6 +465,7 @@ export const createPaymentSessionApi = async (
       notes: checkoutData.notes || null,
       paymentMethod: 'card' as const,
       pointsToUse: checkoutData.pointsToUse || undefined,
+      appliedUserCouponIds: checkoutData.appliedUserCouponIds || undefined,
     };
 
     const { data } = await apolloClient.mutate<{ createPaymentSession: CreatePaymentSessionResult }>({
@@ -529,6 +530,7 @@ export const placeOrderApi = async (
       notes: checkoutData.notes || null,
       paymentMethod: checkoutData.paymentMethod,
       pointsToUse: checkoutData.pointsToUse || undefined,
+      appliedUserCouponIds: checkoutData.appliedUserCouponIds || undefined,
     };
 
     const { data } = await apolloClient.mutate<{ createOrder: Order }>({

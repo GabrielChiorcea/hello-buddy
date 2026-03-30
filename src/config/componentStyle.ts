@@ -20,8 +20,6 @@ export {
   CartStyleProvider,
   useCheckoutStyle,
   CheckoutStyleProvider,
-  useHomeStyle,
-  HomeStyleProvider,
   useFooterStyle,
   FooterStyleProvider,
 } from './themes';

@@ -29,6 +29,7 @@ interface CreateOrderInput {
   notes?: string;
   paymentMethod: 'cash' | 'card';
   pointsToUse?: number;
+  appliedUserCouponIds?: string[];
 }
 
 interface ReviewInput {
@@ -109,7 +110,7 @@ export const orderResolvers = {
      */
     async orderPreview(
       _: unknown,
-      { items, pointsToUse }: { items: OrderItemInput[]; pointsToUse?: number },
+      { items, pointsToUse, appliedUserCouponIds }: { items: OrderItemInput[]; pointsToUse?: number; appliedUserCouponIds?: string[] },
       context: GraphQLContext
     ) {
       const user = requireAuth(context);
@@ -120,6 +121,7 @@ export const orderResolvers = {
           freeDeliveryThreshold: 0,
           discountFromFreeProducts: 0,
           discountFromPoints: 0,
+          discountFromCoupons: 0,
           total: 0,
         };
       }
@@ -138,9 +140,10 @@ export const orderResolvers = {
         deliveryAddress: 'Preview',
         deliveryCity: 'Preview',
         phone: '0000000000',
-        notes: null,
+        notes: undefined,
         paymentMethod: 'cash' as const,
         pointsToUse: pointsToUse ?? 0,
+        appliedUserCouponIds: appliedUserCouponIds ?? [],
       };
       const connection = await pool.getConnection();
       try {
@@ -151,6 +154,7 @@ export const orderResolvers = {
           freeDeliveryThreshold: totals.freeDeliveryThreshold,
           discountFromFreeProducts: totals.discountFromFreeProducts,
           discountFromPoints: totals.discountFromPoints,
+          discountFromCoupons: totals.discountFromCoupons,
           total: totals.total,
         };
       } finally {
@@ -223,6 +227,7 @@ export const orderResolvers = {
         notes: input.notes,
         paymentMethod: input.paymentMethod,
         pointsToUse: input.pointsToUse,
+        appliedUserCouponIds: input.appliedUserCouponIds,
       });
       
       // Log order placed

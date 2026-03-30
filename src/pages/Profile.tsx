@@ -4,7 +4,7 @@
 
 import React, { useEffect } from 'react';
 import { useQuery } from '@apollo/client';
-import { User, Package, Settings, MapPin, LogOut } from 'lucide-react';
+import { User, Package, Settings, MapPin, LogOut, Ticket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,7 +25,7 @@ import { OrderStatus } from '@/types';
 import { PointsBalance, PointsOrderBadge, PointsOrderDetails } from '@/plugins/points';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { cn } from '@/lib/utils';
-import { GET_LOYALTY_TIERS } from '@/graphql/queries';
+import { GET_LOYALTY_TIERS, GET_MY_COUPONS } from '@/graphql/queries';
 import { TierProgressBar } from '@/components/layout/TierProgressBar';
 import { TierIcon } from '@/config/tierIcons';
 import { format, isValid } from 'date-fns';
@@ -58,6 +58,14 @@ const Profile: React.FC = () => {
     fetchPolicy: 'network-only',
   });
   const rawTiers = tiersData?.loyaltyTiers ?? [];
+  const { data: myCouponsData } = useQuery<{ myCoupons: Array<{ id: string; status: 'active' | 'used' | 'expired'; activatedAt: string; usedAt?: string | null; expiresAt?: string | null; coupon: { title: string; discountPercent: number; targetProductName?: string | null } }> }>(GET_MY_COUPONS);
+  const myCoupons = myCouponsData?.myCoupons ?? [];
+
+  const couponStatusLabel = (status: 'active' | 'used' | 'expired') => {
+    if (status === 'active') return 'Activ';
+    if (status === 'used') return 'Folosit';
+    return 'Expirat';
+  };
   const loyaltyTiers = [...rawTiers].sort((a, b) => a.xpThreshold - b.xpThreshold);
   const currentXp = user?.totalXp ?? 0;
   const nextTierFromList = loyaltyTiers
@@ -139,6 +147,11 @@ const Profile: React.FC = () => {
                 <Settings className="h-4 w-4" />
                 <span className="hidden sm:inline">{texts.profile.settings}</span>
                 <span className="sm:hidden">Setări</span>
+              </TabsTrigger>
+              <TabsTrigger value="coupons" className="flex items-center gap-2">
+                <Ticket className="h-4 w-4" />
+                <span className="hidden sm:inline">My Coupons</span>
+                <span className="sm:hidden">Cupoane</span>
               </TabsTrigger>
             </TabsList>
 
@@ -338,6 +351,35 @@ const Profile: React.FC = () => {
             {/* Settings Tab */}
             <TabsContent value="settings" className="space-y-6">
               <AccountSettings userId={user.id} userEmail={user.email} />
+            </TabsContent>
+            <TabsContent value="coupons">
+              <Card>
+                <CardHeader>
+                  <CardTitle>My Coupons</CardTitle>
+                  <CardDescription>Cupoanele activate în contul tău</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {myCoupons.length === 0 && <p className="text-muted-foreground text-sm">Nu ai cupoane activate încă.</p>}
+                  {myCoupons.map((entry) => (
+                    <div key={entry.id} className="rounded-md border p-3">
+                      <p className="font-medium">{entry.coupon.title}</p>
+                      <p className="text-sm text-muted-foreground">
+                        -{entry.coupon.discountPercent}% {entry.coupon.targetProductName ? `la ${entry.coupon.targetProductName}` : ''}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Status: {couponStatusLabel(entry.status)}</p>
+                      <p className="text-xs text-muted-foreground">Activat la: {new Date(entry.activatedAt).toLocaleString()}</p>
+                      {entry.usedAt && (
+                        <p className="text-xs text-muted-foreground">Folosit la: {new Date(entry.usedAt).toLocaleString()}</p>
+                      )}
+                      {entry.status === 'used' && (
+                        <p className="text-xs text-muted-foreground">
+                          Pentru reutilizare, activează din nou cuponul din pagina Cupoane.
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
 

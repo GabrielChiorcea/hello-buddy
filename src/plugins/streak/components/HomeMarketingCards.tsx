@@ -8,7 +8,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, gql } from '@apollo/client';
 import { motion } from 'framer-motion';
-import { Flame, ArrowRight, AlertTriangle, Trophy, Zap, Clock } from 'lucide-react';
+import { Flame, ArrowRight, AlertTriangle, Trophy, Zap, Clock, TicketPercent } from 'lucide-react';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { useAppSelector } from '@/store';
 import { useComponentStyle } from '@/config/componentStyle';
@@ -143,6 +143,40 @@ function useStreakCardData(): StreakCardData | null {
 interface CardStyleProps {
   data: StreakCardData;
 }
+
+const CouponsPromoCard: React.FC = () => {
+  const style = useComponentStyle();
+  const cardClassByStyle = {
+    gamified: 'relative overflow-hidden rounded-2xl border border-primary bg-gradient-to-br from-primary/5 to-accent/5 transition-all duration-200 shadow-sm hover:shadow-lg hover:scale-[1.01]',
+    clean: 'rounded-lg border border-border bg-card overflow-hidden transition-all hover:shadow-md',
+    premium: 'relative rounded-2xl border border-border bg-background/60 backdrop-blur-xl overflow-hidden transition-all hover:shadow-lg',
+    friendly: 'rounded-2xl border border-primary/30 bg-primary/5 overflow-hidden transition-all hover:shadow-md',
+  } as const;
+
+  return (
+    <Link to={routes.coupons} className="block group mt-3">
+      <div className={cardClassByStyle[style]}>
+        <div className="p-4">
+          <div className="flex items-start gap-3">
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <TicketPercent className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base font-bold text-foreground leading-snug">Deblocheaza cupoane din puncte</h3>
+              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                Activeaza cupoane si obtine reduceri pe produse direct in checkout.
+              </p>
+              <div className="mt-3 rounded-lg bg-primary/10 px-3 py-2.5 flex items-center justify-center gap-2 font-semibold text-sm text-primary transition-colors group-hover:bg-primary/15">
+                <span>Vezi cupoane</span>
+                <ArrowRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+};
 
 function streakStatusIcon(data: StreakCardData) {
   return data.status === 'lost'
@@ -440,6 +474,7 @@ export const HomeMarketingCards: React.FC = () => {
             transition={{ duration: 0.4 }}
           >
             <StyleCard data={streakData} />
+            <CouponsPromoCard />
           </motion.div>
         </div>
       </div>

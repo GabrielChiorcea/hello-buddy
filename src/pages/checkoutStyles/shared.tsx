@@ -19,7 +19,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { resetCart } from '@/store/slices/cartSlice';
 import { fetchAddresses, fetchCurrentUser } from '@/store/slices/userSlice';
 import { placeOrderApi, createPaymentSessionApi } from '@/api/api';
-import { GET_ORDER_PREVIEW } from '@/graphql/queries';
+import { GET_ORDER_PREVIEW, GET_MY_COUPONS } from '@/graphql/queries';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { toast } from '@/hooks/use-toast';
@@ -32,6 +32,7 @@ import {
 } from '@/types';
 import { cn } from '@/lib/utils';
 import { PointsCheckoutSelector, usePointsRewards } from '@/plugins/points';
+import { CouponsCheckoutSelector, type MyCoupon } from '@/plugins/coupons';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import type { StyleName } from '@/config/themes';
 
@@ -73,7 +74,9 @@ export interface CheckoutDisplayData {
   displayTotal: number;
   discountFromPoints: number;
   discountFromFreeProducts: number;
+  discountFromCoupons: number;
   pointsEnabled: boolean;
+  myCoupons: MyCoupon[];
   userPoints: number;
   pointsRewards: any[];
   payableBeforePoints: number;
@@ -105,6 +108,7 @@ export function useCheckoutData(): CheckoutDisplayData {
     deliveryCity: '',
     phone: user?.phone || '',
     paymentMethod: 'cash',
+    appliedUserCouponIds: [],
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -118,13 +122,20 @@ export function useCheckoutData(): CheckoutDisplayData {
     unitPriceWithConfiguration: i.unitPriceWithConfiguration,
   }));
   const pointsToUseVar = formData.pointsToUse ?? 0;
-  const { data: previewData } = useQuery<{ orderPreview: { subtotal: number; deliveryFee: number; freeDeliveryThreshold: number; discountFromFreeProducts: number; discountFromPoints: number; total: number } }>(GET_ORDER_PREVIEW, {
-    variables: { items: previewItems, pointsToUse: pointsToUseVar },
+  const appliedUserCouponIds = formData.appliedUserCouponIds ?? [];
+  const { data: previewData } = useQuery<{ orderPreview: { subtotal: number; deliveryFee: number; freeDeliveryThreshold: number; discountFromFreeProducts: number; discountFromPoints: number; discountFromCoupons: number; total: number } }>(GET_ORDER_PREVIEW, {
+    variables: { items: previewItems, pointsToUse: pointsToUseVar, appliedUserCouponIds },
     // Avoid auth errors while user/session is still being resolved
     skip: items.length === 0 || !user?.id,
     fetchPolicy: 'cache-and-network',
   });
   const orderPreview = previewData?.orderPreview ?? null;
+  const { data: myCouponsData } = useQuery<{ myCoupons: MyCoupon[] }>(GET_MY_COUPONS, {
+    skip: !user?.id,
+    fetchPolicy: 'cache-and-network',
+  });
+  const myCoupons = myCouponsData?.myCoupons ?? [];
+  const hasActiveCouponInWallet = myCoupons.some((c) => c.status === 'active');
 
   const { enabled: pointsEnabled } = usePluginEnabled('points');
   const { pointsRewards } = usePointsRewards();
@@ -133,6 +144,7 @@ export function useCheckoutData(): CheckoutDisplayData {
 
   const selectedReward = formData.pointsToUse ? pointsRewards.find((r) => r.pointsCost === formData.pointsToUse) : null;
   const discountFromPoints = orderPreview?.discountFromPoints ?? (selectedReward?.discountAmount ?? 0);
+  const discountFromCoupons = orderPreview?.discountFromCoupons ?? 0;
   const isInLocation = formData.fulfillmentType === 'in_location';
   const freeProductMinOrderValue = (() => {
     const campaigns = user?.freeProductCampaignsSummary ?? [];
@@ -147,7 +159,7 @@ export function useCheckoutData(): CheckoutDisplayData {
   const effectiveDeliveryFee = isInLocation ? 0 : (orderPreview?.deliveryFee ?? deliveryFee);
   const discountFromFreeProducts = orderPreview?.discountFromFreeProducts ?? 0;
   const previewSubtotal = orderPreview?.subtotal ?? subtotal;
-  const displayTotal = Math.max(0, previewSubtotal + effectiveDeliveryFee - discountFromPoints - discountFromFreeProducts);
+  const displayTotal = Math.max(0, previewSubtotal + effectiveDeliveryFee - discountFromPoints - discountFromFreeProducts - discountFromCoupons);
   const isCartEmpty = items.length === 0;
 
   // Totalul plătibil fără reducerea din puncte — folosit pentru a filtra opțiunile de puncte irelevante
@@ -162,6 +174,21 @@ export function useCheckoutData(): CheckoutDisplayData {
 
   useEffect(() => { if (user && !addressesFetched) dispatch(fetchAddresses()); }, [user, addressesFetched, dispatch]);
   useEffect(() => { if (pointsEnabled && user) dispatch(fetchCurrentUser()); }, [pointsEnabled, user?.id, dispatch]);
+  useEffect(() => {
+    if (discountFromFreeProducts > 0 && formData.pointsToUse) {
+      setFormData((prev) => ({ ...prev, pointsToUse: undefined }));
+    }
+  }, [discountFromFreeProducts, formData.pointsToUse]);
+  useEffect(() => {
+    if ((formData.appliedUserCouponIds?.length ?? 0) > 0 && formData.pointsToUse) {
+      setFormData((prev) => ({ ...prev, pointsToUse: undefined }));
+    }
+  }, [formData.appliedUserCouponIds, formData.pointsToUse]);
+  useEffect(() => {
+    if (hasActiveCouponInWallet && formData.pointsToUse) {
+      setFormData((prev) => ({ ...prev, pointsToUse: undefined }));
+    }
+  }, [hasActiveCouponInWallet, formData.pointsToUse]);
 
   useEffect(() => {
     if (showManualForm) return;
@@ -255,8 +282,8 @@ export function useCheckoutData(): CheckoutDisplayData {
   return {
     formData, errors, isLoading, isSuccess, isInLocation, isCartEmpty,
     savedAddresses, selectedAddressId, isLoadingAddresses, showManualForm, manualFormRef,
-    items, subtotal, deliveryFee, effectiveDeliveryFee, displayTotal, discountFromPoints, discountFromFreeProducts,
-    pointsEnabled, userPoints, pointsRewards, payableBeforePoints,
+    items, subtotal, deliveryFee, effectiveDeliveryFee, displayTotal, discountFromPoints, discountFromFreeProducts, discountFromCoupons,
+    pointsEnabled, myCoupons, userPoints, pointsRewards, payableBeforePoints,
     freeProductMinOrderValue,
     handleChange, handleSubmit, handleFulfillmentChange, handlePaymentChange,
     selectAddress, handleManualEntry, setFormData, navigate: (p: string) => navigate(p),
@@ -368,7 +395,7 @@ export const PaymentSelector: React.FC<{ data: CheckoutDisplayData }> = ({ data 
 );
 
 export const OrderSummaryContent: React.FC<{ data: CheckoutDisplayData }> = ({ data }) => {
-  const totalSavings = (data.discountFromFreeProducts || 0) + (data.discountFromPoints || 0) + (data.effectiveDeliveryFee === 0 && data.subtotal > 0 ? 10 : 0);
+  const totalSavings = (data.discountFromFreeProducts || 0) + (data.discountFromPoints || 0) + (data.discountFromCoupons || 0) + (data.effectiveDeliveryFee === 0 && data.subtotal > 0 ? 10 : 0);
 
   return (
     <>
@@ -405,6 +432,12 @@ export const OrderSummaryContent: React.FC<{ data: CheckoutDisplayData }> = ({ d
           <div className="flex justify-between text-sm text-primary font-medium">
             <span>⭐ Reducere puncte</span>
             <span>-{data.discountFromPoints} {texts.common.currency}</span>
+          </div>
+        )}
+        {data.discountFromCoupons > 0 && (
+          <div className="flex justify-between text-sm text-primary font-medium">
+            <span>🏷️ Reducere cupoane</span>
+            <span>-{data.discountFromCoupons} {texts.common.currency}</span>
           </div>
         )}
         <Separator />
@@ -500,8 +533,14 @@ export const CheckoutTemplate: React.FC<{ data: CheckoutDisplayData; variant: St
                   </CardHeader>
                   <CardContent>
                     <PaymentSelector data={data} />
-                    {data.pointsEnabled && (
-                      <PointsCheckoutSelector userPoints={data.userPoints} rewards={data.pointsRewards} formData={data.formData} onPointsChange={(p) => data.setFormData((prev) => ({ ...prev, pointsToUse: p }))} currency={texts.common.currency} payableBeforePoints={data.payableBeforePoints} freeProductMinOrderValue={data.freeProductMinOrderValue} hasFreeProductApplied={(data.discountFromFreeProducts ?? 0) > 0} onNeedMoreProducts={() => data.navigate(routes.catalog)} />
+                    <CouponsCheckoutSelector
+                      coupons={data.myCoupons}
+                      selectedIds={data.formData.appliedUserCouponIds ?? []}
+                      onChange={(ids) => data.setFormData((prev) => ({ ...prev, appliedUserCouponIds: ids }))}
+                      currency={texts.common.currency}
+                    />
+                    {data.pointsEnabled && (data.discountFromFreeProducts ?? 0) <= 0 && !data.myCoupons.some((c) => c.status === 'active') && (data.formData.appliedUserCouponIds?.length ?? 0) === 0 && (
+                      <PointsCheckoutSelector userPoints={data.userPoints} rewards={data.pointsRewards} formData={data.formData} onPointsChange={(p) => data.setFormData((prev) => ({ ...prev, pointsToUse: p }))} currency={texts.common.currency} payableBeforePoints={data.payableBeforePoints} />
                     )}
                   </CardContent>
                 </Card>
@@ -510,7 +549,7 @@ export const CheckoutTemplate: React.FC<{ data: CheckoutDisplayData; variant: St
                 <Card className={summaryCn}>
                   <OrderSummaryContent data={data} />
                   <CardFooter>
-                    <SubmitButton isLoading={data.isLoading} savings={(data.discountFromFreeProducts || 0) + (data.discountFromPoints || 0) + (data.effectiveDeliveryFee === 0 && data.subtotal > 0 ? 10 : 0)} />
+                    <SubmitButton isLoading={data.isLoading} savings={(data.discountFromFreeProducts || 0) + (data.discountFromPoints || 0) + (data.discountFromCoupons || 0) + (data.effectiveDeliveryFee === 0 && data.subtotal > 0 ? 10 : 0)} />
                   </CardFooter>
                 </Card>
               </div>

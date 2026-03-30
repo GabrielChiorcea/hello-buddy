@@ -195,3 +195,20 @@ export const CONFIRM_PAYMENT_SESSION = gql`
   }
 `;
 
+export const ACTIVATE_COUPON = gql`
+  mutation ActivateCoupon($couponId: ID!) {
+    activateCoupon(couponId: $couponId) {
+      id
+      status
+      activatedAt
+      expiresAt
+      coupon {
+        id
+        title
+        discountPercent
+        pointsCost
+      }
+    }
+  }
+`;
+

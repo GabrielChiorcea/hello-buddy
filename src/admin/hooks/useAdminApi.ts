@@ -427,6 +427,50 @@ export const useAdminApi = () => {
     [fetchWithAuth]
   );
 
+  // Cupoane
+  const getCouponsAdmin = useCallback(
+    (includeInactive?: boolean) =>
+      fetchWithAuth<any[]>(`/admin/coupons${includeInactive ? '?includeInactive=true' : ''}`),
+    [fetchWithAuth]
+  );
+
+  const createCouponAdmin = useCallback(
+    (data: unknown) =>
+      fetchWithAuth<any>('/admin/coupons', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    [fetchWithAuth]
+  );
+
+  const updateCouponAdmin = useCallback(
+    (id: string, data: unknown) =>
+      fetchWithAuth<any>(`/admin/coupons/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    [fetchWithAuth]
+  );
+
+  const deleteCouponAdmin = useCallback(
+    (id: string) =>
+      fetchWithAuth<{ success: boolean }>(`/admin/coupons/${id}`, {
+        method: 'DELETE',
+      }),
+    [fetchWithAuth]
+  );
+
+  const getCouponsAnalyticsAdmin = useCallback(
+    (from?: string, to?: string) => {
+      const params = new URLSearchParams();
+      if (from) params.set('from', from);
+      if (to) params.set('to', to);
+      const qs = params.toString();
+      return fetchWithAuth<any>(`/admin/coupons/analytics${qs ? `?${qs}` : ''}`);
+    },
+    [fetchWithAuth]
+  );
+
   // Upload imagine
   const uploadImage = useCallback(
     async (file: File): Promise<string> => {
@@ -604,6 +648,12 @@ export const useAdminApi = () => {
     createFreeProductCampaign,
     updateFreeProductCampaign,
     deleteFreeProductCampaign,
+    // Coupons
+    getCouponsAdmin,
+    createCouponAdmin,
+    updateCouponAdmin,
+    deleteCouponAdmin,
+    getCouponsAnalyticsAdmin,
     // Add-on rules
     getAddonRules,
     getAddonRulesFull,

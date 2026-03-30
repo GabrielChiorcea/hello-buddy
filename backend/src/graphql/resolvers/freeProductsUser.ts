@@ -23,6 +23,9 @@ interface FreeProductCampaignSummary {
   name: string;
   customText: string | null;
   minOrderValue: number;
+  /** Întotdeauna setate — free_product_campaigns.start_date / end_date sunt NOT NULL */
+  startDate: string;
+  endDate: string;
   categoryId: string | null;
   categoryName: string | null;
   products: string[];
@@ -80,6 +83,8 @@ export const freeProductsUserResolvers = {
           name: campaign.name,
           customText: campaign.customText,
           minOrderValue: campaign.minOrderValue,
+          startDate: campaign.startDate,
+          endDate: campaign.endDate,
           categoryId: campaign.categoryId,
           categoryName,
           products: products.map((p) => p.name).slice(0, 5),

@@ -11,6 +11,9 @@ type Summary = {
   categoryName: string | null;
   products: string[];
   minOrderValue?: number;
+  /** Plugin: campaniile au mereu interval în DB */
+  startDate: string;
+  endDate: string;
   productDetails?: { id: string; name: string; categoryName: string; categoryIcon?: string | null }[];
 };
 
@@ -83,9 +86,6 @@ export const FreeProductsTierGrid: React.FC<{ summaries: Summary[] }> = ({ summa
           </div>
         ))}
       </div>
-      <p className="text-[10px] font-semibold text-primary/80">
-        🎯 Disponibil doar pentru rangul tău — comandă acum!
-      </p>
     </div>
   );
 };

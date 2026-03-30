@@ -31,6 +31,7 @@ interface CreateOrderInput {
   notes?: string;
   paymentMethod: 'cash' | 'card';
   pointsToUse?: number;
+  appliedUserCouponIds?: string[];
 }
 
 export const paymentResolvers = {
@@ -90,6 +91,7 @@ export const paymentResolvers = {
         notes: input.notes,
         paymentMethod: 'card' as const,
         pointsToUse: input.pointsToUse,
+        appliedUserCouponIds: input.appliedUserCouponIds,
       };
 
       let serverTotal: number;

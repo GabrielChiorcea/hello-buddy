@@ -44,6 +44,8 @@ export const USER_FRAGMENT = gql`
       name
       customText
       minOrderValue
+      startDate
+      endDate
       categoryId
       categoryName
       products
@@ -182,6 +184,7 @@ export const ORDER_FRAGMENT = gql`
     pointsUsed
     discountFromPoints
     discountFromFreeProducts
+    discountFromCoupons
     items {
       ...OrderItemFields
     }
@@ -208,6 +211,7 @@ export const ORDER_FRAGMENT_LITE = gql`
     pointsUsed
     discountFromPoints
     discountFromFreeProducts
+    discountFromCoupons
     items {
       ...OrderItemFieldsLite
     }
@@ -335,14 +339,65 @@ export const GET_ORDER_BY_ID = gql`
 `;
 
 export const GET_ORDER_PREVIEW = gql`
-  query OrderPreview($items: [OrderItemInput!]!, $pointsToUse: Int) {
-    orderPreview(items: $items, pointsToUse: $pointsToUse) {
+  query OrderPreview($items: [OrderItemInput!]!, $pointsToUse: Int, $appliedUserCouponIds: [ID!]) {
+    orderPreview(items: $items, pointsToUse: $pointsToUse, appliedUserCouponIds: $appliedUserCouponIds) {
       subtotal
       deliveryFee
       freeDeliveryThreshold
       discountFromFreeProducts
       discountFromPoints
+      discountFromCoupons
       total
+    }
+  }
+`;
+
+export const GET_COUPONS_CATALOG = gql`
+  query GetCouponsCatalog {
+    couponsCatalog {
+      id
+      title
+      description
+      imageUrl
+      discountPercent
+      pointsCost
+      requiredTierId
+      requiredTierName
+      targetProductId
+      targetProductName
+      isActive
+      startsAt
+      expiresAt
+    }
+  }
+`;
+
+export const GET_MY_COUPONS = gql`
+  query GetMyCoupons {
+    myCoupons {
+      id
+      userId
+      couponId
+      status
+      activatedAt
+      expiresAt
+      usedAt
+      usedOrderId
+      coupon {
+        id
+        title
+        description
+        imageUrl
+        discountPercent
+        pointsCost
+        requiredTierId
+        requiredTierName
+        targetProductId
+        targetProductName
+        isActive
+        startsAt
+        expiresAt
+      }
     }
   }
 `;

@@ -20,6 +20,7 @@ import {
   Puzzle,
   DollarSign,
   Settings2,
+  Ticket,
 } from 'lucide-react';
 import { ConfettiIcon } from '@/admin/components/ConfettiIcon';
 import { pointsPlugin } from '@/plugins/points';
@@ -71,6 +72,7 @@ export function AdminSidebar() {
   const { enabled: addonsEnabled } = usePluginEnabled('addons');
   const { enabled: tiersEnabled } = usePluginEnabled('tiers');
   const { enabled: freeProductsEnabled } = usePluginEnabled('free_products');
+  const { enabled: couponsEnabled } = usePluginEnabled('coupons');
 
   const mainNavItems = [
     ...baseNavItems,
@@ -82,6 +84,7 @@ export function AdminSidebar() {
       ? [{ title: texts.admin.navFreeProducts, url: '/admin/free-products', icon: DollarSign }]
       : []),
     ...(addonsEnabled ? [{ title: texts.admin.navAddonRules, url: '/admin/addon-rules', icon: Puzzle }] : []),
+    ...(couponsEnabled ? [{ title: 'Cupoane', url: '/admin/coupons', icon: Ticket }] : []),
   ];
 
   const isActive = (path: string) => {

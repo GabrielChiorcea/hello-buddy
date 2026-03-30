@@ -17,7 +17,7 @@ import type { ThemePreset } from './types';
 
 export type ThemeName = 'orange' | 'tomato' | 'freshGreen' | 'mustard';
 
-export const DEFAULT_THEME: ThemeName = 'tomato';
+export const DEFAULT_THEME: ThemeName = 'orange';
 
 export const themes: Record<ThemeName, ThemePreset> = {
   orange,
@@ -53,6 +53,7 @@ export function applyTheme(name: ThemeName = DEFAULT_THEME): void {
 
 // ═══════════════════════════════════════════════════════════════
 // 2. STILURI — Skinul vizual al fiecărei secțiuni
+//    (Pagina Home nu mai are variantă aici — sursa unică: pages/homeStyles/home.tsx)
 // ═══════════════════════════════════════════════════════════════
 
 export type StyleName = 'gamified' | 'clean' | 'premium' | 'friendly';
@@ -80,11 +81,8 @@ export const STYLES = {
   /** Pagina Checkout */
   checkout: 'gamified' as StyleName,
 
-  /** Pagina Home (Hero, Categorii, Recomandate, CTA) */
-  home: 'gamified' as StyleName,
-
   /** Footer */
-  footer: 'gamified' as StyleName,
+  footer: 'clean' as StyleName,
 } as const;
 
 // ── Contexte React ──
@@ -95,7 +93,6 @@ const ProductCardStyleCtx = createContext<StyleName>(STYLES.productCard);
 const NavbarStyleCtx = createContext<StyleName>(STYLES.navbar);
 const CartStyleCtx = createContext<StyleName>(STYLES.cart);
 const CheckoutStyleCtx = createContext<StyleName>(STYLES.checkout);
-const HomeStyleCtx = createContext<StyleName>(STYLES.home);
 const FooterStyleCtx = createContext<StyleName>(STYLES.footer);
 
 // Provideri
@@ -105,7 +102,6 @@ export const ProductCardStyleProvider = ProductCardStyleCtx.Provider;
 export const NavbarStyleProvider = NavbarStyleCtx.Provider;
 export const CartStyleProvider = CartStyleCtx.Provider;
 export const CheckoutStyleProvider = CheckoutStyleCtx.Provider;
-export const HomeStyleProvider = HomeStyleCtx.Provider;
 export const FooterStyleProvider = FooterStyleCtx.Provider;
 
 // Hook-uri
@@ -115,7 +111,6 @@ export const useProductCardStyle = () => useContext(ProductCardStyleCtx);
 export const useNavbarStyle = () => useContext(NavbarStyleCtx);
 export const useCartStyle = () => useContext(CartStyleCtx);
 export const useCheckoutStyle = () => useContext(CheckoutStyleCtx);
-export const useHomeStyle = () => useContext(HomeStyleCtx);
 export const useFooterStyle = () => useContext(FooterStyleCtx);
 
 export type { ThemePreset } from './types';

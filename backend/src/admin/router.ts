@@ -19,6 +19,7 @@ import { pointsPlugin } from '../plugins/points/index.js';
 import { streakPlugin } from '../plugins/streak/index.js';
 import { tiersPlugin } from '../plugins/tiers/index.js';
 import { freeProductsPlugin } from '../plugins/free-products/index.js';
+import { couponsPlugin } from '../plugins/coupons/index.js';
 import * as addonsController from './controllers/addons.js';
 import * as optionTemplatesController from './controllers/optionTemplates.js';
 import * as uploadController from './controllers/upload.js';
@@ -96,6 +97,8 @@ tiersPlugin.registerAdminRoutes(router);
 streakPlugin.registerAdminRoutes(router);
   // Campanii produse gratuite pe rank (plugin)
   freeProductsPlugin.registerAdminRoutes(router);
+  // Cupoane (plugin)
+  couponsPlugin.registerAdminRoutes(router);
 
 // Reguli add-on per categorie
 router.get('/addon-rules/full', addonsController.getAddonRulesFull);

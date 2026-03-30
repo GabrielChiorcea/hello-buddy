@@ -62,10 +62,12 @@ import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Catalog from "./pages/Catalog";
+import CouponsPage from "./pages/Coupons";
 import ProductDetails from "./pages/ProductDetails";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
+import MyCouponsPage from "./pages/MyCoupons";
 import Terms from "./pages/Terms";
 import StreakPage from "./pages/StreakPage";
 import Profile from "./pages/Profile";
@@ -92,6 +94,7 @@ import AdminAnalytics from "./admin/pages/AdminAnalytics";
 import AdminAddonRules from "./admin/pages/AdminAddonRules";
 import AdminFreeProductCampaigns from "./admin/pages/AdminFreeProductCampaigns";
 import AdminProductOptions from "./admin/pages/AdminProductOptions";
+import AdminCoupons from "./admin/pages/AdminCoupons";
 
 // ============================================================================
 // CONFIGURARE QUERY CLIENT
@@ -170,6 +173,7 @@ const App = () => (
                 <Route path={routes.terms} element={<Terms />} />
                 <Route path={routes.streak} element={<StreakPage />} />
                 <Route path={routes.catalog} element={<Catalog />} />
+                <Route path={routes.coupons} element={<CouponsPage />} />
                 <Route path={routes.product} element={<ProductDetails />} />
                 <Route path={routes.cart} element={<Cart />} />
                 
@@ -177,6 +181,7 @@ const App = () => (
                 <Route path={routes.checkout} element={<Checkout />} />
                 <Route path={routes.checkoutSuccess} element={<CheckoutSuccess />} />
                 <Route path={routes.profile} element={<Profile />} />
+                <Route path={routes.myCoupons} element={<MyCouponsPage />} />
 
                 {/* Rute Admin Panel */}
                 <Route path="/admin/login" element={<AdminLogin />} />
@@ -202,6 +207,7 @@ const App = () => (
                   <Route path="settings" element={<AdminSettings />} />
                   <Route path="addon-rules" element={<AdminAddonRules />} />
                   <Route path="product-options" element={<AdminProductOptions />} />
+                  <Route path="coupons" element={<AdminCoupons />} />
                 </Route>
                 
                 {/* Rută catch-all pentru 404 */}

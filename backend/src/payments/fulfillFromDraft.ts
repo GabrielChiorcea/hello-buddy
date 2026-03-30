@@ -42,6 +42,7 @@ export async function fulfillOrderFromDraft(
     notes: payload.notes,
     paymentMethod: 'card',
     pointsToUse: payload.pointsToUse,
+    appliedUserCouponIds: payload.appliedUserCouponIds,
     paymentId,
   });
   return order;

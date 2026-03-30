@@ -57,6 +57,9 @@ export interface User {
     name: string;
     customText: string | null;
     minOrderValue: number;
+    /** YYYY-MM-DD — obligatoriu pentru campaniile din plugin (DB NOT NULL) */
+    startDate: string;
+    endDate: string;
     categoryId: string | null;
     categoryName: string | null;
     products: string[];
@@ -287,6 +290,7 @@ export interface Order {
   pointsUsed?: number;
   discountFromPoints?: number;
   discountFromFreeProducts?: number;
+  discountFromCoupons?: number;
   items: OrderItem[];
   createdAt: string;
   estimatedDelivery?: string | null;
@@ -315,6 +319,7 @@ export interface CheckoutData {
   notes?: string;
   paymentMethod: PaymentMethod;
   pointsToUse?: number;
+  appliedUserCouponIds?: string[];
 }
 
 /** Prag puncte loialitate */

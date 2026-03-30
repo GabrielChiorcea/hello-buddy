@@ -33,6 +33,8 @@ export interface TierDisplayData {
      name: string;
      customText: string | null;
      minOrderValue: number;
+     startDate: string;
+     endDate: string;
      categoryId: string | null;
      categoryName: string | null;
      products: string[];

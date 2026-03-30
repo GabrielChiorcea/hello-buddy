@@ -7,6 +7,8 @@ export const routes = {
   welcome: '/',
   home: '/home',
   catalog: '/catalog',
+  coupons: '/coupons',
+  myCoupons: '/my-coupons',
   product: '/product/:id',
   cart: '/cart',
   checkout: '/checkout',
@@ -30,6 +32,7 @@ export const routes = {
   adminPoints: '/admin/points',
   adminSettings: '/admin/settings',
   adminAddonRules: '/admin/addon-rules',
+  adminCoupons: '/admin/coupons',
 } as const;
 
 /**

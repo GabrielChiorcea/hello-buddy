@@ -1,8 +1,6 @@
 /**
- * Home — Gamified
- * Bold, energic, cu badges și gradient-uri puternice.
+ * Home — singura sursă pentru pagina principală (hero GamifiedHeroHub, categorii, recomandate, CTA).
  */
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ShoppingBag } from 'lucide-react';
@@ -19,24 +17,25 @@ import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { CategoryIconDisplay } from '@/config/categoryIcons';
 import type { HomeDisplayData } from './shared';
-import { easeOut, fadeUp, staggerContainer, cardVariant } from './shared';
+import { fadeUp, staggerContainer, cardVariant } from './shared';
 import { HomeComboPill } from './HomeComboPill';
+import { HomeStoreGate } from './HomeStoreGate';
 
-
-export const GamifiedHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
+export const HomePage: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
   const { items, categories, comboCategory, isLoading, recommendedProducts, totalProducts, handleCategoryClick } = data;
   const cartItemCount = useAppSelector(selectCartItemCount);
   const cartSubtotal = useAppSelector((s) => s.cart.subtotal);
 
-  if (isLoading && items.length === 0) return <Layout><PageLoader /></Layout>;
-
   return (
     <Layout>
-      {/* Combined Hero + Tier Hub */}
+      <HomeStoreGate />
+      {isLoading && items.length === 0 ? (
+        <PageLoader />
+      ) : (
+        <>
       <GamifiedHeroHub />
       <HomeMarketingCards />
 
-      {/* Categories */}
       <section className="py-12 md:py-16">
         <div className="container mx-auto px-4">
           <div className="flex items-center gap-2 sm:gap-3 mb-8 min-w-0 w-full">
@@ -73,7 +72,6 @@ export const GamifiedHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
         </div>
       </section>
 
-      {/* Recommended */}
       <section className="py-12 md:py-16 bg-muted/30">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between mb-8">
@@ -91,7 +89,6 @@ export const GamifiedHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
           </div>
         </section>
 
-      {/* CTA — personalized if cart has items */}
       <section className="py-16 md:py-24">
         <div className="container mx-auto px-4">
           <motion.div className="bg-primary rounded-2xl p-8 md:p-12 text-center shadow-2xl shadow-primary/20" initial={{ opacity: 0, scale: 0.96 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
@@ -118,6 +115,8 @@ export const GamifiedHome: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
           </motion.div>
         </div>
       </section>
+        </>
+      )}
     </Layout>
   );
 };

@@ -5,6 +5,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { query, queryOne, beginTransaction } from '../config/database.js';
 import { pointsPlugin } from '../plugins/points/index.js';
+import { couponsPlugin } from '../plugins/coupons/index.js';
 import { findById as findUserById } from './User.js';
 import { getActiveProductIdsForTier } from '../plugins/free-products/repositories/campaignsRepository.js';
 import { isPluginEnabled } from '../utils/pluginFlags.js';
@@ -59,6 +60,7 @@ export interface Order {
   pointsUsed: number;
   discountFromPoints: number;
   discountFromFreeProducts?: number;
+  discountFromCoupons?: number;
   items: OrderItem[];
   createdAt: Date;
   updatedAt: Date;
@@ -87,6 +89,7 @@ interface OrderRow {
   points_used: number;
   discount_from_points: string;
   discount_from_free_products?: string;
+  discount_from_coupons?: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -119,6 +122,7 @@ export interface CreateOrderInput {
   notes?: string;
   paymentMethod: PaymentMethod;
   pointsToUse?: number;
+  appliedUserCouponIds?: string[];
   /** Set when order is created from card payment webhook */
   paymentId?: string | null;
 }
@@ -148,6 +152,9 @@ function mapRowToOrder(row: OrderRow, items: OrderItem[] = []): Order {
     discountFromPoints: parseFloat(row.discount_from_points ?? '0'),
     discountFromFreeProducts: row.discount_from_free_products
       ? parseFloat(row.discount_from_free_products)
+      : 0,
+    discountFromCoupons: row.discount_from_coupons
+      ? parseFloat(row.discount_from_coupons)
       : 0,
     items,
     createdAt: row.created_at,
@@ -336,6 +343,14 @@ export interface OrderTotals {
   pointsUsed: number;
   discountFromPoints: number;
   discountFromFreeProducts: number;
+  discountFromCoupons: number;
+  appliedCoupons: Array<{
+    userCouponId: string;
+    couponId: string;
+    targetProductId: string;
+    discountPercent: number;
+    discountAmount: number;
+  }>;
   total: number;
 }
 
@@ -474,30 +489,42 @@ export async function computeOrderTotal(
 
   }
   const subtotal = baseSubtotal;
+  const lineTotalsByProduct = new Map<string, number>();
+  for (const item of rawItems) {
+    const current = lineTotalsByProduct.get(item.productId) ?? 0;
+    lineTotalsByProduct.set(item.productId, current + item.price * item.quantity);
+  }
+  const appliedCoupons = await couponsPlugin.service.resolveAppliedCouponsAtCheckout(
+    connection,
+    { userId: input.userId, appliedUserCouponIds: input.appliedUserCouponIds },
+    lineTotalsByProduct
+  );
+  const discountFromCoupons = appliedCoupons.reduce((sum, c) => sum + c.discountAmount, 0);
+  const effectivePointsToUse = appliedCoupons.length > 0 ? 0 : input.pointsToUse;
 
   // 1) Estimăm reducerea din puncte folosind un plafon maximal (subtotal + taxa de livrare de bază - gratis).
   // 2) Decidem livrarea gratuită pe suma rămasă după gratis + puncte (fără taxa de livrare).
   // 3) Recalculăm reducerea din puncte cu plafonul final ca să evităm orice depășire.
-  const provisionalPayableForPoints = Math.max(0, subtotal + (isInLocation ? 0 : baseFee) - discountFromFreeProducts);
+  const provisionalPayableForPoints = Math.max(0, subtotal + (isInLocation ? 0 : baseFee) - discountFromFreeProducts - discountFromCoupons);
   const provisionalPoints = await pointsPlugin.service.applyAtCheckout(connection, {
     userId: input.userId,
-    pointsToUse: input.pointsToUse,
+    pointsToUse: effectivePointsToUse,
   }, provisionalPayableForPoints);
 
   if (!isInLocation) {
     const deliveryEligibilitySubtotal = Math.max(
       0,
-      subtotal - discountFromFreeProducts - provisionalPoints.discountFromPoints
+      subtotal - discountFromFreeProducts - discountFromCoupons - provisionalPoints.discountFromPoints
     );
     deliveryFee =
       freeDeliveryThreshold > 0 && deliveryEligibilitySubtotal >= freeDeliveryThreshold ? 0 : baseFee;
   }
 
   // Calculăm totalul plătibil ÎNAINTE de reducerea din puncte, pentru plafonarea finală.
-  const payableBeforePoints = Math.max(0, subtotal + deliveryFee - discountFromFreeProducts);
+  const payableBeforePoints = Math.max(0, subtotal + deliveryFee - discountFromFreeProducts - discountFromCoupons);
   const { pointsUsed, discountFromPoints } = await pointsPlugin.service.applyAtCheckout(connection, {
     userId: input.userId,
-    pointsToUse: input.pointsToUse,
+    pointsToUse: effectivePointsToUse,
   }, payableBeforePoints);
   const total = Math.max(0, payableBeforePoints - discountFromPoints);
   return {
@@ -508,6 +535,8 @@ export async function computeOrderTotal(
     pointsUsed,
     discountFromPoints,
     discountFromFreeProducts,
+    discountFromCoupons,
+    appliedCoupons,
     total,
   };
 }
@@ -528,6 +557,8 @@ export async function create(input: CreateOrderInput): Promise<Order> {
       pointsUsed,
       discountFromPoints,
       discountFromFreeProducts,
+      discountFromCoupons,
+      appliedCoupons,
       total,
     } = totals;
     
@@ -544,13 +575,13 @@ export async function create(input: CreateOrderInput): Promise<Order> {
         id, user_id, subtotal, delivery_fee, total, fulfillment_type,
         table_number, delivery_address, delivery_city, phone, notes,
         payment_method, payment_id, points_used, discount_from_points,
-        discount_from_free_products
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        discount_from_free_products, discount_from_coupons
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id, input.userId, subtotal, deliveryFee, total, fulfillmentType,
         input.tableNumber ?? null, deliveryAddress, deliveryCity,
         input.phone, input.notes || null, input.paymentMethod, paymentId,
-        pointsUsed, discountFromPoints, discountFromFreeProducts,
+        pointsUsed, discountFromPoints, discountFromFreeProducts, discountFromCoupons,
       ]
     );
 
@@ -587,6 +618,21 @@ export async function create(input: CreateOrderInput): Promise<Order> {
           item.configuration ? JSON.stringify(item.configuration) : null,
           item.unitPriceWithConfiguration ?? item.price,
         ]
+      );
+    }
+
+    for (const c of appliedCoupons) {
+      await connection.execute(
+        `INSERT INTO order_coupon_redemptions (
+          id, order_id, user_coupon_id, coupon_id, target_product_id, discount_percent, discount_amount
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [uuidv4(), id, c.userCouponId, c.couponId, c.targetProductId, c.discountPercent, c.discountAmount]
+      );
+      await connection.execute(
+        `UPDATE user_coupons
+         SET status = 'used', used_at = NOW(), used_order_id = ?
+         WHERE id = ?`,
+        [id, c.userCouponId]
       );
     }
     

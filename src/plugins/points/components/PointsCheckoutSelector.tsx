@@ -8,9 +8,6 @@ import type { PointsReward } from '../types';
 import type { CheckoutData } from '@/types';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { useComponentStyle, type ComponentStyleName } from '@/config/componentStyle';
 
 interface PointsCheckoutSelectorProps {
@@ -21,9 +18,6 @@ interface PointsCheckoutSelectorProps {
   currency?: string;
   /** Totalul plătibil fără reducerea din puncte — pentru a filtra opțiunile irelevante */
   payableBeforePoints?: number;
-  freeProductMinOrderValue?: number | null;
-  hasFreeProductApplied?: boolean;
-  onNeedMoreProducts?: () => void;
 }
 
 export function PointsCheckoutSelector(props: PointsCheckoutSelectorProps) {
@@ -78,24 +72,8 @@ function SelectorContent({
   onPointsChange,
   currency = 'RON',
   payableBeforePoints,
-  freeProductMinOrderValue,
-  hasFreeProductApplied,
-  onNeedMoreProducts,
 }: PointsCheckoutSelectorProps & { variant: ComponentStyleName; userPoints: number }) {
-  const [blockedDiscount, setBlockedDiscount] = useState<number | null>(null);
   const baseAvailable = rewards.filter((r) => r.pointsCost <= userPoints && (payableBeforePoints == null || r.discountAmount <= payableBeforePoints));
-  const minRequiredAfterDiscount = hasFreeProductApplied && freeProductMinOrderValue != null ? freeProductMinOrderValue : null;
-  const maxAllowedDiscount = minRequiredAfterDiscount != null && payableBeforePoints != null
-    ? Math.max(0, payableBeforePoints - minRequiredAfterDiscount)
-    : null;
-
-  const handleRewardClick = (pointsCost: number, discountAmount: number) => {
-    if (maxAllowedDiscount != null && discountAmount > maxAllowedDiscount) {
-      setBlockedDiscount(discountAmount);
-      return;
-    }
-    onPointsChange(pointsCost);
-  };
 
   const rewardButton = (r: PointsReward) => (
     <RewardOption
@@ -103,10 +81,8 @@ function SelectorContent({
       label={`${r.pointsCost} puncte`}
       value={`-${r.discountAmount} ${currency}`}
       selected={formData.pointsToUse === r.pointsCost}
-      onClick={() => handleRewardClick(r.pointsCost, r.discountAmount)}
+      onClick={() => onPointsChange(r.pointsCost)}
       variant={variant}
-      disabled={maxAllowedDiscount != null && r.discountAmount > maxAllowedDiscount}
-      onDisabledClick={() => setBlockedDiscount(r.discountAmount)}
     />
   );
 
@@ -152,30 +128,6 @@ function SelectorContent({
           <SelectedFeedback formData={formData} rewards={rewards} currency={currency} variant="friendly" />
         </div>
       )}
-
-      <Dialog open={blockedDiscount != null} onOpenChange={(open) => !open && setBlockedDiscount(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Reducerea din puncte nu poate fi aplicată</DialogTitle>
-            <DialogDescription>
-              Pentru a păstra produsul gratuit, totalul după reduceri trebuie să rămână cel puțin {freeProductMinOrderValue ?? 0} {currency}. Adaugă produse în coș sau elimină reducerea din puncte.
-            </DialogDescription>
-          </DialogHeader>
-          {blockedDiscount != null && maxAllowedDiscount != null && (
-            <p className="text-sm text-muted-foreground">
-              Ai ales -{blockedDiscount} {currency}, dar maximul permis acum este -{maxAllowedDiscount.toFixed(2)} {currency}.
-            </p>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { onPointsChange(undefined); setBlockedDiscount(null); }}>
-              Elimină reducerea puncte
-            </Button>
-            <Button onClick={() => { setBlockedDiscount(null); onNeedMoreProducts?.(); }}>
-              Adaugă produse
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }

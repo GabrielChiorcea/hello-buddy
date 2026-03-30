@@ -7,6 +7,7 @@ import { schemaExtension as streakSchemaExtension } from '../plugins/streak/inde
 import { schemaExtension as welcomeBonusSchemaExtension } from '../plugins/welcome_bonus/index.js';
 import { schemaExtension as tiersSchemaExtension } from '../plugins/tiers/index.js';
 import { addonsSchemaExtension } from '../plugins/addons/index.js';
+import { schemaExtension as couponsSchemaExtension } from '../plugins/coupons/index.js';
 
 const coreTypeDefs = `#graphql
   # ============================================
@@ -130,6 +131,7 @@ const coreTypeDefs = `#graphql
     pointsUsed: Int!
     discountFromPoints: Float!
     discountFromFreeProducts: Float!
+    discountFromCoupons: Float!
     items: [OrderItem!]!
     createdAt: String!
     estimatedDelivery: String
@@ -148,6 +150,9 @@ const coreTypeDefs = `#graphql
     name: String!
     customText: String
     minOrderValue: Float!
+    """Campania are întotdeauna interval (NOT NULL în DB); format YYYY-MM-DD."""
+    startDate: String!
+    endDate: String!
     categoryId: ID
     categoryName: String
     products: [String!]!
@@ -248,6 +253,7 @@ const coreTypeDefs = `#graphql
     notes: String
     paymentMethod: PaymentMethod!
     pointsToUse: Int
+    appliedUserCouponIds: [ID!]
   }
 
   type OrderPreview {
@@ -256,6 +262,7 @@ const coreTypeDefs = `#graphql
     freeDeliveryThreshold: Float!
     discountFromFreeProducts: Float!
     discountFromPoints: Float!
+    discountFromCoupons: Float!
     total: Float!
   }
 
@@ -282,7 +289,7 @@ const coreTypeDefs = `#graphql
     # Comenzi (necesită autentificare)
     orders: [Order!]!
     order(id: ID!): Order
-    orderPreview(items: [OrderItemInput!]!, pointsToUse: Int): OrderPreview
+    orderPreview(items: [OrderItemInput!]!, pointsToUse: Int, appliedUserCouponIds: [ID!]): OrderPreview
 
     # Adrese (necesită autentificare)
     addresses: [Address!]!
@@ -342,4 +349,6 @@ export const typeDefs =
   '\n' +
   tiersSchemaExtension +
   '\n' +
-  addonsSchemaExtension;
+  addonsSchemaExtension +
+  '\n' +
+  couponsSchemaExtension;

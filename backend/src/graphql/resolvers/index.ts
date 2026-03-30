@@ -13,6 +13,7 @@ import { streakResolvers } from '../../plugins/streak/index.js';
 import { tiersResolvers } from '../../plugins/tiers/index.js';
 import { resolvers as welcomeBonusResolvers } from '../../plugins/welcome_bonus/index.js';
 import { addonsResolvers } from '../../plugins/addons/index.js';
+import { resolvers as couponsResolvers } from '../../plugins/coupons/index.js';
 import { freeProductsUserResolvers } from './freeProductsUser.js';
 import { queryOne } from '../../config/database.js';
 
@@ -28,6 +29,7 @@ export const resolvers: any = {
     ...streakResolvers.Query,
     ...tiersResolvers.Query,
     ...addonsResolvers.Query,
+    ...couponsResolvers.Query,
 
     /**
      * Returnează valoarea unei setări din app_settings
@@ -49,6 +51,7 @@ export const resolvers: any = {
     ...paymentResolvers.Mutation,
     ...streakResolvers.Mutation,
     ...welcomeBonusResolvers.Mutation,
+    ...couponsResolvers.Mutation,
   },
   // Field resolvers
   Product: productResolvers.Product,
