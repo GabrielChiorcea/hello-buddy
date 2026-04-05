@@ -3,6 +3,7 @@ import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { GET_MY_COUPONS } from '@/graphql/queries';
+import { texts } from '@/config/texts';
 
 interface MyCoupon {
   id: string;
@@ -19,9 +20,9 @@ interface MyCoupon {
 }
 
 function formatCouponStatus(status: MyCoupon['status']): string {
-  if (status === 'active') return 'Activ';
-  if (status === 'used') return 'Folosit';
-  return 'Expirat';
+  if (status === 'active') return texts.myCoupons.statusActive;
+  if (status === 'used') return texts.myCoupons.statusUsed;
+  return texts.myCoupons.statusExpired;
 }
 
 export default function MyCouponsPage() {
@@ -32,25 +33,25 @@ export default function MyCouponsPage() {
     <ProtectedRoute>
       <Layout>
         <div className="container mx-auto px-4 py-8 space-y-6">
-          <h1 className="text-3xl font-bold">My Coupons</h1>
+          <h1 className="text-3xl font-bold">{texts.myCoupons.pageTitle}</h1>
           <div className="space-y-4">
-            {coupons.length === 0 && <p className="text-muted-foreground">Nu ai cupoane activate încă.</p>}
+            {coupons.length === 0 && <p className="text-muted-foreground">{texts.myCoupons.empty}</p>}
             {coupons.map((entry) => (
               <Card key={entry.id}>
                 <CardHeader>
                   <CardTitle className="text-lg">{entry.coupon.title}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  <p className="text-sm">Reducere: -{entry.coupon.discountPercent}% {entry.coupon.targetProductName ? `la ${entry.coupon.targetProductName}` : ''}</p>
-                  <p className="text-sm">Status: {formatCouponStatus(entry.status)}</p>
-                  <p className="text-xs text-muted-foreground">Activat la: {new Date(entry.activatedAt).toLocaleString()}</p>
+                  <p className="text-sm">{texts.myCoupons.discountLabel} -{entry.coupon.discountPercent}% {entry.coupon.targetProductName ? texts.myCoupons.forProduct.replace('{product}', entry.coupon.targetProductName) : ''}</p>
+                  <p className="text-sm">{texts.myCoupons.statusLabel} {formatCouponStatus(entry.status)}</p>
+                  <p className="text-xs text-muted-foreground">{texts.myCoupons.activatedAtLabel} {new Date(entry.activatedAt).toLocaleString()}</p>
                   {entry.usedAt && (
-                    <p className="text-xs text-muted-foreground">Folosit la: {new Date(entry.usedAt).toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">{texts.myCoupons.usedAtLabel} {new Date(entry.usedAt).toLocaleString()}</p>
                   )}
-                  {entry.expiresAt && <p className="text-xs text-muted-foreground">Expiră la: {new Date(entry.expiresAt).toLocaleString()}</p>}
+                  {entry.expiresAt && <p className="text-xs text-muted-foreground">{texts.myCoupons.expiresAtLabel} {new Date(entry.expiresAt).toLocaleString()}</p>}
                   {entry.status === 'used' && (
                     <p className="text-xs text-muted-foreground">
-                      Pentru o nouă comandă, activează din nou cuponul din pagina Cupoane.
+                      {texts.myCoupons.usedHint}
                     </p>
                   )}
                 </CardContent>

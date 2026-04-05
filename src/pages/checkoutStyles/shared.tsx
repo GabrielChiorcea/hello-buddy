@@ -135,7 +135,6 @@ export function useCheckoutData(): CheckoutDisplayData {
     fetchPolicy: 'cache-and-network',
   });
   const myCoupons = myCouponsData?.myCoupons ?? [];
-  const hasActiveCouponInWallet = myCoupons.some((c) => c.status === 'active');
 
   const { enabled: pointsEnabled } = usePluginEnabled('points');
   const { pointsRewards } = usePointsRewards();
@@ -184,12 +183,6 @@ export function useCheckoutData(): CheckoutDisplayData {
       setFormData((prev) => ({ ...prev, pointsToUse: undefined }));
     }
   }, [formData.appliedUserCouponIds, formData.pointsToUse]);
-  useEffect(() => {
-    if (hasActiveCouponInWallet && formData.pointsToUse) {
-      setFormData((prev) => ({ ...prev, pointsToUse: undefined }));
-    }
-  }, [hasActiveCouponInWallet, formData.pointsToUse]);
-
   useEffect(() => {
     if (showManualForm) return;
     if (savedAddresses.length > 0 && !selectedAddressId) {
@@ -537,9 +530,15 @@ export const CheckoutTemplate: React.FC<{ data: CheckoutDisplayData; variant: St
                       coupons={data.myCoupons}
                       selectedIds={data.formData.appliedUserCouponIds ?? []}
                       onChange={(ids) => data.setFormData((prev) => ({ ...prev, appliedUserCouponIds: ids }))}
+                      cartProductIds={data.items.map(({ product }) => product.id)}
                       currency={texts.common.currency}
                     />
-                    {data.pointsEnabled && (data.discountFromFreeProducts ?? 0) <= 0 && !data.myCoupons.some((c) => c.status === 'active') && (data.formData.appliedUserCouponIds?.length ?? 0) === 0 && (
+                    {data.pointsEnabled && (data.discountFromFreeProducts ?? 0) <= 0 && (data.formData.appliedUserCouponIds?.length ?? 0) > 0 && (
+                      <p className="mt-3 text-xs text-muted-foreground">
+                        {texts.checkout.pointsDisabledByCoupons}
+                      </p>
+                    )}
+                    {data.pointsEnabled && (data.discountFromFreeProducts ?? 0) <= 0 && (data.formData.appliedUserCouponIds?.length ?? 0) === 0 && (
                       <PointsCheckoutSelector userPoints={data.userPoints} rewards={data.pointsRewards} formData={data.formData} onPointsChange={(p) => data.setFormData((prev) => ({ ...prev, pointsToUse: p }))} currency={texts.common.currency} payableBeforePoints={data.payableBeforePoints} />
                     )}
                   </CardContent>

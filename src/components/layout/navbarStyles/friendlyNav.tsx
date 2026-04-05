@@ -16,24 +16,39 @@ import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { cn } from '@/lib/utils';
 import type { NavbarDisplayData } from './shared';
+import { NavbarBrand } from './NavbarBrand';
 
 export const FriendlyNav: React.FC<{ data: NavbarDisplayData }> = ({ data }) => {
   const {
     isAuthenticated, user, cartItemCount,
-    handleLogout, navLinks, isActive,
+    handleLogout, navLinks, desktopPromoLinks, isActive,
   } = data;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 hidden md:block">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link to={routes.home} className="flex items-center gap-2 font-bold text-xl text-primary shrink-0">
-          <UtensilsCrossed className="h-6 w-6" />
-          <span className="hidden sm:inline">{texts.app.name}</span>
-        </Link>
+    <header className="fixed top-0 left-0 right-0 z-50 hidden w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:block">
+      <div className="container mx-auto flex min-h-16 items-center justify-between gap-3 px-4 py-2">
+        <NavbarBrand
+          fallbackIcon={<UtensilsCrossed className="h-6 w-6" />}
+          linkClassName="flex items-center gap-2 font-bold text-xl text-primary shrink-0"
+          imgClassName="h-14 w-14 object-contain shrink-0 md:h-16 md:w-16 lg:h-[4.25rem] lg:w-[4.25rem]"
+        />
 
         <nav className="flex items-center gap-6">
           {navLinks.map(({ path, label }) => (
             <Link key={path} to={path} className={cn('text-sm font-medium transition-colors hover:text-primary', isActive(path) ? 'text-primary' : 'text-muted-foreground')}>
+              {label}
+            </Link>
+          ))}
+          {desktopPromoLinks.map(({ path, label, variant }) => (
+            <Link
+              key={path}
+              to={path}
+              className={cn(
+                'font-medium transition-colors hover:text-primary',
+                variant === 'compact' ? 'text-xs' : 'text-sm',
+                isActive(path) ? 'text-primary' : 'text-muted-foreground'
+              )}
+            >
               {label}
             </Link>
           ))}

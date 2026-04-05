@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import type { Category } from '@/types';
 
 export interface CategoryIcon {
   id: string;
@@ -76,13 +77,9 @@ export const CATEGORY_ICONS: CategoryIcon[] = [
   { id: 'fries', emoji: '🍟', label: 'Cartofi prăjiți' },
   { id: 'popcorn', emoji: '🍿', label: 'Popcorn' },
   { id: 'cheese', emoji: '🧀', label: 'Brânză' },
-  /** Folosită și pentru evidențierea categoriei „combo” pe Home (pastilă lângă titlu). */
   { id: 'combo', emoji: '🍱', label: 'Combo / meniu' },
   { id: 'default', emoji: '📦', label: 'General' },
 ];
-
-/** Icon id pentru categorii „combo”; pe Home apare ca pastilă dacă există produse în categorie. */
-export const CATEGORY_ICON_ID_COMBO = 'combo' as const;
 
 // Mapare nume categorie -> icon id (pentru categorii existente)
 const DEFAULT_CATEGORY_MAP: Record<string, string> = {
@@ -100,6 +97,39 @@ const DEFAULT_CATEGORY_MAP: Record<string, string> = {
   combouri: 'combo',
   meniu_combo: 'combo',
 };
+
+/** Id icon pentru categoria „combo”; dacă există, e afișată prima în liste (Home, Catalog). */
+export const CATEGORY_ICON_ID_COMBO = 'combo' as const;
+
+/** Pune categoriile cu icon „combo” primele; dacă nu există niciuna, ordinea rămâne cea din API. */
+export function sortCategoriesComboFirst(categories: Category[]): Category[] {
+  const combo: Category[] = [];
+  const rest: Category[] = [];
+  for (const c of categories) {
+    if (c.icon === CATEGORY_ICON_ID_COMBO) combo.push(c);
+    else rest.push(c);
+  }
+  return [...combo, ...rest];
+}
+
+/**
+ * Pentru Home: categoriile cu icon „combo” de la început (după sort) în grup sticky;
+ * restul derulează în același rând (fără stil extra pe carduri).
+ */
+export function splitCategoriesPinnedComboFirst(categories: Category[]): {
+  pinned: Category[];
+  scroll: Category[];
+} {
+  if (categories.length === 0 || categories[0].icon !== CATEGORY_ICON_ID_COMBO) {
+    return { pinned: [], scroll: categories };
+  }
+  const firstNonCombo = categories.findIndex((c) => c.icon !== CATEGORY_ICON_ID_COMBO);
+  const end = firstNonCombo === -1 ? categories.length : firstNonCombo;
+  return {
+    pinned: categories.slice(0, end),
+    scroll: categories.slice(end),
+  };
+}
 
 /**
  * Returnează emoji-ul pentru o categorie.

@@ -13,23 +13,26 @@ import {
 import { ShoppingCart, User, LogOut, Crown } from 'lucide-react';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
+import { PREMIUM_GLASS_CLASSES } from '@/components/layout/premiumGlass';
 import { cn } from '@/lib/utils';
 import type { NavbarDisplayData } from './shared';
+import { NavbarBrand } from './NavbarBrand';
 
 export const PremiumNav: React.FC<{ data: NavbarDisplayData }> = ({ data }) => {
   const {
     isAuthenticated, user, cartItemCount,
-    handleLogout, navLinks, isActive,
+    handleLogout, navLinks, desktopPromoLinks, isActive,
   } = data;
 
   return (
-    <header className="sticky top-3 z-50 w-full hidden md:block px-6">
-      <div className="mx-auto max-w-7xl rounded-[2rem] border border-primary/25 bg-background/40 backdrop-blur-3xl backdrop-saturate-[1.8] shadow-[0_4px_24px_hsl(var(--primary)/0.08),0_1px_2px_rgba(0,0,0,0.04)]">
-        <div className="flex h-14 items-center justify-between px-8">
-          <Link to={routes.home} className="flex items-center gap-2.5 shrink-0">
-            <Crown className="h-5 w-5 text-primary" />
-            <span className="font-semibold text-sm tracking-wide text-foreground">{texts.app.name}</span>
-          </Link>
+    <header className="fixed top-5 left-4 right-4 z-50 hidden md:block">
+      <div className={cn('mx-auto w-full max-w-7xl px-3 py-2', PREMIUM_GLASS_CLASSES)}>
+        <div className="flex min-h-14 items-center justify-between gap-3">
+          <NavbarBrand
+            fallbackIcon={<Crown className="h-5 w-5 text-primary" />}
+            linkClassName="flex items-center gap-2.5 shrink-0"
+            imgClassName="h-12 w-12 object-contain shrink-0 md:h-14 md:w-14"
+          />
 
           <nav className="flex items-center gap-1">
             {navLinks.map(({ path, label }) => (
@@ -38,6 +41,23 @@ export const PremiumNav: React.FC<{ data: NavbarDisplayData }> = ({ data }) => {
                 to={path}
                 className={cn(
                   'text-[13px] font-medium transition-all duration-200 px-4 py-1.5 rounded-[2rem]',
+                  isActive(path)
+                    ? 'text-primary'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                )}
+              >
+                {label}
+              </Link>
+            ))}
+            {desktopPromoLinks.map(({ path, label, variant }) => (
+              <Link
+                key={path}
+                to={path}
+                className={cn(
+                  'font-medium transition-all duration-200 rounded-[2rem]',
+                  variant === 'compact'
+                    ? 'text-[12px] px-3 py-1'
+                    : 'text-[13px] px-4 py-1.5',
                   isActive(path)
                     ? 'text-primary'
                     : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'

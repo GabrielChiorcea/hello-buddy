@@ -30,6 +30,28 @@ interface RawCheckoutCouponRow {
   expires_at: Date | string | null;
 }
 
+async function userMeetsRequiredTier(
+  connection: { execute: (sql: string, params?: unknown[]) => Promise<unknown> },
+  userTierId: string | null,
+  requiredTierId: string
+): Promise<boolean> {
+  if (!userTierId) return false;
+  if (userTierId === requiredTierId) return true;
+
+  const [thresholdRows] = (await connection.execute(
+    `SELECT id, xp_threshold
+     FROM loyalty_tiers
+     WHERE id IN (?, ?)`,
+    [userTierId, requiredTierId]
+  )) as [Array<{ id: string; xp_threshold: number | string }>];
+
+  const userTier = thresholdRows.find((row) => row.id === userTierId);
+  const requiredTier = thresholdRows.find((row) => row.id === requiredTierId);
+  if (!userTier || !requiredTier) return false;
+
+  return Number(userTier.xp_threshold) >= Number(requiredTier.xp_threshold);
+}
+
 export async function listCatalogCoupons(): Promise<CouponsRepo.Coupon[]> {
   const enabled = await isPluginEnabled('coupons');
   if (!enabled) return [];
@@ -93,8 +115,15 @@ export async function activateCoupon(userId: string, couponId: string): Promise<
     const user = userRows[0];
     if (!user) throw new Error('Utilizator inexistent');
     if ((user.points_balance ?? 0) < coupon.points_cost) throw new Error('Puncte insuficiente');
-    if (coupon.required_tier_id && user.tier_id !== coupon.required_tier_id) {
-      throw new Error('Nu ai rank-ul necesar pentru acest cupon');
+    if (coupon.required_tier_id) {
+      const hasRequiredTier = await userMeetsRequiredTier(
+        connection,
+        user.tier_id,
+        coupon.required_tier_id
+      );
+      if (!hasRequiredTier) {
+        throw new Error('Nu ai rank-ul necesar pentru acest cupon');
+      }
     }
 
     await connection.execute('UPDATE users SET points_balance = points_balance - ? WHERE id = ?', [coupon.points_cost, userId]);
@@ -108,6 +137,8 @@ export async function activateCoupon(userId: string, couponId: string): Promise<
     await connection.execute(
       `INSERT INTO user_coupons (id, user_id, coupon_id, status, expires_at)
        VALUES (?, ?, ?, 'active', ?)`,
+      // Snapshot expiry at activation time:
+      // subsequent catalog coupon expiry changes do not mutate already-activated user coupons.
       [userCouponId, userId, couponId, coupon.expires_at ?? null]
     );
 
@@ -168,7 +199,7 @@ export async function resolveAppliedCouponsAtCheckout(
     const percent = Number(row.discount_percent) || 0;
     if (percent <= 0) continue;
 
-    const rawDiscount = lineTotal * (percent / 100);
+    const rawDiscount = available * (percent / 100);
     const discountAmount = Math.min(available, rawDiscount);
     if (discountAmount <= 0) continue;
 

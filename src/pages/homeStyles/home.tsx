@@ -1,7 +1,7 @@
 /**
  * Home — singura sursă pentru pagina principală (hero GamifiedHeroHub, categorii, recomandate, CTA).
  */
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ShoppingBag } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -15,62 +15,121 @@ import { PageLoader } from '@/components/common/Loader';
 import { HomeMarketingCards } from '@/plugins/streak/components/HomeMarketingCards';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
-import { CategoryIconDisplay } from '@/config/categoryIcons';
+import { CategoryIconDisplay, splitCategoriesPinnedComboFirst } from '@/config/categoryIcons';
 import type { HomeDisplayData } from './shared';
 import { fadeUp, staggerContainer, cardVariant } from './shared';
-import { HomeComboPill } from './HomeComboPill';
-import { HomeStoreGate } from './HomeStoreGate';
+
+const MotionLink = motion(Link);
+
+/** Categorii care derulează — doar icon + titlu, fără card. */
+const categoryLinkClassScroll =
+  'flex flex-col items-center justify-center gap-1.5 max-w-[110px] shrink-0 py-1 px-0.5 text-center transition-colors group';
+
+/** Combo (pinned) — rămâne card (bg, bordură, colțuri). */
+const categoryLinkClassPinned =
+  'flex flex-col items-center justify-center gap-1.5 w-[110px] shrink-0 p-4 rounded-xl bg-card border-2 border-transparent hover:border-primary hover:shadow-lg hover:shadow-primary/10 transition-all group';
+
+const CATEGORY_ICON_SIZE_HOME = 44;
+
+function homeCategoryLinkInner(category: {
+  name: string;
+  displayName: string;
+  icon?: string | null;
+}) {
+  return (
+    <>
+      <span className="text-primary leading-none">
+        <CategoryIconDisplay categoryName={category.name} iconId={category.icon} size={CATEGORY_ICON_SIZE_HOME} />
+      </span>
+      <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors text-center leading-tight">
+        {category.displayName}
+      </span>
+    </>
+  );
+}
 
 export const HomePage: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
-  const { items, categories, comboCategory, isLoading, recommendedProducts, totalProducts, handleCategoryClick } = data;
+  const { items, categories, isLoading, recommendedProducts, totalProducts, handleCategoryClick } = data;
+  const { pinned: pinnedCategories, scroll: scrollCategories } = useMemo(
+    () => splitCategoriesPinnedComboFirst(categories),
+    [categories]
+  );
   const cartItemCount = useAppSelector(selectCartItemCount);
   const cartSubtotal = useAppSelector((s) => s.cart.subtotal);
 
   return (
     <Layout>
-      <HomeStoreGate />
       {isLoading && items.length === 0 ? (
         <PageLoader />
       ) : (
         <>
       <GamifiedHeroHub />
-      <HomeMarketingCards />
 
-      <section className="py-12 md:py-16">
+      <section className="py-10 md:py-10 bg-muted/30">
         <div className="container mx-auto px-4">
-          <div className="flex items-center gap-2 sm:gap-3 mb-8 min-w-0 w-full">
-            <motion.h2 className="text-2xl md:text-3xl font-extrabold text-foreground shrink-0" initial="hidden" whileInView="visible" viewport={{ once: true }} custom={0} variants={fadeUp}>
-              {texts.home.categories}
-            </motion.h2>
-            {comboCategory ? (
-              <div className="flex-1 flex justify-center min-w-0 px-1">
-                <HomeComboPill
-                  variant="gamified"
-                  category={comboCategory}
-                  onNavigate={() => handleCategoryClick(comboCategory.name)}
-                />
-              </div>
-            ) : (
-              <div className="flex-1 min-w-0 shrink" aria-hidden />
-            )}
-            <Button variant="ghost" asChild className="shrink-0">
-              <Link to={routes.catalog} className="flex items-center gap-2 font-bold">{texts.home.viewAll}<ArrowRight className="h-4 w-4" /></Link>
-            </Button>
-          </div>
-          <div className="overflow-x-auto scrollbar-none -mx-4 px-4">
-            <motion.div className="flex gap-3 w-max" variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-              {categories.map((category) => (
-                <motion.div key={category.id} variants={cardVariant} className="shrink-0">
-                  <Link to={routes.catalog} onClick={() => handleCategoryClick(category.name)} className="flex flex-col items-center justify-center w-[110px] p-4 rounded-xl bg-card border-2 border-transparent hover:border-primary hover:shadow-lg hover:shadow-primary/10 transition-all group">
-                    <span className="text-primary mb-1.5"><CategoryIconDisplay categoryName={category.name} iconId={category.icon} size={28} /></span>
-                    <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors text-center leading-tight">{category.displayName}</span>
-                  </Link>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
+          {pinnedCategories.length === 0 ? (
+            <div className="-mx-4 px-4 overflow-x-auto scrollbar-none">
+              <motion.div
+                className="flex w-max items-center gap-3 pr-4"
+                variants={staggerContainer}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+              >
+                {categories.map((category) => (
+                  <MotionLink
+                    key={category.id}
+                    to={routes.catalog}
+                    onClick={() => handleCategoryClick(category.name)}
+                    className={categoryLinkClassScroll}
+                    variants={cardVariant}
+                  >
+                    {homeCategoryLinkInner(category)}
+                  </MotionLink>
+                ))}
+              </motion.div>
+            </div>
+          ) : (
+            /* Full-bleed la lățimea viewport-ului: pe desktop combo e lipit de marginea stângă a ecranului, nu doar de container. */
+            <div className="w-screen min-w-0 max-w-[100vw] overflow-x-auto scrollbar-none pl-[max(0px,env(safe-area-inset-left))] pr-4 ml-[calc(50%-50vw)]">
+              <motion.div
+                className="flex w-max items-center gap-6"
+                variants={staggerContainer}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+              >
+                <div className="sticky left-0 z-20 flex shrink-0 gap-6">
+                  {pinnedCategories.map((category) => (
+                    <MotionLink
+                      key={category.id}
+                      to={routes.catalog}
+                      onClick={() => handleCategoryClick(category.name)}
+                      className={categoryLinkClassPinned}
+                      variants={cardVariant}
+                    >
+                      {homeCategoryLinkInner(category)}
+                    </MotionLink>
+                  ))}
+                </div>
+                {scrollCategories.map((category) => (
+                  <MotionLink
+                    key={category.id}
+                    to={routes.catalog}
+                    onClick={() => handleCategoryClick(category.name)}
+                    className={categoryLinkClassScroll}
+                    variants={cardVariant}
+                  >
+                    {homeCategoryLinkInner(category)}
+                  </MotionLink>
+                ))}
+              </motion.div>
+            </div>
+          )}
         </div>
       </section>
+
+      <HomeMarketingCards />
 
       <section className="py-12 md:py-16 bg-muted/30">
           <div className="container mx-auto px-4">

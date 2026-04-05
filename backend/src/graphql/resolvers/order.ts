@@ -146,8 +146,13 @@ export const orderResolvers = {
         appliedUserCouponIds: appliedUserCouponIds ?? [],
       };
       const connection = await pool.getConnection();
+      let transactionStarted = false;
       try {
+        await connection.beginTransaction();
+        transactionStarted = true;
         const totals = await OrderModel.computeOrderTotal(connection, orderInput);
+        await connection.rollback();
+        transactionStarted = false;
         return {
           subtotal: totals.subtotal,
           deliveryFee: totals.deliveryFee,
@@ -157,6 +162,12 @@ export const orderResolvers = {
           discountFromCoupons: totals.discountFromCoupons,
           total: totals.total,
         };
+      } catch (error) {
+        if (transactionStarted) {
+          await connection.rollback();
+          transactionStarted = false;
+        }
+        throw error;
       } finally {
         connection.release();
       }

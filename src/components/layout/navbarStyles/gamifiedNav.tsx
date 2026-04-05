@@ -11,29 +11,44 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ShoppingCart, User, LogOut, UtensilsCrossed, Zap } from 'lucide-react';
+import { ShoppingCart, User, LogOut, Zap } from 'lucide-react';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { cn } from '@/lib/utils';
 import type { NavbarDisplayData } from './shared';
+import { NavbarBrand } from './NavbarBrand';
 
 export const GamifiedNav: React.FC<{ data: NavbarDisplayData }> = ({ data }) => {
   const {
     isAuthenticated, user, cartItemCount,
-    handleLogout, navLinks, isActive,
+    handleLogout, navLinks, desktopPromoLinks, isActive,
   } = data;
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-primary text-primary-foreground shadow-[0_2px_16px_hsl(var(--primary)/0.3)] hidden md:block">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link to={routes.home} className="flex items-center gap-2 font-extrabold text-xl text-primary-foreground shrink-0">
-          <Zap className="h-6 w-6" />
-          <span className="hidden sm:inline">{texts.app.name}</span>
-        </Link>
+    <header className="fixed top-0 left-0 right-0 z-50 hidden w-full bg-primary text-primary-foreground shadow-[0_2px_16px_hsl(var(--primary)/0.3)] md:block">
+      <div className="container mx-auto flex min-h-16 items-center justify-between gap-3 px-4 py-2">
+        <NavbarBrand
+          fallbackIcon={<Zap className="h-6 w-6" />}
+          linkClassName="flex items-center gap-2 font-extrabold text-xl text-primary-foreground shrink-0"
+          imgClassName="h-14 w-14 object-contain shrink-0 md:h-16 md:w-16 lg:h-[4.25rem] lg:w-[4.25rem]"
+        />
 
         <nav className="flex items-center gap-6">
           {navLinks.map(({ path, label }) => (
             <Link key={path} to={path} className={cn('text-sm font-bold transition-colors uppercase tracking-wide', isActive(path) ? 'text-primary-foreground' : 'text-primary-foreground/70 hover:text-primary-foreground')}>
+              {label}
+            </Link>
+          ))}
+          {desktopPromoLinks.map(({ path, label, variant }) => (
+            <Link
+              key={path}
+              to={path}
+              className={cn(
+                'font-bold transition-colors uppercase tracking-wide',
+                variant === 'compact' ? 'text-xs px-0.5' : 'text-sm',
+                isActive(path) ? 'text-primary-foreground' : 'text-primary-foreground/70 hover:text-primary-foreground'
+              )}
+            >
               {label}
             </Link>
           ))}

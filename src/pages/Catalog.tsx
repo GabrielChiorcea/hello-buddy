@@ -2,7 +2,7 @@
  * Catalog page component with client-side pagination
  */
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,7 @@ import {
 } from '@/store/slices/productsSlice';
 import { texts } from '@/config/texts';
 import { cn } from '@/lib/utils';
-import { CategoryIconDisplay } from '@/config/categoryIcons';
+import { CategoryIconDisplay, sortCategoriesComboFirst } from '@/config/categoryIcons';
 const ITEMS_PER_PAGE = 12;
 
 const catalogProductStagger = {
@@ -54,6 +54,8 @@ const Catalog: React.FC = () => {
     selectedCategory,
     isLoading,
   } = useAppSelector((state) => state.products);
+
+  const orderedCategories = useMemo(() => sortCategoriesComboFirst(categories), [categories]);
   
   const [currentPage, setCurrentPage] = useState(1);
   const reduceMotion = useReducedMotion();
@@ -138,7 +140,7 @@ const Catalog: React.FC = () => {
                 {texts.catalog.allCategories}
               </Badge>
             </motion.div>
-            {categories.map((category) => {
+            {orderedCategories.map((category) => {
               const active = selectedCategory === category.name;
               return (
                 <motion.div

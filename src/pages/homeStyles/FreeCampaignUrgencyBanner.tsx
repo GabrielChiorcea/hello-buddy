@@ -56,10 +56,12 @@ function urgencyTier(ms: number): 'calm' | 'soon' | 'hot' | 'critical' {
   return 'critical';
 }
 
-export const FreeCampaignUrgencyBanner: React.FC<{ campaigns: Campaign[]; className?: string }> = ({
-  campaigns,
-  className,
-}) => {
+export const FreeCampaignUrgencyBanner: React.FC<{
+  campaigns: Campaign[];
+  className?: string;
+  /** Acțiune primară (ex. Comandă) — același rând cu mesajul pe sm+; sub mesaj pe mobil, fără bandă separată */
+  action?: React.ReactNode;
+}> = ({ campaigns, className, action }) => {
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -113,28 +115,38 @@ export const FreeCampaignUrgencyBanner: React.FC<{ campaigns: Campaign[]; classN
       transition={{ duration: 0.35 }}
     >
       <span className={badgeClass}>{texts.home.heroFreeCampaignUrgencyKicker}</span>
-      <div className="flex min-w-0 items-start gap-2 sm:items-center">
-        <Clock className="mt-0.5 h-5 w-5 shrink-0 text-primary-foreground/90 sm:mt-0" aria-hidden />
-        <p
-          className={cn(
-            'min-w-0 flex-1 text-sm font-semibold leading-snug drop-shadow-sm',
-            tier === 'critical' && 'text-red-100',
-            tier === 'hot' && 'text-orange-100',
-            (tier === 'soon' || tier === 'calm') && 'text-primary-foreground/90',
-          )}
-        >
-          {offerPrefix}
-          <span
+      <div
+        className={cn(
+          'flex min-w-0 flex-col gap-3',
+          action != null && 'sm:flex-row sm:items-center sm:justify-between sm:gap-4',
+        )}
+      >
+        <div className="flex min-w-0 flex-1 items-start gap-2 sm:items-center">
+          <Clock className="mt-0.5 h-5 w-5 shrink-0 text-primary-foreground/90 sm:mt-0" aria-hidden />
+          <p
             className={cn(
-              'tabular-nums text-lg font-bold',
-              tier === 'critical' && 'text-red-50',
-              tier === 'hot' && 'text-orange-50',
-              (tier === 'soon' || tier === 'calm') && 'text-primary-foreground',
+              'min-w-0 text-sm font-semibold leading-snug drop-shadow-sm',
+              tier === 'critical' && 'text-red-100',
+              tier === 'hot' && 'text-orange-100',
+              (tier === 'soon' || tier === 'calm') && 'text-primary-foreground/90',
             )}
           >
-            {timeStr}
-          </span>
-        </p>
+            {offerPrefix}
+            <span
+              className={cn(
+                'ml-1 inline tabular-nums text-lg font-bold sm:ml-1.5',
+                tier === 'critical' && 'text-red-50',
+                tier === 'hot' && 'text-orange-50',
+                (tier === 'soon' || tier === 'calm') && 'text-primary-foreground',
+              )}
+            >
+              {timeStr}
+            </span>
+          </p>
+        </div>
+        {action != null ? (
+          <div className="w-full shrink-0 sm:w-auto">{action}</div>
+        ) : null}
       </div>
     </motion.div>
   );

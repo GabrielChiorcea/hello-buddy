@@ -109,11 +109,18 @@ export default {
           "0%": { left: "-100%" },
           "100%": { left: "200%" },
         },
+        /** CTA: trei chevrons „prind” în succesiune (> >> >>>) */
+        "cta-chevron-chase": {
+          "0%, 100%": { opacity: "0.2", transform: "translateX(0)" },
+          "35%": { opacity: "1", transform: "translateX(2px)" },
+          "70%": { opacity: "0.45", transform: "translateX(5px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "streak-shine": "streak-shine 2s ease-in-out infinite",
+        "cta-chevron-chase": "cta-chevron-chase 1.1s ease-in-out infinite",
       },
     },
   },

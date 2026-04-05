@@ -16,23 +16,39 @@ import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { cn } from '@/lib/utils';
 import type { NavbarDisplayData } from './shared';
+import { NavbarBrand } from './NavbarBrand';
 
 export const CleanNav: React.FC<{ data: NavbarDisplayData }> = ({ data }) => {
   const {
     isAuthenticated, user, cartItemCount,
-    handleLogout, navLinks, isActive,
+    handleLogout, navLinks, desktopPromoLinks, isActive,
   } = data;
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-background hidden md:block">
+    <header className="fixed top-0 left-0 right-0 z-50 hidden w-full bg-background md:block">
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
-        <Link to={routes.home} className="text-sm font-semibold text-foreground tracking-tight shrink-0">
-          {texts.app.name}
-        </Link>
+        <NavbarBrand
+          fallbackIcon={null}
+          linkClassName="flex items-center gap-2 text-sm font-semibold text-foreground tracking-tight shrink-0"
+          imgClassName="h-12 w-12 object-contain shrink-0 md:h-14 md:w-14"
+        />
 
         <nav className="flex items-center gap-8">
           {navLinks.map(({ path, label }) => (
             <Link key={path} to={path} className={cn('text-sm transition-colors', isActive(path) ? 'text-foreground font-medium' : 'text-muted-foreground hover:text-foreground')}>
+              {label}
+            </Link>
+          ))}
+          {desktopPromoLinks.map(({ path, label, variant }) => (
+            <Link
+              key={path}
+              to={path}
+              className={cn(
+                'transition-colors',
+                variant === 'compact' ? 'text-xs' : 'text-sm',
+                isActive(path) ? 'text-foreground font-medium' : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
               {label}
             </Link>
           ))}
