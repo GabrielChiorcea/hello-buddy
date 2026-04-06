@@ -8,7 +8,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, gql } from '@apollo/client';
 import { motion } from 'framer-motion';
-import { Flame, ArrowRight, AlertTriangle, Trophy, Zap, Clock, TicketPercent } from 'lucide-react';
+import { Flame, ArrowRight, AlertTriangle, Trophy, Zap, Clock, TicketPercent, Tag } from 'lucide-react';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { useAppSelector } from '@/store';
 import { useComponentStyle } from '@/config/componentStyle';
@@ -16,6 +16,7 @@ import { ACTIVE_STREAK_CAMPAIGNS, MY_STREAK_ENROLLMENT } from '../queries';
 import { isConsecutiveStreakBroken, isImpossibleToComplete, daysRemaining } from './campaignUtils';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
+import { GET_COUPONS_CATALOG } from '@/graphql/queries';
 import { getImageUrl } from '@/lib/imageUrl';
 import { useMarketingPromoFlags } from '@/hooks/useMarketingPromoFlags';
 import {
@@ -230,40 +231,48 @@ const CouponsPromoCard: React.FC = () => {
 };
 
 const MobileCouponsShortcutCard: React.FC = () => {
+  const { enabled: couponsEnabled } = usePluginEnabled('coupons');
   const { data: couponsImageData } = useQuery<{ appSetting: string | null }>(
     GET_COUPONS_CARD_IMAGE,
     { fetchPolicy: 'cache-first' }
   );
+  const { data: couponsCatalogData } = useQuery<{ couponsCatalog: { id: string }[] }>(
+    GET_COUPONS_CATALOG,
+    { fetchPolicy: 'cache-first', skip: !couponsEnabled }
+  );
+  const couponCount = couponsCatalogData?.couponsCatalog?.length ?? 0;
   const rawCouponsImage = couponsImageData?.appSetting || undefined;
   const couponsImageUrl = rawCouponsImage ? getImageUrl(rawCouponsImage) : undefined;
 
   return (
     <Link to={routes.coupons} className="block group h-full">
-      <div className="h-full overflow-hidden rounded-2xl border border-primary/30 bg-background shadow-sm transition-all duration-200 hover:shadow-md">
-        <div className="flex h-full min-h-0 flex-col">
-          <div className={homePromoImageBandCompactRowClass}>
-            {couponsImageUrl ? (
-              <img src={couponsImageUrl} alt="" className={homePromoImageImgClass} />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center bg-primary/20 ring-1 ring-primary/30 shadow-sm">
-                <TicketPercent className="h-7 w-7 text-primary" />
-              </div>
-            )}
-          </div>
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-3 pb-2.5 pt-1.5">
-            <div className="flex min-h-0 basis-1/2 flex-col justify-center">
-              <p className="text-sm font-semibold leading-snug text-foreground">Cupoane disponibile</p>
+      <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-primary/30 bg-background shadow-sm transition-all duration-200 hover:shadow-md">
+        <div className={homePromoImageBandCompactRowClass}>
+          {couponsImageUrl ? (
+            <img src={couponsImageUrl} alt="" className={homePromoImageImgClass} />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-primary/20 ring-1 ring-primary/30 shadow-sm">
+              <TicketPercent className="h-7 w-7 text-primary" />
             </div>
-            <div className="flex min-h-0 basis-1/2 flex-col justify-center gap-0.5 text-xs font-semibold text-primary">
-              <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-primary/10">
-                <TicketPercent className="h-3.5 w-3.5 text-primary" />
-              </span>
-              <span className="inline-flex items-center gap-1">
-                Vezi tot
-                <ArrowRight className="h-3.5 w-3.5 shrink-0 transition-transform group-hover:translate-x-0.5" />
-              </span>
+          )}
+        </div>
+
+        <div className="flex min-h-0 flex-1 flex-col gap-2 p-3">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-50">
+              <Tag className="h-4 w-4 text-orange-600" />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-foreground">{texts.coupons.homeCardTitle}</p>
+              <p className="text-xs text-muted-foreground">
+                {texts.coupons.homeCardAvailableCount.replace('{count}', String(couponCount))}
+              </p>
             </div>
           </div>
+
+          <p className="line-clamp-2 text-xs leading-snug text-muted-foreground">{texts.coupons.homeCardSubtitle}</p>
+
+          <span className="text-xs font-medium text-orange-600">{texts.coupons.homeCardCta}</span>
         </div>
       </div>
     </Link>
@@ -292,23 +301,27 @@ const MobileStreakCompactCard: React.FC<{ data: StreakCardData }> = ({ data }) =
               <img src={data.imageUrl} alt="" className={homePromoImageImgClass} />
             </div>
           ) : null}
-          <div className="flex h-full flex-col px-3 pt-3 ">
-            {urgency ? (
-              <span
-                className={`mb-2 inline-block self-start rounded-md px-2 py-0.5 text-[10px] font-medium leading-tight ${urgencyChipClass(urgency.tone)}`}
-                role="status"
-              >
-                {urgency.text}
-              </span>
-            ) : (
-              <span className="mb-2 inline-block self-start rounded-md border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-medium leading-tight text-primary">
-                Bonus activ
-              </span>
-            )}
-            <span className={`text-3xl font-extrabold leading-none tracking-tight ${toneClass}`}>+{data.bonusPoints}</span>
-            <span className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-              {texts.streak.homeGamifiedDealUnit}
-            </span>
+          <div className="flex h-full flex-col px-3 pt-3 pb-3">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex flex-col items-start">
+                <span className={`text-3xl font-extrabold leading-none tracking-tight ${toneClass}`}>+{data.bonusPoints}</span>
+                <span className="mt-1 text-left text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  {texts.streak.homeGamifiedDealUnit}
+                </span>
+              </div>
+              {urgency ? (
+                <span
+                  className={`inline-block self-start rounded-md px-2 py-0.5 text-[10px] font-medium leading-tight ${urgencyChipClass(urgency.tone)}`}
+                  role="status"
+                >
+                  {urgency.text}
+                </span>
+              ) : (
+                <span className="inline-block self-start rounded-md border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-medium leading-tight text-primary">
+                  Bonus activ
+                </span>
+              )}
+            </div>
             <p className="mt-2 text-xs font-semibold leading-snug text-foreground line-clamp-2">{headline}</p>
             <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground line-clamp-2">{data.statusText}</p>
             {data.progress && (
@@ -327,7 +340,7 @@ const MobileStreakCompactCard: React.FC<{ data: StreakCardData }> = ({ data }) =
                 </div>
               </div>
             )}
-            <div className="mt-2 pt-1 text-xs font-semibold text-primary">
+            <div className="mt-3 pt-1 text-xs font-semibold text-primary">
               <span className="inline-flex items-center gap-1">
                 {cta}
                 <ArrowRight className="h-3.5 w-3.5 shrink-0 transition-transform group-hover:translate-x-0.5" />
@@ -641,10 +654,10 @@ export const HomeMarketingCards: React.FC = () => {
             transition={{ duration: 0.4 }}
             className="space-y-3"
           >
-            {/* Streak + cupoane: pe mobil doar varianta compactă (cupoane îngust); pe desktop carduri mari */}
+            {/* Streak + cupoane: sub md varianta compactă (cupoane îngust); de la md în sus ca pe desktop */}
             {both && streakData && (
               <>
-                <div className="grid grid-cols-3 gap-2 lg:hidden">
+                <div className="grid grid-cols-3 gap-2 md:hidden">
                   <div className="col-span-1">
                     <MobileCouponsShortcutCard />
                   </div>
@@ -652,11 +665,11 @@ export const HomeMarketingCards: React.FC = () => {
                     <MobileStreakCompactCard data={streakData} />
                   </div>
                 </div>
-                <div className="hidden gap-3 lg:grid lg:grid-cols-5">
-                  <div className="min-w-0 lg:col-span-2">
+                <div className="hidden gap-3 md:grid md:grid-cols-5">
+                  <div className="min-w-0 md:col-span-2">
                     <CouponsPromoCard />
                   </div>
-                  <div className="min-w-0 lg:col-span-3">
+                  <div className="min-w-0 md:col-span-3">
                     <StyleCard data={streakData} />
                   </div>
                 </div>
@@ -673,10 +686,10 @@ export const HomeMarketingCards: React.FC = () => {
             {/* Doar streak: compact pe mobil, variantă stil pe desktop */}
             {onlyStreak && streakData && (
               <>
-                <div className="lg:hidden">
+                <div className="md:hidden">
                   <MobileStreakCompactCard data={streakData} />
                 </div>
-                <div className="mx-auto hidden max-w-4xl lg:block">
+                <div className="mx-auto hidden max-w-4xl md:block">
                   <StyleCard data={streakData} />
                 </div>
               </>

@@ -1524,6 +1524,10 @@ export const texts = {
 
     coupons: {
       pageTitle: 'Cupoane',
+      homeCardTitle: 'Activeaza cupoane',
+      homeCardSubtitle: 'Activează cupoane din puncte și folosește reduceri la checkout.',
+      homeCardAvailableCount: '{count} disponibile',
+      homeCardCta: 'Activează →',
       emptyCatalog: 'Nu există cupoane disponibile.',
       loginRequiredTitle: 'Autentificare necesară',
       loginRequiredDescription: 'Conectează-te pentru a activa cupoane.',

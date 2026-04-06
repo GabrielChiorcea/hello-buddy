@@ -15,6 +15,7 @@ import { PageLoader } from '@/components/common/Loader';
 import { HomeMarketingCards } from '@/plugins/streak/components/HomeMarketingCards';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
+import { cn } from '@/lib/utils';
 import { CategoryIconDisplay, splitCategoriesPinnedComboFirst } from '@/config/categoryIcons';
 import type { HomeDisplayData } from './shared';
 import { fadeUp, staggerContainer, cardVariant } from './shared';
@@ -26,9 +27,7 @@ const categoryLinkClassScroll =
   'flex flex-col items-center justify-center gap-1.5 max-w-[110px] shrink-0 py-1 px-0.5 text-center transition-colors group';
 
 /** Combo (pinned) — rămâne card (bg, bordură, colțuri). */
-const categoryLinkClassPinned =
-  'flex flex-col items-center justify-center gap-1.5 w-[110px] shrink-0 p-4 rounded-xl bg-card border-2 border-transparent hover:border-primary hover:shadow-lg hover:shadow-primary/10 transition-all group';
-
+const categoryLinkClassPinned = 'flex flex-col items-center justify-center gap-1.5 w-[110px] shrink-0 p-4 border-r-2 border-r-orange-500 hover:border-r-primary hover:shadow-lg hover:shadow-primary/10 transition-all group bg-[#F9F7F5]'
 const CATEGORY_ICON_SIZE_HOME = 44;
 
 function homeCategoryLinkInner(category: {
@@ -133,14 +132,21 @@ export const HomePage: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
 
       <section className="py-12 md:py-16 bg-muted/30">
           <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <motion.h2 className="text-2xl md:text-3xl font-extrabold text-foreground" initial="hidden" whileInView="visible" viewport={{ once: true }} custom={0} variants={fadeUp}>{texts.home.recommended}</motion.h2>
-                {totalProducts > 0 && (
-                  <p className="text-sm text-muted-foreground mt-1">{texts.home.totalProductsInMenu.replace('{count}', String(totalProducts))}</p>
+            <div className="mb-8">
+              <motion.h2 className="text-2xl md:text-3xl font-extrabold text-foreground" initial="hidden" whileInView="visible" viewport={{ once: true }} custom={0} variants={fadeUp}>{texts.home.recommended}</motion.h2>
+              <div
+                className={cn(
+                  'mt-1 flex flex-wrap items-center gap-x-4 gap-y-1',
+                  totalProducts > 0 ? 'justify-between' : 'justify-end',
                 )}
+              >
+                {totalProducts > 0 && (
+                  <p className="text-sm text-muted-foreground">{texts.home.totalProductsInMenu.replace('{count}', String(totalProducts))}</p>
+                )}
+                <Button variant="ghost" asChild className="shrink-0">
+                  <Link to={routes.catalog} className="flex items-center gap-2">{texts.home.viewAll}<ArrowRight className="h-4 w-4" /></Link>
+                </Button>
               </div>
-              <Button variant="ghost" asChild><Link to={routes.catalog} className="flex items-center gap-2">{texts.home.viewAll}<ArrowRight className="h-4 w-4" /></Link></Button>
             </div>
             <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }}>
               {recommendedProducts.map((p) => <motion.div key={p.id} variants={cardVariant}><ProductCard product={p} /></motion.div>)}

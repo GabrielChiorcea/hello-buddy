@@ -72,7 +72,7 @@ export const STYLES = {
   /** Carduri de produse */
   productCard: 'gamified' as StyleName,
 
-  /** Navbar desktop + MobileBottomNav (varianta gamified: bordură fină = culoarea primary din tema activă — ThemeName) */
+  /** Navbar desktop + MobileBottomNav */
   navbar: 'premium' as StyleName,
 
   /** Pagina Coș */

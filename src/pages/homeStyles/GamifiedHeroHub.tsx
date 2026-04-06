@@ -76,7 +76,7 @@ export const GamifiedHeroHub: React.FC = () => {
           {isAuthenticated && user ? (
             <>
               {pointsEnabled ? (
-                <div className="mb-2 flex w-full max-w-full flex-nowrap items-center gap-2 sm:gap-3">
+                <div className="mb-2 flex w-full max-w-full flex-nowrap items-center gap-2 sm:gap-3 md:justify-center">
                   <div className="flex min-w-0 flex-1 items-center md:hidden">
                     <HomeHeroLogo variant="gamified" inline inlineFillRow />
                   </div>
