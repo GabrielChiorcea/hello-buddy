@@ -1,199 +1,166 @@
 import React from 'react';
-import { Flame, PartyPopper } from 'lucide-react';
-import type { StreakCampaign, StreakEnrollment } from '../types';
-import { daysRemaining } from './campaignUtils';
-import { StreakProgressBar } from './StreakProgressBar';
+import { Calendar, Flame, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { texts } from '@/config/texts';
-import { getImageUrl } from '@/lib/imageUrl';
 
 interface CampaignCompactPreviewProps {
-  campaign: StreakCampaign;
-  enrollment: StreakEnrollment | null;
-  completed: boolean;
-  isEnrolled: boolean;
-  isFailed: boolean;
-  failReason: 'broken' | 'impossible' | null;
+  title: string;
+  subtitle: string;
+  imageUrl: string | null;
+  dateRange: string;
+  points: number;
+  progress: number;
+  totalOrders: number;
+  completedOrders: number;
+  estimatedSavingsRon: number | null;
+  isFailed?: boolean;
   onOpenDetail?: () => void;
-  tone?: 'gamified' | 'clean' | 'premium' | 'friendly';
 }
 
+const AnimatedHourglass: React.FC<{ className?: string }> = ({ className }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    style={{
+      transformOrigin: '50% 50%',
+      animation: 'streak-hourglass-flip 1.2s ease-in-out infinite',
+    }}
+    aria-hidden="true"
+  >
+    <path d="M7 3h10" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
+    <path d="M7 21h10" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
+    <path
+      d="M8 3v2.5c0 1.9 1.1 3.7 2.8 4.6L12 10.8l1.2-.7A5.3 5.3 0 0 0 16 5.5V3"
+      stroke="currentColor"
+      strokeWidth="2.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M16 21v-2.5c0-1.9-1.1-3.7-2.8-4.6L12 13.2l-1.2.7A5.3 5.3 0 0 0 8 18.5V21"
+      stroke="currentColor"
+      strokeWidth="2.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path d="M10.5 8.7h3" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
+    <path d="M10 15.3h4" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
+  </svg>
+);
+
 export const CampaignCompactPreview: React.FC<CampaignCompactPreviewProps> = ({
-  campaign,
-  enrollment,
-  completed,
-  isEnrolled,
-  isFailed,
-  failReason,
+  title,
+  subtitle,
+  imageUrl,
+  dateRange,
+  points,
+  progress,
+  totalOrders,
+  completedOrders,
+  estimatedSavingsRon,
+  isFailed = false,
   onOpenDetail,
-  tone = 'clean',
 }) => {
-  const remaining = daysRemaining(campaign.endDate);
-  const currentCount = enrollment?.currentStreakCount ?? 0;
-  const required = enrollment?.campaign?.ordersRequired ?? campaign.ordersRequired;
-  const isLastChance = !isFailed && remaining > 0 && remaining <= 2;
-  const isUrgent = !isFailed && remaining > 2 && remaining <= 7;
-  const rewardText = `${texts.streak.preview.earnPrefix} +${campaign.bonusPoints} ${texts.streak.preview.pointsSuffix}`;
-  const ctaLabel = completed
-    ? texts.streak.preview.ctaCompleted
-    : isEnrolled
-      ? texts.streak.preview.ctaActive
-      : texts.streak.preview.ctaJoin;
+  const safeProgress = Math.max(0, Math.min(100, progress));
 
-  const toneClasses = {
-    gamified: 'gamified-casino-card border-reward/30',
-    clean: 'bg-card border-border',
-    premium: 'bg-card border-border/60 shadow-md shadow-foreground/5',
-    friendly: 'bg-accent/30 border-accent',
-  }[tone];
-
-  const statusLabel = completed
-    ? texts.streak.preview.statusCompleted
-    : isFailed
-      ? texts.streak.preview.statusFailed
-      : isLastChance
-        ? texts.streak.preview.statusLastChance
-        : isUrgent
-          ? texts.streak.preview.statusUrgent
-          : texts.streak.preview.statusLive;
-
-  const rightLabel = isLastChance || isUrgent
-    ? texts.streak.preview.daysLeft.replace('{days}', String(remaining))
-    : ctaLabel;
-  const previewImage = campaign.imageUrl ? getImageUrl(campaign.imageUrl) : null;
-
-  if (tone === 'gamified') {
-    return (
+  return (
+    <>
+      <style>{`
+        @keyframes streak-hourglass-flip {
+          0%, 32% { transform: rotate(0deg); }
+          45%, 55% { transform: rotate(180deg); }
+          68%, 100% { transform: rotate(180deg); }
+        }
+        @keyframes streak-savings-shimmer {
+          0% { background-position: 0% 50%; }
+          100% { background-position: 200% 50%; }
+        }
+      `}</style>
       <button
         type="button"
         onClick={onOpenDetail}
         className={cn(
-          'group w-full rounded-2xl border text-left transition-all duration-300 hover:scale-[1.01] hover:border-primary/40',
-          'min-h-[124px]',
-          isFailed && 'opacity-70',
-          toneClasses
+          'group relative w-full overflow-hidden rounded-[20px] border border-reward/35 bg-background text-left transition-all duration-200',
+          'hover:-translate-y-0.5 hover:border-reward/70'
         )}
       >
-        <div className="relative flex h-full flex-col">
-          {previewImage && (
-            <div className="relative h-[104px] w-full shrink-0 overflow-hidden bg-muted/25 max-h-[34vw]">
-              <img
-                src={previewImage}
-                alt={campaign.name}
-                className="h-full w-full object-cover object-center"
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
-          )}
-          <div className="flex h-full flex-col px-3 pb-3 pt-3">
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex flex-col items-start">
-                <span className="text-3xl font-extrabold leading-none tracking-tight text-primary">+{campaign.bonusPoints}</span>
-                <span className="mt-1 text-left text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  puncte bonus
-                </span>
-              </div>
-              <span
-                className={cn(
-                  'inline-block self-start rounded-md px-2 py-0.5 text-[10px] font-medium leading-tight',
-                  isLastChance
-                    ? 'border border-destructive/25 bg-destructive/10 text-destructive'
-                    : 'border border-primary/25 bg-primary/10 text-primary'
-                )}
-                role="status"
-              >
-                {isFailed && failReason ? texts.streak.preview.leave : rightLabel}
-              </span>
-            </div>
-
-            <p className="mt-2 line-clamp-2 text-xs font-semibold leading-snug text-foreground">
-              {campaign.name}
-            </p>
-            <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">{rewardText}</p>
-
-            <StreakProgressBar
-              className="mt-2"
-              current={currentCount}
-              required={required}
-              completed={completed}
-              recurrenceType={campaign.recurrenceType}
-              rewardSteps={campaign.rewardSteps}
-              variant="inline"
-            />
-
-            <div className="mt-3 pt-1 text-xs font-semibold text-primary">
-              <span className="inline-flex items-center gap-1">{ctaLabel}</span>
-            </div>
-          </div>
-        </div>
-      </button>
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={onOpenDetail}
-      className={cn(
-        'group w-full rounded-2xl border p-3 text-left transition-all duration-300 hover:scale-[1.01] hover:border-primary/40',
-        'min-h-[124px]',
-        isFailed && 'opacity-70',
-        toneClasses
-      )}
-    >
-      <div className="flex h-full gap-3 sm:flex-row flex-col sm:items-center">
-        <div className="flex items-center gap-2 sm:w-[120px]">
-          {previewImage ? (
-            <img
-              src={previewImage}
-              alt={campaign.name}
-              className="h-10 w-10 rounded-xl border border-border/50 object-cover"
-              loading="lazy"
-              decoding="async"
-            />
-          ) : (
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-reward/20 text-reward">
-              {completed ? <PartyPopper className="h-4 w-4" /> : <Flame className="h-4 w-4" />}
-            </div>
-          )}
-          <span className={cn(
-            'rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase',
-            completed && 'bg-primary/20 text-primary',
-            isFailed && 'bg-destructive/20 text-destructive',
-            !completed && !isFailed && isLastChance && 'bg-destructive text-destructive-foreground',
-            !completed && !isFailed && !isLastChance && 'bg-reward/20 text-foreground'
-          )}>
-            {statusLabel}
+      {isFailed && (
+        <div
+          className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-background/45 backdrop-blur-[1px]"
+        >
+          <span className="rounded-full border border-destructive/40 bg-destructive/85 px-3 py-1 text-xs font-bold uppercase tracking-wide text-destructive-foreground">
+            {texts.streak.preview.lostOverlay}
           </span>
         </div>
+      )}
+      {imageUrl ? (
+        <img
+          src={imageUrl}
+          alt={title}
+          className={cn('h-[110px] w-full object-cover', isFailed && 'grayscale opacity-60')}
+          loading="lazy"
+          decoding="async"
+        />
+      ) : (
+        <div className={cn('h-[110px] w-full bg-muted', isFailed && 'opacity-60')} />
+      )}
+      <div className="px-4 pb-4 pt-[14px]">
+        <div className={cn('flex items-start gap-3', isFailed && 'opacity-60')}>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-reward to-reward-light">
+            <Flame className="h-[18px] w-[18px] text-reward-foreground" />
+          </div>
 
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-foreground">{campaign.name}</p>
-          <p className="text-xs text-muted-foreground">{rewardText}</p>
-          <StreakProgressBar
-            className="mt-2"
-            current={currentCount}
-            required={required}
-            completed={completed}
-            recurrenceType={campaign.recurrenceType}
-            rewardSteps={campaign.rewardSteps}
-            variant="inline"
-          />
-          {isEnrolled && !completed && !isFailed && currentCount > 0 && (
-            <p className="mt-1 text-[11px] font-medium text-destructive">{texts.streak.preview.lossShort}</p>
-          )}
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[15px] font-medium text-foreground">{title}</p>
+            {estimatedSavingsRon != null ? (
+              <p className="mt-1 inline-flex max-w-full items-center gap-1 rounded-full border border-reward/25 bg-reward/10 px-2 py-0.5 text-[11px] font-semibold text-reward">
+                <Sparkles className="h-3 w-3 shrink-0 animate-pulse" />
+                <span
+                  className="truncate bg-gradient-to-r from-reward via-reward-light to-reward bg-[length:200%_100%] bg-clip-text text-transparent"
+                  style={{ animation: 'streak-savings-shimmer 1.8s linear infinite' }}
+                >
+                  Economisești până la {estimatedSavingsRon.toFixed(0)} RON
+                </span>
+              </p>
+            ) : (
+              <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{subtitle}</p>
+            )}
+          </div>
+
+          <div className="shrink-0 rounded-xl border border-reward/30 bg-reward/12 px-2.5 py-1 text-center">
+            <p className="text-[20px] font-bold leading-none text-reward">{points}</p>
+            <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">puncte</p>
+          </div>
         </div>
 
-        <div className="flex items-center sm:justify-end">
-          <span className={cn(
-            'rounded-full px-3 py-1 text-xs font-semibold',
-            isLastChance ? 'bg-destructive text-destructive-foreground' : 'bg-primary/10 text-primary'
-          )}>
-            {isFailed && failReason ? texts.streak.preview.leave : rightLabel}
+        <div className={cn('mt-3', isFailed && 'opacity-60')}>
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] text-muted-foreground">Progres</span>
+            <span className="text-[11px] text-muted-foreground">{completedOrders} / {totalOrders} comenzi</span>
+          </div>
+          <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-[99px] bg-muted">
+            <div
+              className="h-full rounded-[99px] bg-gradient-to-r from-reward to-reward-light transition-all duration-500"
+              style={{ width: `${safeProgress}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="mt-3 flex items-center justify-between gap-3">
+          <span className={cn('inline-flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground', isFailed && 'opacity-60')}>
+            <Calendar className="h-3 w-3 shrink-0 text-reward" />
+            <span className="truncate">{dateRange}</span>
+            <AnimatedHourglass className="h-4 w-4 shrink-0 self-center text-reward" />
+          </span>
+          <span className="relative z-30 inline-flex shrink-0 items-center gap-1.5 rounded-[10px] bg-reward px-3.5 py-[7px] text-[12px] font-medium text-reward-foreground">
+            <Sparkles className="h-3.5 w-3.5" />
+            {isFailed ? texts.streak.preview.ctaUnlock : texts.streak.preview.ctaDetails}
           </span>
         </div>
       </div>
-    </button>
+      </button>
+    </>
   );
 };

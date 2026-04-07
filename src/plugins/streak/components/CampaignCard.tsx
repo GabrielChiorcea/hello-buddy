@@ -15,6 +15,9 @@ import { GamifiedCard } from './styles/gamifiedCard';
 import { CleanCard } from './styles/cleanCard';
 import { PremiumCard } from './styles/premiumCard';
 import { FriendlyCard } from './styles/friendlyCard';
+import { usePointsRewards } from '@/plugins/points/hooks/usePointsRewards';
+import type { PointsReward } from '@/plugins/points/types';
+import { GET_TIERS_ECONOMY_SETTINGS } from '@/graphql/queries';
 
 export interface CampaignCardProps {
   campaign?: StreakCampaign | null;
@@ -32,6 +35,11 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
   onOpenDetail,
 }) => {
   const componentStyle = useComponentStyle();
+  const { pointsRewards } = usePointsRewards();
+  const { data: economyData } = useQuery<{ points_per_order: string | null }>(GET_TIERS_ECONOMY_SETTINGS, {
+    fetchPolicy: 'cache-first',
+  });
+  const pointsPerOrder = Math.max(0, parseInt(economyData?.points_per_order ?? '0', 10) || 0);
 
   const { data: campaignData, loading: campaignLoading } = useQuery<{ activeStreakCampaign: StreakCampaign | null }>(
     ACTIVE_STREAK_CAMPAIGN,
@@ -100,6 +108,8 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
     enrollmentLoading: enrollmentProp === undefined ? enrollmentLoading : false,
     variant,
     onOpenDetail,
+    pointsRewards: pointsRewards as PointsReward[],
+    pointsPerOrder,
   };
 
   const StyleCard = {

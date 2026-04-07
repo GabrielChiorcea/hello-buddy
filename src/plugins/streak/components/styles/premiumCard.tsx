@@ -12,6 +12,7 @@ import { buildRuleDescription, formatDate, daysRemaining } from '../campaignUtil
 import { RewardStepsLadder } from '../RewardStepsLadder';
 import { getImageUrl } from '@/lib/imageUrl';
 import { CampaignCompactPreview } from '../CampaignCompactPreview';
+import type { PointsReward } from '@/plugins/points/types';
 
 interface Props {
   campaign: StreakCampaign;
@@ -24,22 +25,53 @@ interface Props {
   enrollmentLoading?: boolean;
   variant?: 'compact' | 'full';
   onOpenDetail?: () => void;
+  pointsRewards?: PointsReward[];
+  pointsPerOrder?: number;
+}
+
+function calculateMaxDiscountFromPoints(totalPoints: number, pointsRewards: PointsReward[], maxRedemptions: number): number {
+  const rewards = pointsRewards.filter((reward) => reward.isActive && reward.pointsCost > 0 && reward.discountAmount > 0);
+  if (rewards.length === 0 || totalPoints <= 0 || maxRedemptions <= 0) return 0;
+  const cap = Math.floor(totalPoints);
+  const usesCap = Math.floor(maxRedemptions);
+  const dp = Array.from({ length: usesCap + 1 }, () => new Array<number>(cap + 1).fill(0));
+  for (let use = 1; use <= usesCap; use++) {
+    for (let p = 0; p <= cap; p++) {
+      dp[use][p] = dp[use - 1][p];
+      for (const reward of rewards) {
+        if (reward.pointsCost <= p) dp[use][p] = Math.max(dp[use][p], dp[use - 1][p - reward.pointsCost] + reward.discountAmount);
+      }
+    }
+  }
+  return dp[usesCap][cap];
 }
 
 export const PremiumCard: React.FC<Props> = ({
-  campaign, enrollment, enrolledInOtherCampaign, completed, isEnrolled, isFailed, failReason, enrollmentLoading, variant = 'full', onOpenDetail,
+  campaign, enrollment, enrolledInOtherCampaign, completed, isEnrolled, isFailed, failReason, enrollmentLoading, variant = 'full', onOpenDetail, pointsRewards = [], pointsPerOrder = 0,
 }) => {
+  const currentCount = enrollment?.currentStreakCount ?? 0;
+  const required = enrollment?.campaign?.ordersRequired ?? campaign.ordersRequired;
+  const potentialPoints = campaign.rewardType === 'steps'
+    ? campaign.bonusPoints + campaign.rewardSteps.reduce((sum, step) => sum + step.pointsAwarded, 0)
+    : campaign.bonusPoints;
+  const remainingOrders = Math.max(0, required - currentCount);
+  const displayPoints = potentialPoints + remainingOrders * pointsPerOrder;
+  const estimatedSavingsRon = calculateMaxDiscountFromPoints(displayPoints, pointsRewards, remainingOrders);
+
   if (variant === 'compact') {
     return (
       <CampaignCompactPreview
-        campaign={campaign}
-        enrollment={enrollment}
-        completed={completed}
-        isEnrolled={isEnrolled}
+        title={campaign.name}
+        subtitle={campaign.recurrenceType === 'consecutive' ? 'Zile consecutive' : `Fereastră mobilă (${campaign.rollingWindowDays} zile)`}
+        imageUrl={campaign.imageUrl ? getImageUrl(campaign.imageUrl) : null}
+        dateRange={`${formatDate(campaign.startDate)} — ${formatDate(campaign.endDate)}`}
+        points={potentialPoints}
+        progress={Math.min(100, Math.max(0, (currentCount / Math.max(1, required)) * 100))}
+        totalOrders={required}
+        completedOrders={currentCount}
+        estimatedSavingsRon={estimatedSavingsRon > 0 ? estimatedSavingsRon : null}
         isFailed={isFailed}
-        failReason={failReason}
         onOpenDetail={onOpenDetail}
-        tone="premium"
       />
     );
   }

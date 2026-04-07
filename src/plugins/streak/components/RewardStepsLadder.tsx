@@ -3,6 +3,7 @@ import { Check, Star } from 'lucide-react';
 import type { RewardStep } from '../types';
 import type { ComponentStyleName } from '@/config/componentStyle';
 import { cn } from '@/lib/utils';
+import { texts } from '@/config/texts';
 
 interface RewardStepsLadderProps {
   steps: RewardStep[] | null | undefined;
@@ -20,6 +21,7 @@ export const RewardStepsLadder: React.FC<RewardStepsLadderProps> = ({
   completed,
 }) => {
   if (!steps || steps.length === 0) return null;
+  const thresholdOrderLabel = texts.streak.preview.thresholdOrderLabel;
 
   const sortedSteps = steps.slice().sort((a, b) => a.stepNumber - b.stepNumber);
   const effectiveCurrent = currentCount ?? 0;
@@ -88,7 +90,7 @@ export const RewardStepsLadder: React.FC<RewardStepsLadderProps> = ({
             <div className="flex items-start w-full">
               {sortedSteps.map((step, idx) => {
                 const reached = effectiveCurrent >= step.stepNumber;
-                const label = step.label || `La a ${step.stepNumber}-a comandă`;
+                const label = step.label || `${step.stepNumber} ${thresholdOrderLabel}`;
                 return (
                   <React.Fragment key={step.stepNumber}>
                     {idx > 0 && (
@@ -171,7 +173,7 @@ export const RewardStepsLadder: React.FC<RewardStepsLadderProps> = ({
           <div className={cn('flex text-[10px] sm:text-xs', manySteps ? 'gap-4 px-1' : 'justify-between px-1')}>
             {sortedSteps.map((step) => {
               const reached = effectiveCurrent >= step.stepNumber;
-              const label = step.label || `La a ${step.stepNumber}-a comandă`;
+              const label = step.label || `${step.stepNumber} ${thresholdOrderLabel}`;
               return (
                 <div key={step.stepNumber} className={cn('flex flex-col items-center text-center', manySteps && 'min-w-[72px]')}>
                   <span className={cn('leading-snug line-clamp-2 max-w-[90px]', reached ? colors.labelReached : colors.label)} title={label}>{label}</span>

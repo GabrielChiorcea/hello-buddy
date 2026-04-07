@@ -14,6 +14,7 @@ import { buildRuleDescription, formatDate, daysRemaining } from '../campaignUtil
 import { RewardStepsLadder } from '../RewardStepsLadder';
 import { getImageUrl } from '@/lib/imageUrl';
 import { CampaignCompactPreview } from '../CampaignCompactPreview';
+import type { PointsReward } from '@/plugins/points/types';
 
 interface Props {
   campaign: StreakCampaign;
@@ -26,6 +27,27 @@ interface Props {
   enrollmentLoading?: boolean;
   variant?: 'compact' | 'full';
   onOpenDetail?: () => void;
+  pointsRewards?: PointsReward[];
+  pointsPerOrder?: number;
+}
+
+function calculateMaxDiscountFromPoints(totalPoints: number, pointsRewards: PointsReward[], maxRedemptions: number): number {
+  const rewards = pointsRewards.filter((reward) => reward.isActive && reward.pointsCost > 0 && reward.discountAmount > 0);
+  if (rewards.length === 0 || totalPoints <= 0 || maxRedemptions <= 0) return 0;
+  const cap = Math.floor(totalPoints);
+  const usesCap = Math.floor(maxRedemptions);
+  const dp = Array.from({ length: usesCap + 1 }, () => new Array<number>(cap + 1).fill(0));
+  for (let use = 1; use <= usesCap; use++) {
+    for (let p = 0; p <= cap; p++) {
+      dp[use][p] = dp[use - 1][p];
+      for (const reward of rewards) {
+        if (reward.pointsCost <= p) {
+          dp[use][p] = Math.max(dp[use][p], dp[use - 1][p - reward.pointsCost] + reward.discountAmount);
+        }
+      }
+    }
+  }
+  return dp[usesCap][cap];
 }
 
 /** Deterministic fake participant count based on campaign id */
@@ -36,19 +58,32 @@ function fakeParticipants(id: string): number {
 }
 
 export const GamifiedCard: React.FC<Props> = ({
-  campaign, enrollment, enrolledInOtherCampaign, completed, isEnrolled, isFailed, failReason, enrollmentLoading, variant = 'full', onOpenDetail,
+  campaign, enrollment, enrolledInOtherCampaign, completed, isEnrolled, isFailed, failReason, enrollmentLoading, variant = 'full', onOpenDetail, pointsRewards = [], pointsPerOrder = 0,
 }) => {
+  const participants = useMemo(() => fakeParticipants(campaign.id), [campaign.id]);
+  const currentCount = enrollment?.currentStreakCount ?? 0;
+  const ordersRequired = enrollment?.campaign?.ordersRequired ?? campaign.ordersRequired;
+  const potentialPoints = campaign.rewardType === 'steps'
+    ? campaign.bonusPoints + campaign.rewardSteps.reduce((sum, step) => sum + step.pointsAwarded, 0)
+    : campaign.bonusPoints;
+  const remainingOrders = Math.max(0, ordersRequired - currentCount);
+  const displayPoints = potentialPoints + remainingOrders * pointsPerOrder;
+  const estimatedSavingsRon = calculateMaxDiscountFromPoints(displayPoints, pointsRewards, remainingOrders);
+
   if (variant === 'compact') {
     return (
       <CampaignCompactPreview
-        campaign={campaign}
-        enrollment={enrollment}
-        completed={completed}
-        isEnrolled={isEnrolled}
+        title={campaign.name}
+        subtitle={campaign.recurrenceType === 'consecutive' ? 'Zile consecutive' : `Fereastră mobilă (${campaign.rollingWindowDays} zile)`}
+        imageUrl={campaign.imageUrl ? getImageUrl(campaign.imageUrl) : null}
+        dateRange={`${formatDate(campaign.startDate)} — ${formatDate(campaign.endDate)}`}
+        points={potentialPoints}
+        progress={Math.min(100, Math.max(0, (currentCount / Math.max(1, ordersRequired)) * 100))}
+        totalOrders={ordersRequired}
+        completedOrders={currentCount}
+        estimatedSavingsRon={estimatedSavingsRon > 0 ? estimatedSavingsRon : null}
         isFailed={isFailed}
-        failReason={failReason}
         onOpenDetail={onOpenDetail}
-        tone="gamified"
       />
     );
   }
@@ -58,11 +93,7 @@ export const GamifiedCard: React.FC<Props> = ({
   const hasValidation = campaign.minOrderValue > 0;
   const isLastChance = remaining > 0 && remaining <= 3;
   const isUrgent = remaining > 3 && remaining <= 7;
-  const participants = useMemo(() => fakeParticipants(campaign.id), [campaign.id]);
-
   // Loss aversion: enrolled but not completed
-  const currentCount = enrollment?.currentStreakCount ?? 0;
-  const ordersRequired = enrollment?.campaign?.ordersRequired ?? campaign.ordersRequired;
   const showLossAversion = isEnrolled && !completed && currentCount > 0;
 
   const streakBroken = failReason === 'broken';
@@ -97,22 +128,8 @@ export const GamifiedCard: React.FC<Props> = ({
         </motion.div>
       )}
 
-      {/* FAILED badge */}
-      {isFailed && (
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="absolute top-3 right-3 z-20 flex items-center gap-1 rounded-full bg-destructive/90 px-2.5 py-1 shadow-lg shadow-destructive/30"
-        >
-          <XCircle className="h-3 w-3 text-destructive-foreground" />
-          <span className="text-[10px] font-bold text-destructive-foreground uppercase tracking-wide">
-            {streakBroken ? 'Streak pierdut' : 'Nu mai poate fi completat'}
-          </span>
-        </motion.div>
-      )}
-
       {campaign.imageUrl && (
-        <div className="relative z-10 px-5 pt-5 pb-2">
+        <div className="relative z-10 hidden px-5 pb-2 pt-5 sm:block">
           <div className="h-36 rounded-xl overflow-hidden border border-reward/20 bg-muted/40">
             <img
               src={getImageUrl(campaign.imageUrl)}
