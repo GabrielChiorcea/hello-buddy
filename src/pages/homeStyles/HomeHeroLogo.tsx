@@ -16,6 +16,7 @@ export function HomeHeroLogo({
   showWordmark = false,
   inline = false,
   inlineFillRow = false,
+  compactMobileSpacing = false,
 }: {
   variant: HomeHeroLogoVariant;
   align?: 'center' | 'start';
@@ -25,6 +26,8 @@ export function HomeHeroLogo({
   inline?: boolean;
   /** Cu logo imagine: ocupă tot `w` disponibil în rând (flex), până la `max-h` — doar mobil/hero */
   inlineFillRow?: boolean;
+  /** Reduce spațiul vertical pe mobil (utile pentru guest hero) */
+  compactMobileSpacing?: boolean;
 }) {
   const label = texts.app.name;
 
@@ -39,7 +42,7 @@ export function HomeHeroLogo({
         className={cn(
           isInline && fillRow && 'mb-0 flex min-w-0 w-full flex-1 items-center',
           isInline && !fillRow && 'mb-0 inline-flex',
-          !isInline && 'mb-6',
+          !isInline && (compactMobileSpacing ? 'mb-3 md:mb-6' : 'mb-6'),
           !isInline && align === 'center' && 'flex justify-center',
           !isInline && align === 'start' && 'flex justify-start'
         )}
@@ -137,7 +140,7 @@ export function HomeHeroLogo({
         <img
           src={BRANDING_LOGO_URL}
           alt={label}
-          className="mx-auto h-56 w-56 max-w-[min(92vw,28rem)] object-contain sm:h-64 sm:w-64 md:h-80 md:w-80 md:max-w-[min(88vw,36rem)] lg:h-96 lg:w-96 xl:h-[28rem] xl:w-[28rem]"
+          className="mx-auto h-20 w-56 max-w-[min(92vw,28rem)] object-contain sm:h-64 sm:w-64 md:h-80 md:w-80 md:max-w-[min(88vw,36rem)] lg:h-96 lg:w-96 xl:h-[28rem] xl:w-[28rem]"
           draggable={false}
         />
       );

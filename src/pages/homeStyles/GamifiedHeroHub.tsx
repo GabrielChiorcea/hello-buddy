@@ -101,7 +101,7 @@ export const GamifiedHeroHub: React.FC = () => {
           ) : (
             <>
               <div className="md:hidden">
-                <HomeHeroLogo variant="gamified" align="center" />
+                <HomeHeroLogo variant="gamified" align="center" compactMobileSpacing />
               </div>
               <motion.h1
                 className="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-3"

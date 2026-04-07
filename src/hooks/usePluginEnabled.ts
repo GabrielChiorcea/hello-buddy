@@ -19,7 +19,8 @@ export function usePluginEnabled(pluginKey: string): { enabled: boolean; loading
   const settingKey = `plugin_${pluginKey}_enabled`;
   const { data, loading } = useQuery<{ appSetting: string | null }>(GET_APP_SETTING, {
     variables: { key: settingKey },
-    fetchPolicy: 'cache-first',
+    fetchPolicy: 'cache-and-network',
+    nextFetchPolicy: 'cache-first',
   });
 
   // Dacă nu s-a încărcat sau setarea nu există, considerăm plugin-ul activat (implicit)
@@ -29,5 +30,6 @@ export function usePluginEnabled(pluginKey: string): { enabled: boolean; loading
   // Dacă setarea nu există (null), plugin-ul este activat implicit
   if (value === null || value === undefined) return { enabled: true, loading: false };
 
-  return { enabled: value === 'true' || value === '1', loading: false };
+  const enabled = value === 'true' || value === '1';
+  return { enabled, loading: false };
 }

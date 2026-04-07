@@ -678,21 +678,16 @@ export const HomeMarketingCards: React.FC = () => {
 
             {/* Doar cupoane: același card ca pe desktop (CouponsPromoCard) pe toate lățimile */}
             {onlyCoupons && (
-              <div className="mx-auto max-w-4xl">
+              <div className="mx-auto max-w-4xl md:hidden">
                 <CouponsPromoCard />
               </div>
             )}
 
             {/* Doar streak: compact pe mobil, variantă stil pe desktop */}
             {onlyStreak && streakData && (
-              <>
-                <div className="md:hidden">
-                  <MobileStreakCompactCard data={streakData} />
-                </div>
-                <div className="mx-auto hidden max-w-4xl md:block">
-                  <StyleCard data={streakData} />
-                </div>
-              </>
+              <div className="md:hidden">
+                <MobileStreakCompactCard data={streakData} />
+              </div>
             )}
           </motion.div>
         </div>
