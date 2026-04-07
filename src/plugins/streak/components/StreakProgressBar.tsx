@@ -9,6 +9,7 @@ import type { RecurrenceType, RewardStep } from '../types';
 import { motion } from 'framer-motion';
 import { Star, Trophy, Zap, Check } from 'lucide-react';
 import { useComponentStyle } from '@/config/componentStyle';
+import { texts } from '@/config/texts';
 
 export interface StreakProgressBarProps {
   current: number;
@@ -17,6 +18,7 @@ export interface StreakProgressBarProps {
   recurrenceType?: RecurrenceType;
   rewardSteps?: RewardStep[];
   className?: string;
+  variant?: 'default' | 'inline';
 }
 
 function getProgressLabel(recurrenceType: RecurrenceType | undefined): string {
@@ -28,6 +30,7 @@ function getProgressLabel(recurrenceType: RecurrenceType | undefined): string {
 }
 
 export const StreakProgressBar: React.FC<StreakProgressBarProps> = (props) => {
+  if (props.variant === 'inline') return <InlineProgress {...props} />;
   const style = useComponentStyle();
   switch (style) {
     case 'clean': return <CleanProgress {...props} />;
@@ -35,6 +38,33 @@ export const StreakProgressBar: React.FC<StreakProgressBarProps> = (props) => {
     case 'friendly': return <FriendlyProgress {...props} />;
     default: return <GamifiedProgress {...props} />;
   }
+};
+
+const InlineProgress: React.FC<StreakProgressBarProps> = ({
+  current,
+  required,
+  completed = false,
+  className,
+}) => {
+  const safeRequired = Math.max(1, required);
+  const pct = Math.min(100, Math.max(0, (current / safeRequired) * 100));
+
+  return (
+    <div className={cn('w-full min-w-0', className)}>
+      <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+        <div
+          className={cn(
+            'h-full rounded-full transition-all duration-500',
+            completed ? 'bg-primary' : 'bg-reward'
+          )}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <p className="mt-1 text-[11px] text-muted-foreground">
+        {current}/{required} {texts.streak.preview.ordersLabel}
+      </p>
+    </div>
+  );
 };
 
 /* ═══ Gamified — casino step nodes (circles) + connecting lines ═══ */

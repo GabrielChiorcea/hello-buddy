@@ -11,6 +11,6 @@ export const homePromoImageBandResponsiveClass =
 
 /** Rând mobil: card compact cupoane lângă streak — aceeași înălțime bandă ca MobileStreakCompactCard. */
 export const homePromoImageBandCompactRowClass =
-  'relative w-full shrink-0 overflow-hidden bg-muted/25 h-[128px] max-h-[40vw]';
+  'relative w-full shrink-0 overflow-hidden bg-muted/25 h-[104px] max-h-[34vw]';
 
 export const homePromoImageImgClass = 'h-full w-full object-cover object-center';

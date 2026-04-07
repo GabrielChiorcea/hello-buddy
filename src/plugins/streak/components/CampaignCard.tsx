@@ -20,12 +20,16 @@ export interface CampaignCardProps {
   campaign?: StreakCampaign | null;
   enrollment?: StreakEnrollment | null;
   enrolledInOtherCampaign?: boolean;
+  variant?: 'compact' | 'full';
+  onOpenDetail?: () => void;
 }
 
 export const CampaignCard: React.FC<CampaignCardProps> = ({
   campaign: campaignProp,
   enrollment: enrollmentProp,
   enrolledInOtherCampaign,
+  variant = 'full',
+  onOpenDetail,
 }) => {
   const componentStyle = useComponentStyle();
 
@@ -53,7 +57,7 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
   const lastCelebratedKey = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!completed || componentStyle !== 'gamified' || !campaignId) return;
+    if (!completed || componentStyle !== 'gamified' || !campaignId || variant !== 'full') return;
 
     const completionKey = `streak-confetti-${campaignId}-${enrollment?.completedAt ?? 'unknown'}`;
 
@@ -75,7 +79,7 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
         confetti({ particleCount: 60, spread: 100, origin: { y: 0.5, x: 0.4 }, colors: gold, scalar: 0.9 });
       }, 300);
     }
-  }, [completed, componentStyle, campaignId, enrollment?.completedAt]);
+  }, [completed, componentStyle, campaignId, enrollment?.completedAt, variant]);
 
   if (campaignProp === undefined && (campaignLoading || !campaign)) return null;
   if (!campaign) return null;
@@ -94,6 +98,8 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
     isFailed,
     failReason,
     enrollmentLoading: enrollmentProp === undefined ? enrollmentLoading : false,
+    variant,
+    onOpenDetail,
   };
 
   const StyleCard = {

@@ -16,9 +16,22 @@ import { PageLoader } from '@/components/common/Loader';
 import { texts } from '@/config/texts';
 import { shouldHideImpossibleCampaign } from '@/plugins/streak/components/campaignUtils';
 import type { StreakCampaign, StreakEnrollment } from '@/plugins/streak/types';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet';
 
 const StreakPage: React.FC = () => {
   const { enabled, loading: flagLoading } = usePluginEnabled('streak');
+  const [selectedCampaignId, setSelectedCampaignId] = React.useState<string | null>(null);
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width: 639px)');
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
 
   const { data: campaignsData, loading: campaignsLoading } = useQuery<{
     activeStreakCampaigns: StreakCampaign[];
@@ -42,6 +55,15 @@ const StreakPage: React.FC = () => {
       myActiveEnrollment?.campaignId === campaign.id ? myActiveEnrollment : null;
     return !shouldHideImpossibleCampaign(enrollmentForCampaign, campaign);
   });
+  const selectedCampaign = visibleCampaigns.find((campaign) => campaign.id === selectedCampaignId) ?? null;
+  const selectedEnrollment =
+    selectedCampaign && myActiveEnrollment?.campaignId === selectedCampaign.id ? myActiveEnrollment : null;
+  const selectedEnrolledInOtherCampaign =
+    selectedCampaign != null &&
+    myActiveEnrollment != null &&
+    myActiveEnrollment.campaignId !== selectedCampaign.id;
+  const detailOpen = selectedCampaign != null;
+  const closeDetail = () => setSelectedCampaignId(null);
 
   if (flagLoading || campaignsLoading) {
     return (
@@ -108,6 +130,8 @@ const StreakPage: React.FC = () => {
                     <CampaignCard
                       campaign={campaign}
                       enrolledInOtherCampaign={enrolledInOtherCampaign}
+                      variant="compact"
+                      onOpenDetail={() => setSelectedCampaignId(campaign.id)}
                     />
                   </motion.div>
                 );
@@ -116,6 +140,52 @@ const StreakPage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {selectedCampaign && (
+        <>
+          {isMobile ? (
+            <Sheet open={detailOpen} onOpenChange={(open) => !open && closeDetail()}>
+              <SheetContent side="bottom" className="max-h-[90vh] overflow-y-auto rounded-t-2xl p-0">
+                <motion.div
+                  initial={{ opacity: 0, y: 32 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="p-4"
+                >
+                  <SheetTitle className="mb-1">{texts.streak.detail.title}</SheetTitle>
+                  <SheetDescription className="mb-3">{texts.streak.detail.subtitle}</SheetDescription>
+                  <CampaignCard
+                    campaign={selectedCampaign}
+                    enrollment={selectedEnrollment}
+                    enrolledInOtherCampaign={selectedEnrolledInOtherCampaign}
+                    variant="full"
+                  />
+                </motion.div>
+              </SheetContent>
+            </Sheet>
+          ) : (
+            <Dialog open={detailOpen} onOpenChange={(open) => !open && closeDetail()}>
+              <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto p-0">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.97 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.2 }}
+                  className="p-4"
+                >
+                  <DialogTitle className="mb-1">{texts.streak.detail.title}</DialogTitle>
+                  <DialogDescription className="mb-3">{texts.streak.detail.subtitle}</DialogDescription>
+                  <CampaignCard
+                    campaign={selectedCampaign}
+                    enrollment={selectedEnrollment}
+                    enrolledInOtherCampaign={selectedEnrolledInOtherCampaign}
+                    variant="full"
+                  />
+                </motion.div>
+              </DialogContent>
+            </Dialog>
+          )}
+        </>
+      )}
     </Layout>
   );
 };

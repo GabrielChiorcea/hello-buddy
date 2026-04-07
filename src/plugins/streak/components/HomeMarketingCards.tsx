@@ -252,27 +252,29 @@ const MobileCouponsShortcutCard: React.FC = () => {
             <img src={couponsImageUrl} alt="" className={homePromoImageImgClass} />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-primary/20 ring-1 ring-primary/30 shadow-sm">
-              <TicketPercent className="h-7 w-7 text-primary" />
+              <TicketPercent className="h-8 w-8 text-primary" />
             </div>
           )}
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col gap-2 p-3">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-50">
-              <Tag className="h-4 w-4 text-orange-600" />
+        <div className="flex min-h-0 flex-1 flex-col gap-1.5 p-2.5">
+          <div className="flex flex-col items-start gap-1.5">
+            <div className="flex items-center gap-2">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange-50">
+                <Tag className="h-5 w-5 text-orange-600" />
+              </div>
+              <p className="text-[14px] leading-tight text-muted-foreground">
+                {texts.coupons.homeCardAvailableCount.replace('{count}', String(couponCount))}
+              </p>
             </div>
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-foreground">{texts.coupons.homeCardTitle}</p>
-              <p className="text-xs text-muted-foreground">
-                {texts.coupons.homeCardAvailableCount.replace('{count}', String(couponCount))}
+              <p className="line-clamp-2 text-[13px] font-semibold leading-tight text-foreground">
+                {texts.coupons.homeCardTitle}
               </p>
             </div>
           </div>
 
-          <p className="line-clamp-2 text-xs leading-snug text-muted-foreground">{texts.coupons.homeCardSubtitle}</p>
-
-          <span className="text-xs font-medium text-orange-600">{texts.coupons.homeCardCta}</span>
+          <span className="mt-auto text-[14px] font-semibold text-orange-600">{texts.coupons.homeCardCta}</span>
         </div>
       </div>
     </Link>

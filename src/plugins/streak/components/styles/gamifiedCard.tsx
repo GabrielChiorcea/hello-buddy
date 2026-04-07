@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { buildRuleDescription, formatDate, daysRemaining } from '../campaignUtils';
 import { RewardStepsLadder } from '../RewardStepsLadder';
 import { getImageUrl } from '@/lib/imageUrl';
+import { CampaignCompactPreview } from '../CampaignCompactPreview';
 
 interface Props {
   campaign: StreakCampaign;
@@ -23,6 +24,8 @@ interface Props {
   isFailed: boolean;
   failReason: 'broken' | 'impossible' | null;
   enrollmentLoading?: boolean;
+  variant?: 'compact' | 'full';
+  onOpenDetail?: () => void;
 }
 
 /** Deterministic fake participant count based on campaign id */
@@ -33,8 +36,23 @@ function fakeParticipants(id: string): number {
 }
 
 export const GamifiedCard: React.FC<Props> = ({
-  campaign, enrollment, enrolledInOtherCampaign, completed, isEnrolled, isFailed, failReason, enrollmentLoading,
+  campaign, enrollment, enrolledInOtherCampaign, completed, isEnrolled, isFailed, failReason, enrollmentLoading, variant = 'full', onOpenDetail,
 }) => {
+  if (variant === 'compact') {
+    return (
+      <CampaignCompactPreview
+        campaign={campaign}
+        enrollment={enrollment}
+        completed={completed}
+        isEnrolled={isEnrolled}
+        isFailed={isFailed}
+        failReason={failReason}
+        onOpenDetail={onOpenDetail}
+        tone="gamified"
+      />
+    );
+  }
+
   const remaining = daysRemaining(campaign.endDate);
   const hasSteps = campaign.rewardType === 'steps' && campaign.rewardSteps?.length > 0;
   const hasValidation = campaign.minOrderValue > 0;
