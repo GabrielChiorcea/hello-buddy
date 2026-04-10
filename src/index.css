@@ -352,10 +352,22 @@
     font-weight: 700;
     letter-spacing: 0.5px;
     color: hsl(var(--foreground));
+    text-shadow: 0 1px 0 hsl(0 0% 100% / 0.35);
   }
   .points-casino-subtitle {
     font-size: 12px;
-    color: hsl(var(--muted-foreground));
+    color: hsl(var(--foreground) / 0.78);
+  }
+  .points-gamified-card {
+    border-color: hsl(var(--primary) / 0.28);
+    box-shadow: 0 12px 30px hsl(var(--primary) / 0.14), 0 3px 14px hsl(var(--foreground) / 0.08);
+  }
+  .points-gamified-card > .relative.z-10:first-of-type {
+    background: linear-gradient(180deg, hsl(var(--background) / 0.88), hsl(var(--background) / 0.72));
+    border-bottom-color: hsl(var(--primary) / 0.34);
+  }
+  .points-gamified-card > .relative.z-10:last-of-type {
+    background: hsl(var(--background) / 0.52);
   }
   .points-balance-chip {
     background: linear-gradient(135deg, #ff4500 0%, #ff6b00 100%);

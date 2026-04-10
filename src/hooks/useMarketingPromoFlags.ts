@@ -6,7 +6,7 @@
 
 import { useQuery } from '@apollo/client';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
-import { GET_COUPONS_CATALOG } from '@/graphql/queries';
+import { GET_COUPONS_CATALOG_IDS } from '@/graphql/queries';
 import { ACTIVE_STREAK_CAMPAIGNS } from '@/plugins/streak/queries';
 
 export function useMarketingPromoFlags(): {
@@ -26,7 +26,7 @@ export function useMarketingPromoFlags(): {
 
   const { data: couponsData, loading: couponsCatalogLoading } = useQuery<{
     couponsCatalog: { id: string }[];
-  }>(GET_COUPONS_CATALOG, {
+  }>(GET_COUPONS_CATALOG_IDS, {
     fetchPolicy: 'cache-and-network',
     skip: !couponsEnabled,
   });

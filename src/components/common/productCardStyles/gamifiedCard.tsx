@@ -15,7 +15,7 @@ import { getProductCardMetaLine } from './shared';
 
 export const GamifiedCard: React.FC<CardVariantProps> = ({ product, className, data, compactSubtitle }) => {
   const navigate = useNavigate();
-  const { handleAddToCart, isAdded, pointsInfo, imageUrl, categoryLabel, showFreeRibbon, hasOptions } = data;
+  const { handleAddToCart, isAdded, pointsInfo, imageUrl, categoryLabel, showFreeRibbon, hasOptions, activeCouponDiscount } = data;
   const isRecommended = (product as any).isRecommended === true;
 
   return (
@@ -45,6 +45,11 @@ export const GamifiedCard: React.FC<CardVariantProps> = ({ product, className, d
           loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-foreground/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity hidden md:block" />
+        {activeCouponDiscount > 0 && (
+          <span className="absolute right-2 top-2 z-10 hidden h-10 min-w-10 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-black px-2 shadow-md md:inline-flex">
+            -{activeCouponDiscount}%
+          </span>
+        )}
         {showFreeRibbon && (
           <div className="absolute top-0 right-0 overflow-hidden w-24 h-24 pointer-events-none block">
             <div className="absolute top-[13px] right-[-32px] w-[138px] text-center rotate-45 bg-primary text-primary-foreground text-[11px] md:text-xs font-extrabold py-1 shadow-md tracking-wide">
@@ -138,6 +143,11 @@ export const GamifiedCard: React.FC<CardVariantProps> = ({ product, className, d
                 <>{product.price} {texts.common.currency}</>
               )}
             </span>
+            {activeCouponDiscount > 0 && (
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[14px] font-black px-2">
+                -{activeCouponDiscount}%
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-1.5">
             {hasOptions && (

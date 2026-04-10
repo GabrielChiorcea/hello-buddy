@@ -2,11 +2,12 @@
  * Shared hook și tipuri pentru variantele ProductCard.
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Product } from '@/types';
 import { texts } from '@/config/texts';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { addItem } from '@/store/slices/cartSlice';
+import { fetchActiveCouponDiscounts } from '@/store/slices/productsSlice';
 import { toast } from '@/hooks/use-toast';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { getImageUrl } from '@/lib/imageUrl';
@@ -30,6 +31,8 @@ export interface ProductCardDisplayData {
   showFreeRibbon: boolean;
   /** Produsul are opțiuni configurabile (optionGroups) */
   hasOptions: boolean;
+  /** Max reducere (%) din cupoane active pentru acest produs */
+  activeCouponDiscount: number;
 }
 
 export interface CardVariantProps {
@@ -57,6 +60,9 @@ export function useProductCardData(
   const [isAdded, setIsAdded] = useState(false);
   const { isAuthenticated, user } = useAppSelector((s) => s.user);
   const cartItems = useAppSelector((s) => s.cart.items);
+  const activeCouponDiscountByProductId = useAppSelector((s) => s.products.activeCouponDiscountByProductId);
+  const activeCouponDiscountsLoading = useAppSelector((s) => s.products.activeCouponDiscountsLoading);
+  const activeCouponDiscountsLoadedAt = useAppSelector((s) => s.products.activeCouponDiscountsLoadedAt);
   const { enabled: tiersEnabled } = usePluginEnabled('tiers');
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -111,6 +117,27 @@ export function useProductCardData(
     return true;
   }, [suppressLoyaltyHints, user?.freeProductCampaignsSummary, product.category, cartItems]);
 
+  useEffect(() => {
+    if (!isAuthenticated || !user?.id) return;
+    const staleForMs = 60 * 1000;
+    const shouldFetch =
+      !activeCouponDiscountsLoadedAt ||
+      Date.now() - activeCouponDiscountsLoadedAt > staleForMs;
+    if (shouldFetch && !activeCouponDiscountsLoading) {
+      dispatch(fetchActiveCouponDiscounts());
+    }
+  }, [
+    dispatch,
+    isAuthenticated,
+    user?.id,
+    activeCouponDiscountsLoadedAt,
+    activeCouponDiscountsLoading,
+  ]);
+
+  const activeCouponDiscount = isAuthenticated
+    ? activeCouponDiscountByProductId[product.id] ?? 0
+    : 0;
+
   return {
     handleAddToCart,
     isAdded,
@@ -119,5 +146,6 @@ export function useProductCardData(
     categoryLabel: categoryNames[product.category] ?? product.category,
     showFreeRibbon,
     hasOptions: Array.isArray(product.optionGroups) && product.optionGroups.length > 0,
+    activeCouponDiscount,
   };
 }

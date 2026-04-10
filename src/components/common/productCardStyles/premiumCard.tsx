@@ -14,7 +14,7 @@ import { getProductCardMetaLine } from './shared';
 
 export const PremiumCard: React.FC<CardVariantProps> = ({ product, className, data, compactSubtitle }) => {
   const navigate = useNavigate();
-  const { handleAddToCart, isAdded, pointsInfo, imageUrl, categoryLabel, showFreeRibbon, hasOptions } = data;
+  const { handleAddToCart, isAdded, pointsInfo, imageUrl, categoryLabel, showFreeRibbon, hasOptions, activeCouponDiscount } = data;
 
   return (
     <div
@@ -43,6 +43,11 @@ export const PremiumCard: React.FC<CardVariantProps> = ({ product, className, da
           className="h-full w-full object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.04]"
           loading="lazy"
         />
+        {activeCouponDiscount > 0 && (
+          <span className="absolute right-3 top-3 z-10 hidden h-10 min-w-10 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold px-2 shadow-md md:inline-flex">
+            -{activeCouponDiscount}%
+          </span>
+        )}
         {!product.isAvailable && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm">
             <span className="text-xs font-light tracking-wider text-muted-foreground uppercase">Indisponibil</span>
@@ -133,9 +138,16 @@ export const PremiumCard: React.FC<CardVariantProps> = ({ product, className, da
 
         {/* Mobile bottom */}
         <div className="flex items-center justify-between mt-1 md:hidden">
-          <span className="text-sm font-light text-foreground">
-            {product.price} {texts.common.currency}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-light text-foreground">
+              {product.price} {texts.common.currency}
+            </span>
+            {activeCouponDiscount > 0 && (
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[9px] font-semibold px-1.5">
+                -{activeCouponDiscount}%
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-1.5">
             {hasOptions && (
               <button

@@ -16,7 +16,7 @@ import { ACTIVE_STREAK_CAMPAIGNS, MY_STREAK_ENROLLMENT } from '../queries';
 import { isConsecutiveStreakBroken, isImpossibleToComplete, daysRemaining } from './campaignUtils';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
-import { GET_COUPONS_CATALOG } from '@/graphql/queries';
+import { GET_COUPONS_CATALOG_IDS } from '@/graphql/queries';
 import { getImageUrl } from '@/lib/imageUrl';
 import { useMarketingPromoFlags } from '@/hooks/useMarketingPromoFlags';
 import {
@@ -237,7 +237,7 @@ const MobileCouponsShortcutCard: React.FC = () => {
     { fetchPolicy: 'cache-first' }
   );
   const { data: couponsCatalogData } = useQuery<{ couponsCatalog: { id: string }[] }>(
-    GET_COUPONS_CATALOG,
+    GET_COUPONS_CATALOG_IDS,
     { fetchPolicy: 'cache-first', skip: !couponsEnabled }
   );
   const couponCount = couponsCatalogData?.couponsCatalog?.length ?? 0;

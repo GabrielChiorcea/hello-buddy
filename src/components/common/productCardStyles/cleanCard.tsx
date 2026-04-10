@@ -14,7 +14,7 @@ import { getProductCardMetaLine } from './shared';
 
 export const CleanCard: React.FC<CardVariantProps> = ({ product, className, data, compactSubtitle }) => {
   const navigate = useNavigate();
-  const { handleAddToCart, isAdded, imageUrl, showFreeRibbon, hasOptions } = data;
+  const { handleAddToCart, isAdded, imageUrl, showFreeRibbon, hasOptions, activeCouponDiscount } = data;
 
   return (
     <div
@@ -36,6 +36,11 @@ export const CleanCard: React.FC<CardVariantProps> = ({ product, className, data
         )}
       >
         <img src={imageUrl} alt={product.name} className="h-full w-full object-cover" loading="lazy" />
+        {activeCouponDiscount > 0 && (
+          <span className="absolute right-2 top-2 z-10 hidden h-9 min-w-9 items-center justify-center rounded-full bg-primary text-primary-foreground text-[11px] font-bold px-2 shadow-sm md:inline-flex">
+            -{activeCouponDiscount}%
+          </span>
+        )}
         {showFreeRibbon && (
           <div className="absolute top-0 right-0 overflow-hidden w-20 h-20 pointer-events-none hidden md:block">
             <div className="absolute top-[10px] right-[-28px] w-[120px] text-center rotate-45 bg-primary text-primary-foreground text-[10px] font-bold py-0.5 shadow-sm">
@@ -107,9 +112,16 @@ export const CleanCard: React.FC<CardVariantProps> = ({ product, className, data
 
         {/* Mobile bottom */}
         <div className="flex items-center justify-between mt-1 md:hidden">
-          <span className="text-sm font-semibold text-foreground">
-            {product.price} {texts.common.currency}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-foreground">
+              {product.price} {texts.common.currency}
+            </span>
+            {activeCouponDiscount > 0 && (
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[9px] font-bold px-1.5">
+                -{activeCouponDiscount}%
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-1.5">
             {hasOptions && (
               <button

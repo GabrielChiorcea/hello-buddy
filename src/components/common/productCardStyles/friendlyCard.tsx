@@ -15,7 +15,7 @@ import { getProductCardMetaLine } from './shared';
 
 export const FriendlyCard: React.FC<CardVariantProps> = ({ product, className, data, compactSubtitle }) => {
   const navigate = useNavigate();
-  const { handleAddToCart, isAdded, pointsInfo, imageUrl, categoryLabel, showFreeRibbon, hasOptions } = data;
+  const { handleAddToCart, isAdded, pointsInfo, imageUrl, categoryLabel, showFreeRibbon, hasOptions, activeCouponDiscount } = data;
 
   return (
     <div
@@ -44,6 +44,11 @@ export const FriendlyCard: React.FC<CardVariantProps> = ({ product, className, d
           className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
           loading="lazy"
         />
+        {activeCouponDiscount > 0 && (
+          <span className="absolute right-2 top-2 z-10 hidden h-10 min-w-10 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-extrabold px-2 shadow-md md:inline-flex">
+            -{activeCouponDiscount}%
+          </span>
+        )}
         {!product.isAvailable && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-[2px]">
             <span className="text-xs font-semibold text-muted-foreground">Indisponibil</span>
@@ -146,6 +151,11 @@ export const FriendlyCard: React.FC<CardVariantProps> = ({ product, className, d
             <span className="text-sm font-bold text-primary">
               {product.price} {texts.common.currency}
             </span>
+            {activeCouponDiscount > 0 && (
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[9px] font-extrabold px-1.5">
+                -{activeCouponDiscount}%
+              </span>
+            )}
             {pointsInfo && <span className="text-[10px] text-muted-foreground">{pointsInfo}</span>}
           </div>
           <div className="flex items-center gap-1.5">

@@ -5,7 +5,7 @@
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { CartState, CartItem, Product, OrderItemConfigurationGroup } from '@/types';
-import { FREE_DELIVERY_THRESHOLD, DELIVERY_FEE } from '@/config/cart';
+import { DELIVERY_FEE } from '@/config/cart';
 
 // Helper to calculate cart totals
 const getUnitPrice = (item: CartItem) =>
@@ -18,7 +18,7 @@ const calculateTotals = (items: CartItem[]) => {
     (sum, item) => sum + getUnitPrice(item) * item.quantity,
     0
   );
-  const deliveryFee = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE;
+  const deliveryFee = items.length > 0 ? DELIVERY_FEE : 0;
   const total = subtotal + deliveryFee;
   return { subtotal, deliveryFee, total };
 };

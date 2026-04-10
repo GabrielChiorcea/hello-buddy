@@ -357,17 +357,20 @@ export const GET_COUPONS_CATALOG = gql`
     couponsCatalog {
       id
       title
-      description
       imageUrl
       discountPercent
       pointsCost
       requiredTierId
       requiredTierName
-      targetProductId
       targetProductName
-      isActive
-      startsAt
-      expiresAt
+    }
+  }
+`;
+
+export const GET_COUPONS_CATALOG_IDS = gql`
+  query GetCouponsCatalogIds {
+    couponsCatalog {
+      id
     }
   }
 `;
@@ -376,27 +379,17 @@ export const GET_MY_COUPONS = gql`
   query GetMyCoupons {
     myCoupons {
       id
-      userId
       couponId
       status
       activatedAt
       expiresAt
       usedAt
-      usedOrderId
       coupon {
         id
         title
-        description
-        imageUrl
         discountPercent
-        pointsCost
-        requiredTierId
-        requiredTierName
         targetProductId
         targetProductName
-        isActive
-        startsAt
-        expiresAt
       }
     }
   }

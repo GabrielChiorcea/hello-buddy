@@ -11,6 +11,8 @@ import {
   fetchRecommendedProductsApi,
   fetchAppStatsApi,
 } from '@/api/api';
+import { apolloClient } from '@/graphql/client';
+import { GET_MY_COUPONS } from '@/graphql/queries';
 
 interface ProductsState {
   items: Product[];
@@ -21,6 +23,10 @@ interface ProductsState {
   error: string | null;
   recommendedProducts: Product[];
   totalProducts: number;
+  activeCouponDiscountByProductId: Record<string, number>;
+  activeCouponDiscountsLoading: boolean;
+  activeCouponDiscountsError: string | null;
+  activeCouponDiscountsLoadedAt: number | null;
 }
 
 const initialState: ProductsState = {
@@ -32,6 +38,10 @@ const initialState: ProductsState = {
   error: null,
   recommendedProducts: [],
   totalProducts: 0,
+  activeCouponDiscountByProductId: {},
+  activeCouponDiscountsLoading: false,
+  activeCouponDiscountsError: null,
+  activeCouponDiscountsLoadedAt: null,
 };
 
 // Async thunks
@@ -79,6 +89,41 @@ export const fetchAppStats = createAsyncThunk(
   }
 );
 
+interface MyCouponsQueryData {
+  myCoupons: Array<{
+    status: 'active' | 'used' | 'expired';
+    coupon: {
+      targetProductId?: string | null;
+      discountPercent: number;
+    };
+  }>;
+}
+
+export const fetchActiveCouponDiscounts = createAsyncThunk(
+  'products/fetchActiveCouponDiscounts',
+  async (_, { rejectWithValue }) => {
+    try {
+      const { data } = await apolloClient.query<MyCouponsQueryData>({
+        query: GET_MY_COUPONS,
+        fetchPolicy: 'network-only',
+      });
+      const discountsByProduct: Record<string, number> = {};
+      for (const entry of data?.myCoupons ?? []) {
+        if (entry.status !== 'active') continue;
+        const productId = entry.coupon?.targetProductId;
+        if (!productId) continue;
+        const discount = Number(entry.coupon?.discountPercent ?? 0);
+        if (!Number.isFinite(discount) || discount <= 0) continue;
+        discountsByProduct[productId] = Math.max(discountsByProduct[productId] ?? 0, discount);
+      }
+      return discountsByProduct;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to fetch active coupon discounts';
+      return rejectWithValue(message);
+    }
+  }
+);
+
 // Helper to filter products - folosește categoryId pentru filtrare corectă
 const filterProducts = (
   items: Product[],
@@ -119,6 +164,12 @@ const productsSlice = createSlice({
       state.selectedCategory = null;
       state.filteredItems = state.items;
     },
+    clearActiveCouponDiscounts: (state) => {
+      state.activeCouponDiscountByProductId = {};
+      state.activeCouponDiscountsLoading = false;
+      state.activeCouponDiscountsError = null;
+      state.activeCouponDiscountsLoadedAt = null;
+    },
   },
   extraReducers: (builder) => {
     // Fetch Products
@@ -155,11 +206,25 @@ const productsSlice = createSlice({
       // App stats (total products)
       .addCase(fetchAppStats.fulfilled, (state, action) => {
         state.totalProducts = action.payload;
+      })
+      // Active coupon discounts map
+      .addCase(fetchActiveCouponDiscounts.pending, (state) => {
+        state.activeCouponDiscountsLoading = true;
+        state.activeCouponDiscountsError = null;
+      })
+      .addCase(fetchActiveCouponDiscounts.fulfilled, (state, action) => {
+        state.activeCouponDiscountsLoading = false;
+        state.activeCouponDiscountByProductId = action.payload;
+        state.activeCouponDiscountsLoadedAt = Date.now();
+      })
+      .addCase(fetchActiveCouponDiscounts.rejected, (state, action) => {
+        state.activeCouponDiscountsLoading = false;
+        state.activeCouponDiscountsError = (action.payload as string) || 'Failed to load coupon discounts';
       });
   },
 });
 
-export const { setSelectedCategory, clearFilters } = productsSlice.actions;
+export const { setSelectedCategory, clearFilters, clearActiveCouponDiscounts } = productsSlice.actions;
 export default productsSlice.reducer;
 
 // Selectors
@@ -170,3 +235,13 @@ export const selectSelectedCategory = (state: { products: ProductsState }) => st
 export const selectProductsLoading = (state: { products: ProductsState }) => state.products.isLoading;
 export const selectRecommendedProducts = (state: { products: ProductsState }) => state.products.recommendedProducts;
 export const selectTotalProducts = (state: { products: ProductsState }) => state.products.totalProducts;
+export const selectActiveCouponDiscountByProductId = (state: { products: ProductsState }) =>
+  state.products.activeCouponDiscountByProductId;
+export const selectActiveCouponDiscountForProduct = (
+  state: { products: ProductsState },
+  productId: string
+) => state.products.activeCouponDiscountByProductId[productId] ?? 0;
+export const selectActiveCouponDiscountsLoading = (state: { products: ProductsState }) =>
+  state.products.activeCouponDiscountsLoading;
+export const selectActiveCouponDiscountsLoadedAt = (state: { products: ProductsState }) =>
+  state.products.activeCouponDiscountsLoadedAt;

@@ -13,7 +13,6 @@ interface MyCoupon {
   usedAt?: string | null;
   coupon: {
     title: string;
-    imageUrl?: string | null;
     discountPercent: number;
     targetProductName?: string | null;
   };
@@ -39,10 +38,12 @@ export default function MyCouponsPage() {
             {coupons.map((entry) => (
               <Card key={entry.id}>
                 <CardHeader>
-                  <CardTitle className="text-lg">{entry.coupon.title}</CardTitle>
+                  <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-[10px] bg-primary text-primary-foreground text-sm font-black leading-none shadow-sm">
+                    {entry.coupon.discountPercent}%
+                  </div>
+                  <CardTitle className="text-lg">{entry.coupon.targetProductName || entry.coupon.title}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  <p className="text-sm">{texts.myCoupons.discountLabel} -{entry.coupon.discountPercent}% {entry.coupon.targetProductName ? texts.myCoupons.forProduct.replace('{product}', entry.coupon.targetProductName) : ''}</p>
                   <p className="text-sm">{texts.myCoupons.statusLabel} {formatCouponStatus(entry.status)}</p>
                   <p className="text-xs text-muted-foreground">{texts.myCoupons.activatedAtLabel} {new Date(entry.activatedAt).toLocaleString()}</p>
                   {entry.usedAt && (

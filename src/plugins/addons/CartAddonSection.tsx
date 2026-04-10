@@ -19,7 +19,6 @@ import {
   type AddonSuggestion,
 } from '@/api/api';
 import { Product } from '@/types';
-import { FREE_DELIVERY_THRESHOLD } from '@/config/cart';
 
 function suggestionFromProduct(p: Product): AddonSuggestion {
   return { product: p, ruleId: null };
@@ -27,12 +26,9 @@ function suggestionFromProduct(p: Product): AddonSuggestion {
 
 function getBadge(
   product: Product,
-  subtotal: number,
+  _subtotal: number,
   ruleId: string | number | null,
 ): { label: string; variant: 'primary' | 'success' | 'muted' } | null {
-  if (subtotal + product.price >= FREE_DELIVERY_THRESHOLD && subtotal < FREE_DELIVERY_THRESHOLD) {
-    return { label: 'Livrare gratuită', variant: 'success' };
-  }
   if (ruleId) {
     return { label: 'Recomandat', variant: 'primary' };
   }

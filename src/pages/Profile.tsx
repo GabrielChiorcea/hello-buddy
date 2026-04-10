@@ -364,7 +364,7 @@ const Profile: React.FC = () => {
                     <div key={entry.id} className="rounded-md border p-3">
                       <p className="font-medium">{entry.coupon.title}</p>
                       <p className="text-sm text-muted-foreground">
-                        -{entry.coupon.discountPercent}% {entry.coupon.targetProductName ? `la ${entry.coupon.targetProductName}` : ''}
+                        {entry.coupon.discountPercent}% {entry.coupon.targetProductName ? `la ${entry.coupon.targetProductName}` : ''}
                       </p>
                       <p className="text-xs text-muted-foreground">Status: {couponStatusLabel(entry.status)}</p>
                       <p className="text-xs text-muted-foreground">Activat la: {new Date(entry.activatedAt).toLocaleString()}</p>

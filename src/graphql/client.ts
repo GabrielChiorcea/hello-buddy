@@ -29,7 +29,21 @@ import { onError } from '@apollo/client/link/error';
  * URL-ul endpoint-ului GraphQL
  * Se citește din variabilele de mediu sau folosește valoarea implicită
  */
-const GRAPHQL_ENDPOINT = import.meta.env.VITE_GRAPHQL_ENDPOINT || '/graphql';
+const GRAPHQL_ENDPOINT = (() => {
+  const configured = import.meta.env.VITE_GRAPHQL_ENDPOINT || '/graphql';
+  if (typeof window === 'undefined') return configured;
+  try {
+    const gqlUrl = new URL(configured, window.location.origin);
+    const currentHost = window.location.hostname;
+    // Dev fix: folosim aceeași gazdă ca frontend-ul pentru cookie-uri HttpOnly/SameSite pe auth.
+    if (currentHost && gqlUrl.hostname !== currentHost) {
+      gqlUrl.hostname = currentHost;
+    }
+    return gqlUrl.toString();
+  } catch {
+    return configured;
+  }
+})();
 
 // ============================================================================
 // LINK-URI APOLLO

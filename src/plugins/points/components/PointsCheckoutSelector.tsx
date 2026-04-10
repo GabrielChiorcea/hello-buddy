@@ -73,15 +73,16 @@ function SelectorContent({
   currency = 'RON',
   payableBeforePoints,
 }: PointsCheckoutSelectorProps & { variant: ComponentStyleName; userPoints: number }) {
-  const baseAvailable = rewards.filter((r) => r.pointsCost <= userPoints && (payableBeforePoints == null || r.discountAmount <= payableBeforePoints));
+  const visibleRewards = rewards.filter((r) => r.pointsCost <= userPoints);
 
   const rewardButton = (r: PointsReward) => (
     <RewardOption
       key={r.id}
-      label={`${r.pointsCost} puncte`}
+      label={`${r.pointsCost} puncte${payableBeforePoints != null && r.discountAmount > payableBeforePoints ? ' (indisponibil pentru totalul curent)' : ''}`}
       value={`-${r.discountAmount} ${currency}`}
       selected={formData.pointsToUse === r.pointsCost}
       onClick={() => onPointsChange(r.pointsCost)}
+      disabled={payableBeforePoints != null && r.discountAmount > payableBeforePoints}
       variant={variant}
     />
   );
@@ -89,7 +90,7 @@ function SelectorContent({
   return (
     <>
       {variant === 'gamified' && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-5 relative rounded-2xl overflow-hidden gamified-casino-card">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-5 relative rounded-2xl overflow-hidden gamified-casino-card points-gamified-card">
           <div className="absolute -top-16 -right-10 w-24 h-24 bg-reward/15 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-10 -left-10 w-20 h-20 bg-reward-light/10 rounded-full blur-3xl pointer-events-none" />
           <div className="relative z-10 px-5 py-4 border-b border-[rgba(255,160,60,0.35)] flex items-center justify-between">
@@ -101,7 +102,7 @@ function SelectorContent({
           </div>
           <div className="relative z-10 p-5 space-y-2">
             <RewardOption label="Nu folosi puncte" selected={!formData.pointsToUse} onClick={() => onPointsChange(undefined)} variant="gamified" />
-            {baseAvailable.map(rewardButton)}
+            {visibleRewards.map(rewardButton)}
           </div>
           <SelectedFeedback formData={formData} rewards={rewards} currency={currency} variant="gamified" />
         </motion.div>
@@ -109,7 +110,7 @@ function SelectorContent({
       {variant === 'clean' && (
         <div className="mt-5 rounded-xl border border-border bg-card">
           <div className="px-4 py-3 border-b border-border flex items-center justify-between"><div className="flex items-center gap-2"><Coins className="h-4 w-4 text-primary" /><p className="text-sm font-medium text-foreground">Folosește punctele</p></div><span className="text-sm text-muted-foreground">{userPoints} pt disponibile</span></div>
-          <div className="p-4 space-y-2"><RewardOption label="Nu folosi puncte" selected={!formData.pointsToUse} onClick={() => onPointsChange(undefined)} variant="clean" />{baseAvailable.map(rewardButton)}</div>
+          <div className="p-4 space-y-2"><RewardOption label="Nu folosi puncte" selected={!formData.pointsToUse} onClick={() => onPointsChange(undefined)} variant="clean" />{visibleRewards.map(rewardButton)}</div>
           <SelectedFeedback formData={formData} rewards={rewards} currency={currency} variant="clean" />
         </div>
       )}
@@ -117,14 +118,14 @@ function SelectorContent({
         <div className="mt-5 rounded-2xl bg-card border border-border/50 shadow-lg shadow-foreground/5 overflow-hidden">
           <div className="h-0.5 bg-gradient-to-r from-primary/50 via-primary to-primary/50" />
           <div className="px-5 py-3 border-b border-border/50 flex items-center justify-between"><div className="flex items-center gap-2"><Star className="h-4 w-4 text-primary" /><p className="text-sm font-medium text-foreground tracking-tight">Aplică reducere din puncte</p></div><span className="text-xs text-muted-foreground/60 tracking-wide uppercase">{userPoints} puncte</span></div>
-          <div className="p-5 space-y-2"><RewardOption label="Fără reducere" selected={!formData.pointsToUse} onClick={() => onPointsChange(undefined)} variant="premium" />{baseAvailable.map(rewardButton)}</div>
+          <div className="p-5 space-y-2"><RewardOption label="Fără reducere" selected={!formData.pointsToUse} onClick={() => onPointsChange(undefined)} variant="premium" />{visibleRewards.map(rewardButton)}</div>
           <SelectedFeedback formData={formData} rewards={rewards} currency={currency} variant="premium" />
         </div>
       )}
       {variant === 'friendly' && (
         <div className="mt-5 rounded-2xl bg-accent/30 border-2 border-accent shadow-md">
           <div className="px-4 py-3 border-b border-accent flex items-center justify-between"><div className="flex items-center gap-2"><Heart className="h-4 w-4 text-primary" /><p className="text-sm font-bold text-foreground">Folosește punctele!</p></div><span className="bg-primary/15 text-primary rounded-full px-2.5 py-0.5 text-xs font-semibold">{userPoints} pt</span></div>
-          <div className="p-4 space-y-2"><RewardOption label="Nu folosi puncte" selected={!formData.pointsToUse} onClick={() => onPointsChange(undefined)} variant="friendly" />{baseAvailable.map(rewardButton)}</div>
+          <div className="p-4 space-y-2"><RewardOption label="Nu folosi puncte" selected={!formData.pointsToUse} onClick={() => onPointsChange(undefined)} variant="friendly" />{visibleRewards.map(rewardButton)}</div>
           <SelectedFeedback formData={formData} rewards={rewards} currency={currency} variant="friendly" />
         </div>
       )}
@@ -139,10 +140,10 @@ function RewardOption({ label, value, selected, onClick, variant, disabled = fal
 }) {
   const styles: Record<ComponentStyleName, { base: string; selected: string; unselected: string; radio: string; radioSelected: string }> = {
     gamified: {
-      base: 'w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-200 text-left bg-white/5 border-white/10',
-      selected: 'gamified-option-selected border-[rgba(255,100,30,0.6)] bg-[rgba(255,80,0,0.12)] shadow-[0_0_16px_rgba(0,0,0,0.5)] scale-[1.01]',
-      unselected: 'hover:border-[rgba(255,160,60,0.4)]',
-      radio: 'border-[1.5px] border-white/25 bg-transparent',
+      base: 'w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-200 text-left bg-[hsl(var(--background)/0.72)] border-[hsl(var(--foreground)/0.14)]',
+      selected: 'gamified-option-selected border-[hsl(var(--primary)/0.55)] bg-[hsl(var(--primary)/0.12)] shadow-[0_6px_16px_hsl(var(--primary)/0.2)] scale-[1.01]',
+      unselected: 'hover:border-[hsl(var(--primary)/0.4)] hover:bg-[hsl(var(--background)/0.9)]',
+      radio: 'border-[1.5px] border-[hsl(var(--foreground)/0.3)] bg-transparent',
       radioSelected: 'border-transparent bg-gradient-to-br from-[#ff4500] to-[#ff6b00] shadow-[0_0_8px_rgba(255,80,0,0.5)]',
     },
     clean: {
@@ -181,7 +182,7 @@ function RewardOption({ label, value, selected, onClick, variant, disabled = fal
         disabled && 'opacity-60 cursor-not-allowed',
         selected
           ? isGamifiedNone
-            ? 'border-white/20 bg-white/5'
+            ? 'border-[hsl(var(--primary)/0.35)] bg-[hsl(var(--primary)/0.08)]'
             : s.selected
           : s.unselected
       )}
@@ -191,7 +192,7 @@ function RewardOption({ label, value, selected, onClick, variant, disabled = fal
           'w-[18px] h-[18px] rounded-full flex items-center justify-center flex-shrink-0 transition-all',
           selected
             ? isGamifiedNone && isGamified
-              ? 'border-[1.5px] border-[rgba(255,180,120,0.9)] bg-[rgba(255,255,255,0.08)]'
+              ? 'border-[1.5px] border-[hsl(var(--primary)/0.7)] bg-[hsl(var(--primary)/0.12)]'
               : s.radioSelected
             : s.radio
         )}
@@ -202,7 +203,7 @@ function RewardOption({ label, value, selected, onClick, variant, disabled = fal
               'h-3 w-3',
               isGamified
                 ? isGamifiedNone
-                  ? 'text-[rgba(255,180,120,0.95)]'
+                  ? 'text-[hsl(var(--primary))]'
                   : 'text-white'
                 : 'text-primary-foreground'
             )}
@@ -214,7 +215,7 @@ function RewardOption({ label, value, selected, onClick, variant, disabled = fal
           className={cn(
             'text-[14px] font-medium',
             isGamified
-              ? 'text-white'
+              ? 'text-foreground'
               : selected
                 ? 'text-foreground'
                 : 'text-muted-foreground'
@@ -227,7 +228,7 @@ function RewardOption({ label, value, selected, onClick, variant, disabled = fal
             className={cn(
               'text-[15px] font-bold',
               isGamified
-                ? 'text-[#ffcc44] tracking-wide'
+              ? 'text-[hsl(var(--primary))] tracking-wide'
                 : selected
                   ? 'text-primary'
                   : 'text-muted-foreground'
@@ -253,10 +254,10 @@ function SelectedFeedback({ formData, rewards, currency, variant }: {
           <div
             className={cn(
               'px-5 py-3 flex items-center justify-between',
-              isGamified ? 'bg-[rgba(0,0,0,0.45)] border-t border-[rgba(255,160,60,0.4)]' : 'bg-muted/50 border-t border-border'
+              isGamified ? 'bg-[hsl(var(--background)/0.85)] border-t border-[hsl(var(--primary)/0.35)]' : 'bg-muted/50 border-t border-border'
           )}>
-            <span className={cn('text-xs', isGamified ? 'text-[rgba(255,255,255,0.6)]' : 'text-muted-foreground')}>Reducere aplicată</span>
-            <span className={cn('text-sm font-bold', isGamified ? 'text-[#ffcc44]' : 'text-primary')}>
+            <span className={cn('text-xs', isGamified ? 'text-foreground/75' : 'text-muted-foreground')}>Reducere aplicată</span>
+            <span className={cn('text-sm font-bold', isGamified ? 'text-[hsl(var(--primary))]' : 'text-primary')}>
               -{rewards.find((r) => r.pointsCost === formData.pointsToUse)?.discountAmount ?? 0} {currency}
             </span>
           </div>
