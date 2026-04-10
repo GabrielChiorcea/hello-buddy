@@ -7,13 +7,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Zap, Star, Gift, TrendingUp, ChevronRight, Sparkles, ShoppingBag, ShoppingCart } from 'lucide-react';
+import { Star, Gift, Sparkles, ShoppingBag } from 'lucide-react';
 import { AnimatedCtaArrows } from '@/components/common/AnimatedCtaArrows';
+import BonusBanner from '@/components/common/BonusBanner';
 import { useAppSelector } from '@/store';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { Button } from '@/components/ui/button';
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
-import { TierIcon } from '@/config/tierIcons';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { cn } from '@/lib/utils';
@@ -24,19 +23,6 @@ import { FreeCampaignUrgencyBanner } from './FreeCampaignUrgencyBanner';
 import { HeroStoryConnector } from './HeroStoryConnector';
 
 const easeOut: [number, number, number, number] = [0.16, 1, 0.3, 1];
-
-/** Set `true` to show the Benefits / How it works accordion in the gamified hero. */
-const SHOW_HERO_ACCORDION = false;
-
-/** High-contrast accordion triggers: large tap target, clear border, visible focus for a11y */
-const heroAccordionTriggerClass = cn(
-  'min-h-[48px] sm:min-h-[52px] rounded-xl border-2 border-primary-foreground/50 bg-primary-foreground/22',
-  'px-2.5 py-3 sm:px-4 sm:py-3.5 text-sm sm:text-base font-bold text-primary-foreground shadow-md transition-colors',
-  'hover:bg-primary-foreground/32 hover:border-primary-foreground/65 hover:no-underline',
-  'data-[state=open]:border-primary-foreground/75 data-[state=open]:bg-primary-foreground/30',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--primary))]',
-  '[&>svg:last-child]:h-5 [&>svg:last-child]:w-5 [&>svg:last-child]:text-primary-foreground [&>svg:last-child]:opacity-100',
-);
 
 /* ── Gradient progress bar (reused from gamifiedTier) ── */
 const GradientBar: React.FC<{ percent: number }> = ({ percent }) => (
@@ -103,14 +89,6 @@ export const GamifiedHeroHub: React.FC = () => {
               <div className="md:hidden">
                 <HomeHeroLogo variant="gamified" align="center" compactMobileSpacing />
               </div>
-              <motion.h1
-                className="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-3"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, ease: easeOut }}
-              >
-                {texts.home.heroTitle}
-              </motion.h1>
             </>
           )}
           </div>
@@ -208,81 +186,6 @@ export const GamifiedHeroHub: React.FC = () => {
               </>
             )}
 
-            {/* Accordion — Benefits / How it works (disabled for layout preview; set SHOW_HERO_ACCORDION true to restore) */}
-            {SHOW_HERO_ACCORDION && (
-            <Accordion
-              type="single"
-              collapsible
-              className={cn(
-                'grid grid-cols-2 gap-x-2 gap-y-2 sm:gap-x-3',
-                /* Row 1: triggers (Item > h3) */
-                '[&>div:nth-child(1)>h3]:col-start-1 [&>div:nth-child(1)>h3]:row-start-1',
-                '[&>div:nth-child(2)>h3]:col-start-2 [&>div:nth-child(2)>h3]:row-start-1',
-                /* Row 2: panel full width of section (Items use display:contents; panels share row 2) */
-                '[&>div:nth-child(1)>*:last-child]:col-span-2 [&>div:nth-child(1)>*:last-child]:row-start-2 [&>div:nth-child(1)>*:last-child]:w-full [&>div:nth-child(1)>*:last-child]:min-w-0',
-                '[&>div:nth-child(2)>*:last-child]:col-span-2 [&>div:nth-child(2)>*:last-child]:row-start-2 [&>div:nth-child(2)>*:last-child]:w-full [&>div:nth-child(2)>*:last-child]:min-w-0',
-              )}
-            >
-              {/* Benefits — `contents` lets triggers + panels participate in parent grid */}
-              <AccordionItem value="benefits" className="contents border-0">
-                <AccordionTrigger className={cn(heroAccordionTriggerClass, 'text-left')}>
-                  <span className="flex min-w-0 items-center gap-2 sm:gap-3">
-                    <Gift className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" aria-hidden />
-                    <span className="min-w-0 leading-tight">{texts.home.heroBenefits}</span>
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent className="rounded-xl border-2 border-primary-foreground/35 bg-primary-foreground/10 px-4 pb-4 pt-3 text-sm text-primary-foreground/95 shadow-sm">
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-2.5">
-                      <Zap className="h-4 w-4 shrink-0 mt-0.5" aria-hidden />
-                      <span className="leading-relaxed">{tierData.currentBenefit}</span>
-                    </div>
-                    <div className="flex items-start gap-2.5">
-                      <TrendingUp className="h-4 w-4 shrink-0 mt-0.5" aria-hidden />
-                      <span className="leading-relaxed">{tierData.xpFormulaText}</span>
-                    </div>
-                    {tierData.hasFreeProductBenefits ? (
-                      <p className="leading-relaxed text-primary-foreground/95">{texts.home.heroFreeProductsSeeAbove}</p>
-                    ) : (
-                      <p className="text-sm leading-relaxed text-primary-foreground/75">{texts.home.heroNoFreeProducts}</p>
-                    )}
-                    {!tierData.isMaxLevel && tierData.nextTier && (
-                      <div className="flex flex-wrap items-center gap-2 border-t border-primary-foreground/20 pt-3 text-sm">
-                        <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
-                        <span className="text-primary-foreground/80">{texts.home.heroUnlocks}</span>
-                        <TierIcon badgeIcon={tierData.nextTier.badgeIcon} tierLabel={tierData.nextTier.name} size={16} className="inline" />
-                        <span className="font-semibold">{tierData.nextTier.name}</span>
-                        <span className="ml-auto text-xs font-bold tabular-nums">x{tierData.nextMultiplier.toFixed(1)}</span>
-                      </div>
-                    )}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* How it works — same `contents` layout as Benefits (full-width panel row) */}
-              <AccordionItem value="how" className="contents border-0">
-                <AccordionTrigger className={cn(heroAccordionTriggerClass, 'text-left')}>
-                  <span className="flex min-w-0 items-center gap-2 sm:gap-3">
-                    <TrendingUp className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" aria-hidden />
-                    <span className="min-w-0 leading-tight">{texts.home.heroHowItWorks}</span>
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent className="rounded-xl border-2 border-primary-foreground/35 bg-primary-foreground/10 px-4 pb-4 pt-3 text-sm text-primary-foreground/95 shadow-sm">
-                  <div className="space-y-3">
-                    <p className="flex items-start gap-3 leading-relaxed">
-                      <ShoppingCart className="h-4 w-4 shrink-0 mt-0.5" aria-hidden />
-                      {texts.home.heroHowPointsWork}
-                    </p>
-                    <p className="flex items-start gap-3 leading-relaxed">
-                      <TrendingUp className="h-4 w-4 shrink-0 mt-0.5" aria-hidden />
-                      {texts.home.heroHowRanksWork}
-                    </p>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-            )}
-
             {/* CTA separat doar dacă nu e deja în bannerul de urgență */}
             {!tierData.isMaxLevel &&
               !(tierData.hasFreeProductBenefits && tierData.freeProductCampaignsSummary.length > 0) && (
@@ -321,20 +224,23 @@ export const GamifiedHeroHub: React.FC = () => {
         {/* ─── Guest: simple CTA (tier teaser moved to Welcome) ─── */}
         {!isAuthenticated && (
           <div className="pb-10 text-center">
-            <motion.p
-              className="text-lg text-primary-foreground/80 mb-4"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              {texts.app.tagline}
-            </motion.p>
-            <Button size="lg" variant="secondary" asChild className="rounded-xl font-bold">
-              <Link to={routes.catalog} className="flex items-center gap-2">
-                {texts.home.orderNow}
-                <AnimatedCtaArrows size="md" className="ml-1" />
+            <div className="mx-auto mb-4 w-full max-w-md">
+              <BonusBanner visibility="all" />
+            </div>
+            <div className="flex items-center justify-center gap-3">
+              <Button size="lg" variant="secondary" asChild className="rounded-xl font-bold">
+                <Link to={routes.catalog} className="flex items-center gap-2">
+                  {texts.home.orderNow}
+                  <AnimatedCtaArrows size="md" className="ml-1" />
+                </Link>
+              </Button>
+              <Button size="lg" variant="secondary" asChild className="rounded-xl font-bold">
+              <Link to={routes.login} className="text-sm font-semibold text-primary-foreground underline-offset-4 hover:underline">
+                {texts.home.heroGuestFomoCta}
               </Link>
-            </Button>
+              </Button>
+
+            </div>
           </div>
         )}
       </div>

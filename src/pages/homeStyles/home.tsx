@@ -16,7 +16,7 @@ import { HomeMarketingCards } from '@/plugins/streak/components/HomeMarketingCar
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { cn } from '@/lib/utils';
-import { CategoryIconDisplay, splitCategoriesPinnedComboFirst } from '@/config/categoryIcons';
+import { CATEGORY_ICON_ID_COMBO, CategoryIconDisplay, splitCategoriesPinnedComboFirst } from '@/config/categoryIcons';
 import type { HomeDisplayData } from './shared';
 import { fadeUp, staggerContainer, cardVariant } from './shared';
 
@@ -105,7 +105,7 @@ export const HomePage: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
                       to={routes.catalog}
                       onClick={() => handleCategoryClick(category.name)}
                       className={categoryLinkClassPinned}
-                      variants={cardVariant}
+                      variants={category.icon === CATEGORY_ICON_ID_COMBO ? undefined : cardVariant}
                     >
                       {homeCategoryLinkInner(category)}
                     </MotionLink>
@@ -159,7 +159,7 @@ export const HomePage: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
           <motion.div className="bg-primary rounded-2xl p-8 md:p-12 text-center shadow-2xl shadow-primary/20" initial={{ opacity: 0, scale: 0.96 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
             {cartItemCount > 0 ? (
               <>
-                <div className="flex items-center justify-center gap-2 mb-4">
+                <div className="flex flex-col items-center justify-center gap-2 mb-4">
                   <ShoppingBag className="h-7 w-7 text-primary-foreground" />
                   <h2 className="text-2xl md:text-3xl font-extrabold text-primary-foreground">
                     Ai {cartItemCount} produse în coș · {cartSubtotal.toFixed(0)} {texts.common.currency}

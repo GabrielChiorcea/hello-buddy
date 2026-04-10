@@ -56,9 +56,12 @@ export const FreeProductsTierGrid: React.FC<{ summaries: Summary[] }> = ({ summa
   if (freeCategories.length === 0) return null;
 
   const effectiveMin = getEffectiveMinOrder(summaries);
+  const categoryLabel = freeCategories.map((c) => c.categoryName).join(', ');
   const hintText =
     effectiveMin > 0
-      ? texts.freeProducts.rankInfoMinOrder.replace('{amount}', String(effectiveMin))
+      ? texts.freeProducts.rankInfoMinOrder
+          .replace('{amount}', String(effectiveMin))
+          .replace('{category}', categoryLabel)
       : texts.freeProducts.rankInfoNoMinOrder;
 
   return (

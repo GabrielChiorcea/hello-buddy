@@ -389,6 +389,7 @@ export const PaymentSelector: React.FC<{ data: CheckoutDisplayData }> = ({ data 
 
 export const OrderSummaryContent: React.FC<{ data: CheckoutDisplayData }> = ({ data }) => {
   const totalSavings = (data.discountFromFreeProducts || 0) + (data.discountFromPoints || 0) + (data.discountFromCoupons || 0) + (data.effectiveDeliveryFee === 0 && data.subtotal > 0 ? 10 : 0);
+  const formatMoney = (value: number) => Number(value || 0).toFixed(2);
 
   return (
     <>
@@ -410,31 +411,31 @@ export const OrderSummaryContent: React.FC<{ data: CheckoutDisplayData }> = ({ d
           })}
         </div>
         <Separator />
-        <div className="flex justify-between"><span className="text-muted-foreground">{texts.cart.subtotal}</span><span className="font-medium">{data.subtotal} {texts.common.currency}</span></div>
+        <div className="flex justify-between"><span className="text-muted-foreground">{texts.cart.subtotal}</span><span className="font-medium">{formatMoney(data.subtotal)} {texts.common.currency}</span></div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">{texts.cart.delivery}</span>
-          <span className="font-medium">{data.effectiveDeliveryFee === 0 ? <span className="text-primary">0 {texts.common.currency}</span> : `${data.deliveryFee} ${texts.common.currency}`}</span>
+          <span className="font-medium">{data.effectiveDeliveryFee === 0 ? <span className="text-primary">0.00 {texts.common.currency}</span> : `${formatMoney(data.deliveryFee)} ${texts.common.currency}`}</span>
         </div>
         {data.discountFromFreeProducts > 0 && (
           <div className="flex justify-between text-sm text-success font-medium">
             <span>🎁 Produse gratuite</span>
-            <span>-{data.discountFromFreeProducts} {texts.common.currency}</span>
+            <span>-{formatMoney(data.discountFromFreeProducts)} {texts.common.currency}</span>
           </div>
         )}
         {data.discountFromPoints > 0 && (
           <div className="flex justify-between text-sm text-primary font-medium">
             <span>⭐ Reducere puncte</span>
-            <span>-{data.discountFromPoints} {texts.common.currency}</span>
+            <span>-{formatMoney(data.discountFromPoints)} {texts.common.currency}</span>
           </div>
         )}
         {data.discountFromCoupons > 0 && (
           <div className="flex justify-between text-sm text-primary font-medium">
             <span>🏷️ Reducere cupoane</span>
-            <span>-{data.discountFromCoupons} {texts.common.currency}</span>
+            <span>-{formatMoney(data.discountFromCoupons)} {texts.common.currency}</span>
           </div>
         )}
         <Separator />
-        <div className="flex justify-between text-lg font-bold"><span>{texts.cart.total}</span><span className="text-primary">{data.displayTotal} {texts.common.currency}</span></div>
+        <div className="flex justify-between text-lg font-bold"><span>{texts.cart.total}</span><span className="text-primary">{formatMoney(data.displayTotal)} {texts.common.currency}</span></div>
 
         {/* Savings banner */}
         {totalSavings > 0 && (

@@ -63,13 +63,12 @@ export function CouponsCheckoutSelector({ coupons, selectedIds, onChange, cartPr
               key={c.id}
               type="button"
               variant={selected ? 'default' : 'outline'}
-              className="w-full justify-between"
+              className="w-full"
               onClick={() => toggle(c.id)}
             >
-              <span className="truncate">{c.coupon.title}</span>
               <span>
                 -{c.coupon.discountPercent}%{' '}
-                {c.coupon.targetProductName ? `(${texts.checkout.couponForProduct.replace('{product}', c.coupon.targetProductName)})` : ''}
+                {c.coupon.targetProductName ? `${texts.checkout.couponForProduct.replace('{product}', c.coupon.targetProductName)}` : ''}
               </span>
             </Button>
           );

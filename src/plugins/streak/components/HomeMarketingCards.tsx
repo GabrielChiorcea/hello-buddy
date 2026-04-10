@@ -67,11 +67,42 @@ interface StreakCardData {
   imageUrl?: string;
 }
 
+const AnimatedHourglass: React.FC<{ className?: string }> = ({ className }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    aria-hidden="true"
+    style={{ transformOrigin: '50% 50%', animation: '1.2s ease-in-out infinite streak-hourglass-flip' }}
+  >
+    <path d="M7 3h10" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
+    <path d="M7 21h10" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
+    <path
+      d="M8 3v2.5c0 1.9 1.1 3.7 2.8 4.6L12 10.8l1.2-.7A5.3 5.3 0 0 0 16 5.5V3"
+      stroke="currentColor"
+      strokeWidth="2.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M16 21v-2.5c0-1.9-1.1-3.7-2.8-4.6L12 13.2l-1.2.7A5.3 5.3 0 0 0 8 18.5V21"
+      stroke="currentColor"
+      strokeWidth="2.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path d="M10.5 8.7h3" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
+    <path d="M10 15.3h4" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
+  </svg>
+);
+
 function useStreakCardData(opts?: { skip?: boolean }): StreakCardData | null {
   const skip = opts?.skip === true;
   const { enabled } = usePluginEnabled('streak');
   const { isAuthenticated } = useAppSelector((s) => s.user);
   const querySkip = !enabled || skip;
+  const enrollmentSkip = querySkip || !isAuthenticated;
 
   const { data: campaignsData } = useQuery<{ activeStreakCampaigns: StreakCampaign[] }>(
     ACTIVE_STREAK_CAMPAIGNS,
@@ -79,7 +110,7 @@ function useStreakCardData(opts?: { skip?: boolean }): StreakCardData | null {
   );
   const { data: enrollmentData } = useQuery<{ myStreakEnrollment: StreakEnrollment | null }>(
     MY_STREAK_ENROLLMENT,
-    { fetchPolicy: 'cache-and-network', skip: querySkip }
+    { fetchPolicy: 'cache-and-network', skip: enrollmentSkip }
   );
   const { data: imageData } = useQuery<{ appSetting: string | null }>(
     GET_STREAK_CARD_IMAGE,
@@ -263,14 +294,11 @@ const MobileCouponsShortcutCard: React.FC = () => {
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange-50">
                 <Tag className="h-5 w-5 text-orange-600" />
               </div>
-              <p className="text-[14px] leading-tight text-muted-foreground">
-                {texts.coupons.homeCardAvailableCount.replace('{count}', String(couponCount))}
-              </p>
             </div>
             <div className="min-w-0">
               <p className="line-clamp-2 text-[13px] font-semibold leading-tight text-foreground">
-                {texts.coupons.homeCardTitle}
-              </p>
+              {texts.coupons.homeCardAvailableCount.replace('{count}', String(couponCount))}
+              </p>              
             </div>
           </div>
 
@@ -287,7 +315,15 @@ const MobileStreakCompactCard: React.FC<{ data: StreakCardData }> = ({ data }) =
   const toneClass = data.status === 'lost' ? 'text-destructive' : data.status === 'completed' ? 'text-reward' : 'text-primary';
 
   return (
-    <Link to={routes.streak} className="block group h-full">
+    <>
+      <style>{`
+        @keyframes streak-hourglass-flip {
+          0%, 32% { transform: rotate(0deg); }
+          45%, 55% { transform: rotate(180deg); }
+          68%, 100% { transform: rotate(180deg); }
+        }
+      `}</style>
+      <Link to={routes.streak} className="block group h-full">
       <div className="relative h-full overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/5 via-background to-accent/10 shadow-sm transition-all duration-200 hover:shadow-md">
         <div
           className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/10 blur-2xl"
@@ -304,27 +340,32 @@ const MobileStreakCompactCard: React.FC<{ data: StreakCardData }> = ({ data }) =
             </div>
           ) : null}
           <div className="flex h-full flex-col px-3 pt-3 pb-3">
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex flex-col items-start">
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-start justify-between gap-2">
                 <span className={`text-3xl font-extrabold leading-none tracking-tight ${toneClass}`}>+{data.bonusPoints}</span>
-                <span className="mt-1 text-left text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                {urgency ? (
+                  <span
+                    className={`inline-block self-start rounded-md px-2 py-0.5 text-[10px] font-medium leading-tight ${urgencyChipClass(urgency.tone)}`}
+                    role="status"
+                  >
+                    {urgency.text}
+                  </span>
+                ) : (
+                  <span className="inline-block self-start rounded-md border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-medium leading-tight text-primary">
+                    Bonus activ
+                  </span>
+                )}
+              </div>
+              <div className="flex items-start gap-2 min-w-0">
+                <span className="text-left text-[10px] font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">
                   {texts.streak.homeGamifiedDealUnit}
                 </span>
+                <span className="text-left text-[10px] font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">
+                  {headline}
+                </span>
+                <AnimatedHourglass className="h-4 w-4 shrink-0 self-center text-reward" />
               </div>
-              {urgency ? (
-                <span
-                  className={`inline-block self-start rounded-md px-2 py-0.5 text-[10px] font-medium leading-tight ${urgencyChipClass(urgency.tone)}`}
-                  role="status"
-                >
-                  {urgency.text}
-                </span>
-              ) : (
-                <span className="inline-block self-start rounded-md border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-medium leading-tight text-primary">
-                  Bonus activ
-                </span>
-              )}
             </div>
-            <p className="mt-2 text-xs font-semibold leading-snug text-foreground line-clamp-2">{headline}</p>
             <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground line-clamp-2">{data.statusText}</p>
             {data.progress && (
               <div className="mt-2">
@@ -352,6 +393,7 @@ const MobileStreakCompactCard: React.FC<{ data: StreakCardData }> = ({ data }) =
         </div>
       </div>
     </Link>
+    </>
   );
 };
 

@@ -13,6 +13,7 @@ interface CampaignCompactPreviewProps {
   totalOrders: number;
   completedOrders: number;
   estimatedSavingsRon: number | null;
+  isEnrolled?: boolean;
   isFailed?: boolean;
   onOpenDetail?: () => void;
 }
@@ -60,6 +61,7 @@ export const CampaignCompactPreview: React.FC<CampaignCompactPreviewProps> = ({
   totalOrders,
   completedOrders,
   estimatedSavingsRon,
+  isEnrolled = false,
   isFailed = false,
   onOpenDetail,
 }) => {
@@ -121,7 +123,7 @@ export const CampaignCompactPreview: React.FC<CampaignCompactPreviewProps> = ({
                   className="truncate bg-gradient-to-r from-reward via-reward-light to-reward bg-[length:200%_100%] bg-clip-text text-transparent"
                   style={{ animation: 'streak-savings-shimmer 1.8s linear infinite' }}
                 >
-                  Economisești până la {estimatedSavingsRon.toFixed(0)} RON
+                  {texts.streak.preview.savingsLabel.replace('{amount}', estimatedSavingsRon.toFixed(0))}
                 </span>
               </p>
             ) : (
@@ -156,7 +158,11 @@ export const CampaignCompactPreview: React.FC<CampaignCompactPreviewProps> = ({
           </span>
           <span className="relative z-30 inline-flex shrink-0 items-center gap-1.5 rounded-[10px] bg-reward px-3.5 py-[7px] text-[12px] font-medium text-reward-foreground">
             <Sparkles className="h-3.5 w-3.5" />
-            {isFailed ? texts.streak.preview.ctaUnlock : texts.streak.preview.ctaDetails}
+            {isFailed
+              ? texts.streak.preview.ctaUnlock
+              : isEnrolled
+                ? texts.streak.preview.ctaView
+                : texts.streak.preview.ctaDetails}
           </span>
         </div>
       </div>

@@ -37,15 +37,15 @@ function endOfDayMs(dateStr: string): number {
 }
 
 function formatCountdown(ms: number): string {
-  if (ms <= 0) return '0:00';
+  if (ms <= 0) return '00:00:00';
   const totalSec = Math.floor(ms / 1000);
-  const days = Math.floor(totalSec / 86400);
-  const h = Math.floor((totalSec % 86400) / 3600);
+  const totalHours = Math.floor(totalSec / 3600);
   const m = Math.floor((totalSec % 3600) / 60);
   const s = totalSec % 60;
-  if (days > 0) return `${days}d ${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m`;
-  if (h > 0) return `${h}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
-  return `${m}m ${String(s).padStart(2, '0')}s`;
+  const hh = String(totalHours).padStart(2, '0');
+  const mm = String(m).padStart(2, '0');
+  const ss = String(s).padStart(2, '0');
+  return `${hh}:${mm}:${ss}`;
 }
 
 function urgencyTier(ms: number): 'calm' | 'soon' | 'hot' | 'critical' {

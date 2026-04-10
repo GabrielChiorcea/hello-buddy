@@ -25,7 +25,7 @@ export const StreakCampaignBlock: React.FC = () => {
   });
   const { data: enrollmentData } = useQuery<{ myStreakEnrollment: StreakEnrollment | null }>(MY_STREAK_ENROLLMENT, {
     fetchPolicy: 'cache-and-network',
-    skip: !enabled,
+    skip: !enabled || !isAuthenticated,
   });
   const campaigns = campaignsData?.activeStreakCampaigns ?? [];
   const myActiveEnrollment = enrollmentData?.myStreakEnrollment ?? null;

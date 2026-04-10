@@ -18,9 +18,11 @@ import { shouldHideImpossibleCampaign } from '@/plugins/streak/components/campai
 import type { StreakCampaign, StreakEnrollment } from '@/plugins/streak/types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { useAppSelector } from '@/store';
 
 const StreakPage: React.FC = () => {
   const { enabled, loading: flagLoading } = usePluginEnabled('streak');
+  const { isAuthenticated } = useAppSelector((s) => s.user);
   const [selectedCampaignId, setSelectedCampaignId] = React.useState<string | null>(null);
   const [isMobile, setIsMobile] = React.useState(false);
 
@@ -44,7 +46,7 @@ const StreakPage: React.FC = () => {
     myStreakEnrollment: StreakEnrollment | null;
   }>(MY_STREAK_ENROLLMENT, {
     fetchPolicy: 'cache-and-network',
-    skip: !enabled,
+    skip: !enabled || !isAuthenticated,
   });
 
   const campaigns = campaignsData?.activeStreakCampaigns ?? [];

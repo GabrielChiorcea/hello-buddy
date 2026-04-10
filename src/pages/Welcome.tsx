@@ -7,7 +7,6 @@ import {
   Gift,
   Lock,
   ShoppingCart,
-  Sparkles,
   Timer,
   TrendingUp,
   UtensilsCrossed,
@@ -208,17 +207,8 @@ const Welcome = () => {
                   <UtensilsCrossed className="h-7 w-7 lg:h-8 lg:w-8" strokeWidth={2} />
                 </div>
               )}
-              <p className="mt-1 w-full max-w-[220px] text-center text-[11px] leading-snug text-primary-foreground/80 lg:mt-2 lg:max-w-[280px] lg:text-sm">
-                {texts.app.tagline}
-              </p>
             </motion.div>
 
-            <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-primary-foreground/30 bg-primary-foreground/10 px-3 py-3 text-primary-foreground lg:hidden">
-              <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-primary-foreground" aria-hidden />
-              <p className="text-sm font-semibold leading-snug">
-                {texts.home.heroGuestFomo} <span className="font-bold">{texts.home.heroGuestFomoReward}</span>
-              </p>
-            </div>
           </div>
 
           <WelcomeProductPeek />
@@ -284,12 +274,6 @@ const Welcome = () => {
               </div>
             </div>
 
-            <div className="mb-4 hidden items-start gap-2.5 rounded-xl border border-primary/30 bg-primary/10 px-3 py-3 text-card-foreground lg:mb-6 lg:flex lg:px-4 lg:py-4">
-              <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-primary lg:h-6 lg:w-6" aria-hidden />
-              <p className="text-sm font-semibold leading-snug lg:text-base">
-                {texts.home.heroGuestFomo} <span className="font-bold text-primary">{texts.home.heroGuestFomoReward}</span>
-              </p>
-            </div>
 
             <div className="mx-auto grid w-full max-w-[360px] grid-cols-1 gap-2.5 lg:max-w-[560px] lg:grid-cols-2">
               {!isAuthenticated ? (

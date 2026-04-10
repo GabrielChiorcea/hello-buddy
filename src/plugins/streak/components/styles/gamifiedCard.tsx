@@ -82,6 +82,7 @@ export const GamifiedCard: React.FC<Props> = ({
         totalOrders={ordersRequired}
         completedOrders={currentCount}
         estimatedSavingsRon={estimatedSavingsRon > 0 ? estimatedSavingsRon : null}
+        isEnrolled={isEnrolled}
         isFailed={isFailed}
         onOpenDetail={onOpenDetail}
       />

@@ -70,6 +70,7 @@ export const FriendlyCard: React.FC<Props> = ({
         totalOrders={required}
         completedOrders={currentCount}
         estimatedSavingsRon={estimatedSavingsRon > 0 ? estimatedSavingsRon : null}
+        isEnrolled={isEnrolled}
         isFailed={isFailed}
         onOpenDetail={onOpenDetail}
       />

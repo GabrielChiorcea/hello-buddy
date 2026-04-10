@@ -4,7 +4,7 @@
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, TicketPercent } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Layout } from '@/components/layout/Layout';
@@ -56,6 +56,7 @@ const Catalog: React.FC = () => {
   } = useAppSelector((state) => state.products);
 
   const orderedCategories = useMemo(() => sortCategoriesComboFirst(categories), [categories]);
+  const activeCouponDiscountByProductId = useAppSelector((state) => state.products.activeCouponDiscountByProductId);
   
   const [currentPage, setCurrentPage] = useState(1);
   const reduceMotion = useReducedMotion();
@@ -90,6 +91,12 @@ const Catalog: React.FC = () => {
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedItems = filteredItems.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const activeCouponsCount = Object.keys(activeCouponDiscountByProductId).length;
+  const couponWord =
+    activeCouponsCount === 1 ? texts.catalog.couponWordSingular : texts.catalog.couponWordPlural;
+  const couponUrgencyMessage = texts.catalog.couponUrgencyMessage
+    .replace('{count}', String(activeCouponsCount))
+    .replace('{couponWord}', couponWord);
 
   // Get category display name
   const getCategoryDisplayName = (categoryName: string): string => {
@@ -107,6 +114,13 @@ const Catalog: React.FC = () => {
 
   return (
     <Layout>
+      <style>{`
+        @keyframes catalog-hourglass-flip {
+          0%, 32% { transform: rotate(0deg); }
+          45%, 55% { transform: rotate(180deg); }
+          68%, 100% { transform: rotate(180deg); }
+        }
+      `}</style>
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -192,13 +206,29 @@ const Catalog: React.FC = () => {
           </div>
         </div>
 
-        {/* Results Count */}
-        <div className="mb-6">
-          <p className="text-muted-foreground">
-            {totalItems} {totalItems === 1 ? 'produs găsit' : 'produse găsite'}
-            {selectedCategory && ` în categoria "${getCategoryDisplayName(selectedCategory)}"`}
-          </p>
-        </div>
+        {/* Coupon urgency (only when user has active coupons) */}
+        {activeCouponsCount > 0 && (
+          <div className="mb-6">
+            <div className="flex w-full flex-nowrap items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5 md:inline-flex md:w-auto">
+              <div className="inline-flex items-center justify-center rounded-full bg-primary/20 p-1.5 text-primary">
+                <TicketPercent className="h-3.5 w-3.5" />
+              </div>
+              <p className="min-w-0 flex-1 truncate whitespace-nowrap text-xs font-bold text-primary">
+                {couponUrgencyMessage}
+              </p>
+              <span className="ml-auto inline-flex h-6 w-6 items-center justify-center rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" style={{ transformOrigin: '50% 50%', animation: 'catalog-hourglass-flip 1.6s ease-in-out infinite' }} aria-hidden="true">
+                  <path d="M7 3h10" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
+                  <path d="M7 21h10" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
+                  <path d="M8 3v2.5c0 1.9 1.1 3.7 2.8 4.6L12 10.8l1.2-.7A5.3 5.3 0 0 0 16 5.5V3" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M16 21v-2.5c0-1.9-1.1-3.7-2.8-4.6L12 13.2l-1.2.7A5.3 5.3 0 0 0 8 18.5V21" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M10.5 8.7h3" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
+                  <path d="M10 15.3h4" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
+                </svg>
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Products Grid */}
         {isLoading ? (
