@@ -1328,6 +1328,12 @@ export const texts = {
   
     // Pagina principală
     home: {
+      /** Chip în hero tier: ×1.1 puncte per comandă */
+      heroPointsMultiplierChip: '×{multiplier} puncte per comandă',
+      /** Sub nodul „următor” pe timeline: x1.2 puncte */
+      heroNextTierPointsLabel: 'x{multiplier} puncte',
+      /** Ranguri viitoare neatinse — nod cu „?” în loc de icon */
+      heroTierMysteryLabel: 'Mister',
       heroTitle: 'Mâncare delicioasă la ușa ta',
       categories: 'Categorii',
       recommended: 'Recomandate pentru tine',

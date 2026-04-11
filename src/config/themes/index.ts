@@ -17,7 +17,7 @@ import type { ThemePreset } from './types';
 
 export type ThemeName = 'orange' | 'tomato' | 'freshGreen' | 'mustard';
 
-export const DEFAULT_THEME: ThemeName = 'freshGreen';
+export const DEFAULT_THEME: ThemeName = 'orange';
 
 export const themes: Record<ThemeName, ThemePreset> = {
   orange,
@@ -64,25 +64,25 @@ export type StyleName = 'gamified' | 'clean' | 'premium' | 'friendly';
 
 export const STYLES = {
   /** Streak, Points, Rewards */
-  component: 'clean' as StyleName,
+  component: 'gamified' as StyleName,
 
   /** TierProgressBar (ranguri) */
-  tier: 'clean' as StyleName,
+  tier: 'gamified' as StyleName,
 
   /** Carduri de produse */
-  productCard: 'clean' as StyleName,
+  productCard: 'gamified' as StyleName,
 
   /** Navbar desktop + MobileBottomNav */
-  navbar: 'clean' as StyleName,
+  navbar: 'premium' as StyleName,
 
   /** Pagina Coș */
-  cart: 'clean' as StyleName,
+  cart: 'gamified' as StyleName,
 
   /** Pagina Checkout */
-  checkout: 'clean' as StyleName,
+  checkout: 'gamified' as StyleName,
 
   /** Footer */
-  footer: 'clean' as StyleName,
+  footer: 'gamified' as StyleName,
 } as const;
 
 // ── Contexte React ──

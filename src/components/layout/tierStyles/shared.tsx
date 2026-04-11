@@ -6,7 +6,7 @@ import { useQuery } from '@apollo/client';
 import { useAppSelector } from '@/store';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { TierIcon } from '@/config/tierIcons';
-import { GET_TIERS_ECONOMY_SETTINGS } from '@/graphql/queries';
+import { GET_LOYALTY_TIERS, GET_TIERS_ECONOMY_SETTINGS } from '@/graphql/queries';
 
 export interface TierDisplayData {
   tierName: string;
@@ -40,6 +40,12 @@ export interface TierDisplayData {
      products: string[];
      productDetails?: { id: string; name: string; categoryName: string; categoryIcon?: string | null }[];
    }[];
+  /** Rangul după următorul (din lista de tier-uri), pentru preview pe desktop */
+  tierAfterNext: {
+    name: string;
+    pointsMultiplier: number;
+    badgeIcon?: string | null;
+  } | null;
 }
 
 export function useTierDisplayData(): TierDisplayData | null {
@@ -57,6 +63,20 @@ export function useTierDisplayData(): TierDisplayData | null {
     fetchPolicy: 'cache-first',
   });
 
+  const { data: tiersListData } = useQuery<{
+    loyaltyTiers: Array<{
+      id: string;
+      name: string;
+      xpThreshold: number;
+      pointsMultiplier: number;
+      badgeIcon?: string | null;
+      sortOrder: number;
+    }>;
+  }>(GET_LOYALTY_TIERS, {
+    skip: !tiersEnabled || !isAuthenticated,
+    fetchPolicy: 'cache-first',
+  });
+
   const currentXp = user?.totalXp ?? 0;
   const nextTier = user?.nextTier ?? null;
   const nextTierThreshold = nextTier?.xpThreshold;
@@ -66,6 +86,23 @@ export function useTierDisplayData(): TierDisplayData | null {
   const hasTier = Boolean(user?.tier);
   const hasNextTier = nextTier != null;
   const canShow = tiersEnabled && isAuthenticated && (hasTier || hasNextTier);
+
+  const tierAfterNext = React.useMemo(() => {
+    if (!nextTier || !tiersListData?.loyaltyTiers?.length) return null;
+    const sorted = [...tiersListData.loyaltyTiers].sort((a, b) => {
+      const ao = a.sortOrder ?? a.xpThreshold;
+      const bo = b.sortOrder ?? b.xpThreshold;
+      return ao - bo;
+    });
+    const idx = sorted.findIndex((t) => t.id === nextTier.id);
+    if (idx < 0 || idx + 1 >= sorted.length) return null;
+    const t = sorted[idx + 1];
+    return {
+      name: t.name,
+      pointsMultiplier: t.pointsMultiplier,
+      badgeIcon: t.badgeIcon ?? null,
+    };
+  }, [nextTier, tiersListData?.loyaltyTiers]);
 
   if (!canShow) {
     return null;
@@ -103,5 +140,6 @@ export function useTierDisplayData(): TierDisplayData | null {
     xpFormulaText, nextTier, nextBenefitText, nextMultiplier,
     hasFreeProductBenefits: !!(freeProductsEnabled && user?.hasFreeProductBenefits),
     freeProductCampaignsSummary: user?.freeProductCampaignsSummary ?? [],
+    tierAfterNext,
   };
 }

@@ -2,6 +2,7 @@
  * Grid compact de produse gratuite — marketing-optimized cu badge GRATIS și urgency.
  */
 import React from 'react';
+import { Gift } from 'lucide-react';
 import { CategoryIconDisplay } from '@/config/categoryIcons';
 import { texts } from '@/config/texts';
 
@@ -65,29 +66,42 @@ export const FreeProductsTierGrid: React.FC<{ summaries: Summary[] }> = ({ summa
       : texts.freeProducts.rankInfoNoMinOrder;
 
   return (
-    <div className="mt-2 space-y-2">
-      <p className="text-[10px] text-muted-foreground">{hintText}</p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        {freeCategories.map((c) => (
-          <div
-            key={c.key}
-            className="relative flex items-center gap-2 rounded-xl border border-primary/15 bg-primary/5 px-3 py-2"
-          >
-          {/* GRATIS badge */}
-            <span className="absolute -top-2 -right-1 rounded-full bg-primary text-primary-foreground text-[8px] font-bold px-2 py-0.5 uppercase shadow-sm">
-              Gratis
-            </span>
-            <span className="shrink-0" title={c.categoryName}>
-              <CategoryIconDisplay categoryName={c.categoryName} iconId={c.categoryIcon} size={24} />
-            </span>
-            <span
-              className="text-[12px] font-semibold text-foreground truncate"
-              title={c.categoryName}
+    <div className="mt-2 md:mt-3">
+      {/* Două coloane egale (50/50) pe toate breakpoints — stânga titlu + info, dreapta carduri categorii */}
+      <div className="grid grid-cols-2 items-stretch gap-2 sm:gap-3 md:gap-4 lg:gap-6">
+        <div className="flex min-w-0 flex-col justify-center gap-1.5 py-0.5 sm:gap-2 md:gap-3 md:py-1">
+          <p className="mb-0 flex items-start gap-1.5 text-[11px] font-bold leading-tight text-primary sm:gap-2 sm:text-sm md:gap-2.5 md:text-base">
+            <Gift className="mt-0.5 h-4 w-4 shrink-0 text-primary sm:h-5 sm:w-5 md:h-6 md:w-6" aria-hidden />
+            <span className="min-w-0">{texts.freeProducts.availableOnlyForYourRank}</span>
+          </p>
+          <p className="text-[9px] leading-snug text-muted-foreground sm:text-[10px] md:text-base md:leading-relaxed">
+            {hintText}
+          </p>
+        </div>
+        <div className="flex min-w-0 flex-col gap-1.5 sm:gap-2 md:gap-3 md:py-1">
+          {freeCategories.map((c) => (
+            <div
+              key={c.key}
+              className="relative flex min-w-0 items-center gap-1.5 rounded-lg border border-primary/15 bg-primary/5 px-2 py-2 sm:gap-2 sm:rounded-xl sm:px-3 sm:py-2.5 md:gap-4 md:rounded-2xl md:px-5 md:py-4"
             >
-              {c.categoryName}
-            </span>
-          </div>
-        ))}
+              <span className="absolute -right-0.5 -top-1.5 rounded-full bg-primary px-1.5 py-px text-[7px] font-bold uppercase text-primary-foreground shadow-sm sm:-right-1 sm:-top-2 sm:px-2 sm:py-0.5 sm:text-[8px] md:right-2 md:top-2 md:px-3 md:py-1 md:text-xs">
+                Gratis
+              </span>
+              <span
+                className="inline-flex shrink-0 origin-center scale-105 sm:scale-110 md:scale-[1.35]"
+                title={c.categoryName}
+              >
+                <CategoryIconDisplay categoryName={c.categoryName} iconId={c.categoryIcon} size={26} />
+              </span>
+              <span
+                className="min-w-0 truncate text-[10px] font-semibold leading-tight text-foreground sm:text-xs md:text-base"
+                title={c.categoryName}
+              >
+                {c.categoryName}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
