@@ -100,13 +100,13 @@ function sanitizeCouponUpdatePayload(raw: unknown): CouponUpdatePayload {
     if (!isValidDateInput(payload.startsAt)) {
       throw new Error('startsAt invalid');
     }
-    updates.startsAt = payload.startsAt;
+    updates.startsAt = payload.startsAt as string | null;
   }
   if (payload.expiresAt !== undefined) {
     if (!isValidDateInput(payload.expiresAt)) {
       throw new Error('expiresAt invalid');
     }
-    updates.expiresAt = payload.expiresAt;
+    updates.expiresAt = payload.expiresAt as string | null;
   }
 
   if (

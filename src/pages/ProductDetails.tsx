@@ -31,7 +31,7 @@ const categoryNames: Record<string, string> = {
   bauturi: 'Băuturi',
 };
 import { toast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
+import { cn, formatDisplayNumber } from '@/lib/utils';
 import { ProductCard } from '@/components/common/ProductCard';
 import { Loader } from '@/components/common/Loader';
 import { ProductConfigurator } from '@/components/product-configurator/ProductConfigurator';
@@ -103,6 +103,11 @@ const ProductDetails: React.FC = () => {
   }
 
   const allergens = product.ingredients?.filter((i) => i.isAllergen) || [];
+  const nonAllergenIngredients = product.ingredients?.filter((i) => !i.isAllergen) || [];
+  const displayedPrice = formatDisplayNumber(unitPrice ?? product.price, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
   return (
     <Layout>
@@ -174,7 +179,7 @@ const ProductDetails: React.FC = () => {
             {/* Price & Add to Cart */}
             <div className="flex items-center gap-4 mb-8">
               <span className="text-3xl font-bold text-primary">
-                {(unitPrice ?? product.price)} {texts.common.currency}
+                {displayedPrice} {texts.common.currency}
               </span>
               <Button
                 size="lg"
@@ -202,22 +207,19 @@ const ProductDetails: React.FC = () => {
             <Separator className="mb-6" />
 
             {/* Ingredients */}
-            {product.ingredients && product.ingredients.length > 0 && (
+            {nonAllergenIngredients.length > 0 && (
               <div className="mb-6">
                 <h2 className="text-lg font-semibold text-foreground mb-3">
                   {texts.productDetails.ingredients}
                 </h2>
                 <div className="flex flex-wrap gap-2">
-                  {product.ingredients.map((ingredient, index) => (
+                  {nonAllergenIngredients.map((ingredient, index) => (
                     <Badge
                       key={index}
-                      variant={ingredient.isAllergen ? 'destructive' : 'outline'}
+                      variant="outline"
                       className="text-sm"
                     >
                       {ingredient.name}
-                      {ingredient.isAllergen && (
-                        <AlertTriangle className="ml-1 h-3 w-3" />
-                      )}
                     </Badge>
                   ))}
                 </div>

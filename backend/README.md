@@ -10,8 +10,7 @@ cd backend
 npm install
 
 # 2. Configurare variabile de mediu
-cp .env.example .env
-# Editează .env cu datele tale
+# Editează .env.development cu datele tale locale
 
 # 3. Pornire MariaDB cu Docker
 docker-compose up -d
@@ -41,6 +40,35 @@ npm run dev
 - **Parolă:** admin123secure
 
 ⚠️ Schimbați parola la prima autentificare!
+
+## Producție (cPanel / fără TypeScript pe server)
+
+Dacă pe hosting **nu poți rula** `npm run build` (doar `npm install`):
+
+1. **Local sau CI** (generează `dist/`):
+   ```bash
+   cd backend
+   npm install
+   npm run build
+   ```
+2. **Încarci pe server** folderul backend fără să fie nevoie de `src/` pentru runtime, dar ai nevoie minim de:
+   - `dist/` (rezultatul build-ului)
+   - `package.json` și `package-lock.json`
+   - `.env.production` (completat cu valorile de producție)
+   - directoare goale sau cu date: `storage/`, `uploads/` dacă le folosești, `logs/` opțional  
+   Migrările SQL rămân în `migrations/` dacă le rulezi manual sau din alt mediu.
+3. **Pe server (Linux)**:
+   ```bash
+   npm install
+   node dist/index.js
+   ```
+   Dacă panoul **nu îți permite flag-uri** la `npm install`, **doar `npm install` e suficient** — instalează și devDependencies (mai mult spațiu pe disc), dar aplicația pornește la fel. Opțional, echivalentul lui `--production` în npm recent: `npm install --omit=dev` (dacă poți rula comanda în SSH).
+
+   Poți reduce dependențele fără flag creând **pe server** un fișier `.npmrc` lângă `package.json` cu o singură linie: `omit=dev`, apoi rulezi `npm install`.
+
+   Nu copia `node_modules` de pe alt sistem de operare — module native (`bcrypt`, `sharp`) se instalează corect doar pe mașina țintă.
+
+Comanda de pornire în cPanel „Node.js App” trebuie să indice spre `dist/index.js` (ex. `node dist/index.js`), cu `NODE_ENV=production` și variabilele din `.env.production`.
 
 ## Structura
 

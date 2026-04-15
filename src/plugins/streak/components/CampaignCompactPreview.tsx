@@ -2,6 +2,7 @@ import React from 'react';
 import { Calendar, Flame, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { texts } from '@/config/texts';
+import { AninnimatedHourglass } from '@/components/icons/AninnimatedHourglass';
 
 interface CampaignCompactPreviewProps {
   title: string;
@@ -17,39 +18,6 @@ interface CampaignCompactPreviewProps {
   isFailed?: boolean;
   onOpenDetail?: () => void;
 }
-
-const AnimatedHourglass: React.FC<{ className?: string }> = ({ className }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-    style={{
-      transformOrigin: '50% 50%',
-      animation: 'streak-hourglass-flip 1.2s ease-in-out infinite',
-    }}
-    aria-hidden="true"
-  >
-    <path d="M7 3h10" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
-    <path d="M7 21h10" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
-    <path
-      d="M8 3v2.5c0 1.9 1.1 3.7 2.8 4.6L12 10.8l1.2-.7A5.3 5.3 0 0 0 16 5.5V3"
-      stroke="currentColor"
-      strokeWidth="2.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M16 21v-2.5c0-1.9-1.1-3.7-2.8-4.6L12 13.2l-1.2.7A5.3 5.3 0 0 0 8 18.5V21"
-      stroke="currentColor"
-      strokeWidth="2.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path d="M10.5 8.7h3" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
-    <path d="M10 15.3h4" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
-  </svg>
-);
 
 export const CampaignCompactPreview: React.FC<CampaignCompactPreviewProps> = ({
   title,
@@ -70,11 +38,6 @@ export const CampaignCompactPreview: React.FC<CampaignCompactPreviewProps> = ({
   return (
     <>
       <style>{`
-        @keyframes streak-hourglass-flip {
-          0%, 32% { transform: rotate(0deg); }
-          45%, 55% { transform: rotate(180deg); }
-          68%, 100% { transform: rotate(180deg); }
-        }
         @keyframes streak-savings-shimmer {
           0% { background-position: 0% 50%; }
           100% { background-position: 200% 50%; }
@@ -154,7 +117,7 @@ export const CampaignCompactPreview: React.FC<CampaignCompactPreviewProps> = ({
           <span className={cn('inline-flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground', isFailed && 'opacity-60')}>
             <Calendar className="h-3 w-3 shrink-0 text-reward" />
             <span className="truncate">{dateRange}</span>
-            <AnimatedHourglass className="h-4 w-4 shrink-0 self-center text-reward" />
+            <AninnimatedHourglass className="h-4 w-4 shrink-0 self-center text-reward" />
           </span>
           <span className="relative z-30 inline-flex shrink-0 items-center gap-1.5 rounded-[10px] bg-reward px-3.5 py-[7px] text-[12px] font-medium text-reward-foreground">
             <Sparkles className="h-3.5 w-3.5" />

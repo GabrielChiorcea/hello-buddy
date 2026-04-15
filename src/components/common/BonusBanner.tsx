@@ -1,5 +1,6 @@
 import { Sparkles } from 'lucide-react';
 import { texts } from '@/config/texts';
+import { AninnimatedHourglass } from '@/components/icons/AninnimatedHourglass';
 
 interface BonusBannerProps {
   desktop?: boolean;
@@ -47,7 +48,10 @@ const BonusBanner = ({ desktop = false, visibility }: BonusBannerProps) => {
 
         <div className="mt-1 flex justify-between md:mt-1.5">
           <span className="text-[11px] text-orange-600 md:text-sm">{texts.home.heroGuestFomoPercent}</span>
-          <span className="text-[11px] font-bold text-orange-600 md:text-sm">{texts.home.heroGuestFomoReward}</span>
+          <span className="inline-flex items-center gap-1">
+            <span className="text-[11px] font-bold text-orange-600 md:text-sm">{texts.home.heroGuestFomoReward}</span>
+            <AninnimatedHourglass className="h-3.5 w-3.5 text-orange-600" />
+          </span>
         </div>
       </div>
 

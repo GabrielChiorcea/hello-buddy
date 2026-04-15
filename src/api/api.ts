@@ -54,6 +54,7 @@ import {
   Category
 } from '@/types';
 import { getErrorMessage } from '@/lib/errorMessages';
+import { resolveViteApiBaseUrl } from '@/config/runtimeApi';
 
 // ============================================================================
 // AUTH API
@@ -716,7 +717,7 @@ export const setDefaultAddressApi = async (
 // ANALYTICS – conversii add-on
 // ============================================================================
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
+const API_BASE = resolveViteApiBaseUrl();
 
 /**
  * Înregistrează un eveniment de tip „produs adăugat din secțiunea Add-ons" (origin_addons).

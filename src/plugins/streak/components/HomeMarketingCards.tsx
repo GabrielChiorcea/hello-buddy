@@ -25,6 +25,7 @@ import {
   homePromoImageImgClass,
 } from './homeMarketingImageClasses';
 import type { StreakCampaign, StreakEnrollment } from '../types';
+import { AninnimatedHourglass } from '@/components/icons/AninnimatedHourglass';
 
 const GET_STREAK_CARD_IMAGE = gql`
   query GetStreakCardImage {
@@ -66,36 +67,6 @@ interface StreakCardData {
   campaignName?: string;
   imageUrl?: string;
 }
-
-const AnimatedHourglass: React.FC<{ className?: string }> = ({ className }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-    aria-hidden="true"
-    style={{ transformOrigin: '50% 50%', animation: '1.2s ease-in-out infinite streak-hourglass-flip' }}
-  >
-    <path d="M7 3h10" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
-    <path d="M7 21h10" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
-    <path
-      d="M8 3v2.5c0 1.9 1.1 3.7 2.8 4.6L12 10.8l1.2-.7A5.3 5.3 0 0 0 16 5.5V3"
-      stroke="currentColor"
-      strokeWidth="2.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M16 21v-2.5c0-1.9-1.1-3.7-2.8-4.6L12 13.2l-1.2.7A5.3 5.3 0 0 0 8 18.5V21"
-      stroke="currentColor"
-      strokeWidth="2.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path d="M10.5 8.7h3" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
-    <path d="M10 15.3h4" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
-  </svg>
-);
 
 function useStreakCardData(opts?: { skip?: boolean }): StreakCardData | null {
   const skip = opts?.skip === true;
@@ -316,13 +287,6 @@ const MobileStreakCompactCard: React.FC<{ data: StreakCardData }> = ({ data }) =
 
   return (
     <>
-      <style>{`
-        @keyframes streak-hourglass-flip {
-          0%, 32% { transform: rotate(0deg); }
-          45%, 55% { transform: rotate(180deg); }
-          68%, 100% { transform: rotate(180deg); }
-        }
-      `}</style>
       <Link to={routes.streak} className="block group h-full">
       <div className="relative h-full overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/5 via-background to-accent/10 shadow-sm transition-all duration-200 hover:shadow-md">
         <div
@@ -363,7 +327,7 @@ const MobileStreakCompactCard: React.FC<{ data: StreakCardData }> = ({ data }) =
                 <span className="text-left text-[10px] font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">
                   {headline}
                 </span>
-                <AnimatedHourglass className="h-4 w-4 shrink-0 self-center text-reward" />
+                <AninnimatedHourglass className="h-4 w-4 shrink-0 self-center text-reward" />
               </div>
             </div>
             <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground line-clamp-2">{data.statusText}</p>

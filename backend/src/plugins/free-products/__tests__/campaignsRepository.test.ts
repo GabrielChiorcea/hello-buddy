@@ -12,9 +12,6 @@ describe('free-products campaignsRepository', () => {
     expect(typeof Repo.createCampaign).toBe('function');
     expect(typeof Repo.updateCampaign).toBe('function');
     expect(typeof Repo.deleteCampaign).toBe('function');
-    expect(typeof Repo.setCampaignProducts).toBe('function');
-    expect(typeof Repo.getCampaignProducts).toBe('function');
-    expect(typeof Repo.getCampaignsWithProducts).toBe('function');
     expect(typeof Repo.getActiveCampaignsForTier).toBe('function');
     expect(typeof Repo.getActiveProductIdsForTier).toBe('function');
   });

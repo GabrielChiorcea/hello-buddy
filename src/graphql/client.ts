@@ -20,30 +20,14 @@
 import { ApolloClient, InMemoryCache, from, HttpLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
+import { resolveGraphqlEndpoint } from '@/config/runtimeApi';
 
 // ============================================================================
 // CONFIGURARE ENDPOINT
 // ============================================================================
 
-/**
- * URL-ul endpoint-ului GraphQL
- * Se citește din variabilele de mediu sau folosește valoarea implicită
- */
-const GRAPHQL_ENDPOINT = (() => {
-  const configured = import.meta.env.VITE_GRAPHQL_ENDPOINT || '/graphql';
-  if (typeof window === 'undefined') return configured;
-  try {
-    const gqlUrl = new URL(configured, window.location.origin);
-    const currentHost = window.location.hostname;
-    // Dev fix: folosim aceeași gazdă ca frontend-ul pentru cookie-uri HttpOnly/SameSite pe auth.
-    if (currentHost && gqlUrl.hostname !== currentHost) {
-      gqlUrl.hostname = currentHost;
-    }
-    return gqlUrl.toString();
-  } catch {
-    return configured;
-  }
-})();
+/** GraphQL: în producție folosește URL-ul din VITE_GRAPHQL_ENDPOINT (ex. subdomeniu API). */
+const GRAPHQL_ENDPOINT = resolveGraphqlEndpoint();
 
 // ============================================================================
 // LINK-URI APOLLO

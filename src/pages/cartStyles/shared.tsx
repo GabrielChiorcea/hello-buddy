@@ -11,6 +11,7 @@ import type { OrderItemConfigurationGroup } from '@/types';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { toast } from '@/hooks/use-toast';
+import { formatDisplayNumber } from '@/lib/utils';
 import { DELIVERY_FEE } from '@/config/cart';
 import { GET_FREE_DELIVERY_THRESHOLD_SETTING, GET_ORDER_PREVIEW } from '@/graphql/queries';
 
@@ -278,7 +279,7 @@ export function useCartData(): CartDisplayData {
   const handleContinueShoppingWithToast = useCallback(() => {
     if (items.length > 0) {
       toast({
-        title: `Ai ${subtotal.toFixed(0)} ${texts.common.currency} în coș`,
+        title: `Ai ${formatDisplayNumber(subtotal, { maximumFractionDigits: 0 })} ${texts.common.currency} în coș`,
         description: 'Nu pierde reducerile — finalizează comanda!',
       });
     }

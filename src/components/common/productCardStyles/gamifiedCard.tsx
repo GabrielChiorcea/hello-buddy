@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Check, Plus, TrendingUp } from 'lucide-react';
 import { texts } from '@/config/texts';
-import { cn } from '@/lib/utils';
+import { cn, formatDisplayNumber } from '@/lib/utils';
 import { getProductUrl } from '@/config/routes';
 import type { CardVariantProps } from './shared';
 import { getProductCardMetaLine } from './shared';
@@ -17,6 +17,8 @@ export const GamifiedCard: React.FC<CardVariantProps> = ({ product, className, d
   const navigate = useNavigate();
   const { handleAddToCart, isAdded, pointsInfo, imageUrl, categoryLabel, showFreeRibbon, hasOptions, activeCouponDiscount } = data;
   const isRecommended = (product as any).isRecommended === true;
+  const formatMoney = (value: number) =>
+    `${formatDisplayNumber(value, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${texts.common.currency}`;
 
   return (
     <div
@@ -95,9 +97,9 @@ export const GamifiedCard: React.FC<CardVariantProps> = ({ product, className, d
         <div className="hidden md:flex items-center justify-between mt-auto pt-2.5">
           <span className="text-lg font-extrabold text-primary">
             {showFreeRibbon ? (
-              <span className="line-through text-primary/70 text-sm">{product.price} {texts.common.currency}</span>
+              <span className="line-through text-primary/70 text-sm">{formatMoney(product.price)}</span>
             ) : (
-              <>{product.price} {texts.common.currency}</>
+              <>{formatMoney(product.price)}</>
             )}
           </span>
           <div className="flex items-center gap-2">
@@ -138,9 +140,9 @@ export const GamifiedCard: React.FC<CardVariantProps> = ({ product, className, d
           <div className="flex items-center gap-2">
             <span className="text-sm font-extrabold text-primary">
               {showFreeRibbon ? (
-                <span className="line-through">{product.price} {texts.common.currency}</span>
+                <span className="line-through">{formatMoney(product.price)}</span>
               ) : (
-                <>{product.price} {texts.common.currency}</>
+                <>{formatMoney(product.price)}</>
               )}
             </span>
             {activeCouponDiscount > 0 && (

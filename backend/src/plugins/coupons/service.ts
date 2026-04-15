@@ -70,20 +70,21 @@ export async function activateCoupon(userId: string, couponId: string): Promise<
 
   const connection = await beginTransaction();
   try {
-    const [couponRows] = (await connection.execute(
+    const [couponRowsRaw] = await connection.execute(
       `SELECT id, is_active, starts_at, expires_at, points_cost, required_tier_id
        FROM coupons
        WHERE id = ?
        FOR UPDATE`,
       [couponId]
-    )) as [Array<{
+    );
+    const couponRows = couponRowsRaw as Array<{
       id: string;
       is_active: number | boolean;
       starts_at: Date | string | null;
       expires_at: Date | string | null;
       points_cost: number;
       required_tier_id: string | null;
-    }>];
+    }>;
 
     const coupon = couponRows[0];
     if (!coupon || !coupon.is_active) throw new Error('Cupon indisponibil');
@@ -97,21 +98,23 @@ export async function activateCoupon(userId: string, couponId: string): Promise<
     }
 
     // Blochează și verifică dacă utilizatorul are deja cuponul activ.
-    const [activeRows] = (await connection.execute(
+    const [activeRowsRaw] = await connection.execute(
       `SELECT id
        FROM user_coupons
        WHERE user_id = ? AND coupon_id = ? AND status = 'active'
        FOR UPDATE`,
       [userId, couponId]
-    )) as [Array<{ id: string }>];
+    );
+    const activeRows = activeRowsRaw as Array<{ id: string }>;
     if (activeRows.length > 0) {
       throw new Error('Cuponul este deja activ în portofel');
     }
 
-    const [userRows] = (await connection.execute(
+    const [userRowsRaw] = await connection.execute(
       'SELECT points_balance, tier_id FROM users WHERE id = ? FOR UPDATE',
       [userId]
-    )) as [Array<{ points_balance: number; tier_id: string | null }>];
+    );
+    const userRows = userRowsRaw as Array<{ points_balance: number; tier_id: string | null }>;
     const user = userRows[0];
     if (!user) throw new Error('Utilizator inexistent');
     if ((user.points_balance ?? 0) < coupon.points_cost) throw new Error('Puncte insuficiente');

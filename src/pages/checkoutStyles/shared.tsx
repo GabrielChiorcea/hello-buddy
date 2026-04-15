@@ -30,7 +30,7 @@ import {
   FulfillmentType,
   OrderItemConfigurationGroup,
 } from '@/types';
-import { cn } from '@/lib/utils';
+import { cn, formatDisplayNumber } from '@/lib/utils';
 import { PointsCheckoutSelector, usePointsRewards } from '@/plugins/points';
 import { CouponsCheckoutSelector, type MyCoupon } from '@/plugins/coupons';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
@@ -389,7 +389,8 @@ export const PaymentSelector: React.FC<{ data: CheckoutDisplayData }> = ({ data 
 
 export const OrderSummaryContent: React.FC<{ data: CheckoutDisplayData }> = ({ data }) => {
   const totalSavings = (data.discountFromFreeProducts || 0) + (data.discountFromPoints || 0) + (data.discountFromCoupons || 0) + (data.effectiveDeliveryFee === 0 && data.subtotal > 0 ? 10 : 0);
-  const formatMoney = (value: number) => Number(value || 0).toFixed(2);
+  const formatMoney = (value: number) =>
+    `${formatDisplayNumber(Number(value || 0), { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${texts.common.currency}`;
 
   return (
     <>
@@ -404,44 +405,44 @@ export const OrderSummaryContent: React.FC<{ data: CheckoutDisplayData }> = ({ d
                   {product.name} x {quantity}
                 </span>
                 <span>
-                  {(unitPrice * quantity).toFixed(2)} {texts.common.currency}
+                  {formatMoney(unitPrice * quantity)}
                 </span>
               </div>
             );
           })}
         </div>
         <Separator />
-        <div className="flex justify-between"><span className="text-muted-foreground">{texts.cart.subtotal}</span><span className="font-medium">{formatMoney(data.subtotal)} {texts.common.currency}</span></div>
+        <div className="flex justify-between"><span className="text-muted-foreground">{texts.cart.subtotal}</span><span className="font-medium">{formatMoney(data.subtotal)}</span></div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">{texts.cart.delivery}</span>
-          <span className="font-medium">{data.effectiveDeliveryFee === 0 ? <span className="text-primary">0.00 {texts.common.currency}</span> : `${formatMoney(data.deliveryFee)} ${texts.common.currency}`}</span>
+          <span className="font-medium">{data.effectiveDeliveryFee === 0 ? <span className="text-primary">{formatMoney(0)}</span> : formatMoney(data.deliveryFee)}</span>
         </div>
         {data.discountFromFreeProducts > 0 && (
           <div className="flex justify-between text-sm text-success font-medium">
             <span>🎁 Produse gratuite</span>
-            <span>-{formatMoney(data.discountFromFreeProducts)} {texts.common.currency}</span>
+            <span>-{formatMoney(data.discountFromFreeProducts)}</span>
           </div>
         )}
         {data.discountFromPoints > 0 && (
           <div className="flex justify-between text-sm text-primary font-medium">
             <span>⭐ Reducere puncte</span>
-            <span>-{formatMoney(data.discountFromPoints)} {texts.common.currency}</span>
+            <span>-{formatMoney(data.discountFromPoints)}</span>
           </div>
         )}
         {data.discountFromCoupons > 0 && (
           <div className="flex justify-between text-sm text-primary font-medium">
             <span>🏷️ Reducere cupoane</span>
-            <span>-{formatMoney(data.discountFromCoupons)} {texts.common.currency}</span>
+            <span>-{formatMoney(data.discountFromCoupons)}</span>
           </div>
         )}
         <Separator />
-        <div className="flex justify-between text-lg font-bold"><span>{texts.cart.total}</span><span className="text-primary">{formatMoney(data.displayTotal)} {texts.common.currency}</span></div>
+        <div className="flex justify-between text-lg font-bold"><span>{texts.cart.total}</span><span className="text-primary">{formatMoney(data.displayTotal)}</span></div>
 
         {/* Savings banner */}
         {totalSavings > 0 && (
           <div className="bg-success/10 border border-success/20 rounded-lg p-3 text-center">
             <p className="text-sm font-bold text-success">
-              🔥 Economisești {totalSavings.toFixed(2)} {texts.common.currency} la această comandă!
+              🔥 Economisești {formatMoney(totalSavings)} la această comandă!
             </p>
           </div>
         )}
@@ -455,7 +456,7 @@ export const SubmitButton: React.FC<{ isLoading: boolean; savings?: number }> = 
     {isLoading ? (
       <><Loader size="sm" className="mr-2" />{texts.checkout.processing}</>
     ) : savings && savings > 0 ? (
-      `Finalizează acum — economisești ${savings.toFixed(0)} ${texts.common.currency}`
+      `Finalizează acum — economisești ${formatDisplayNumber(savings, { maximumFractionDigits: 0 })} ${texts.common.currency}`
     ) : (
       texts.checkout.placeOrder
     )}

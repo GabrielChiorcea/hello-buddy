@@ -29,22 +29,9 @@ import {
   fetchAddressesApi,
   getCurrentUserApi
 } from '@/api/api';
+import { resolveViteApiBaseUrl } from '@/config/runtimeApi';
 
-const API_BASE = (() => {
-  const configured = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
-  if (typeof window === 'undefined') return configured;
-  try {
-    const apiUrl = new URL(configured);
-    const currentHost = window.location.hostname;
-    // Dev fix: păstrăm aceeași gazdă ca frontend-ul pentru a evita pierderea cookie-urilor SameSite=Lax.
-    if (currentHost && apiUrl.hostname !== currentHost) {
-      apiUrl.hostname = currentHost;
-    }
-    return apiUrl.toString().replace(/\/$/, '');
-  } catch {
-    return configured;
-  }
-})();
+const API_BASE = resolveViteApiBaseUrl();
 
 // =============================================================================
 // STARE INIȚIALĂ - Fără refresh token în localStorage

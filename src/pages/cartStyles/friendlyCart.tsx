@@ -15,7 +15,7 @@ import { CartAddonSectionWrapped } from '@/plugins/addons';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { getImageUrl } from '@/lib/imageUrl';
-import { cn } from '@/lib/utils';
+import { cn, formatDisplayNumber } from '@/lib/utils';
 import { buildCartItemKey, type CartDisplayData } from './shared';
 import type { OrderItemConfigurationGroup } from '@/types';
 
@@ -43,6 +43,9 @@ export const FriendlyCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
     handleCheckout,
     handleContinueShoppingWithToast,
   } = data;
+  const formatMoney = (value: number) =>
+    `${formatDisplayNumber(value, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${texts.common.currency}`;
+  const formatInteger = (value: number) => formatDisplayNumber(value, { maximumFractionDigits: 0 });
 
   if (items.length === 0) {
     return (
@@ -95,7 +98,7 @@ export const FriendlyCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
               <span className="text-sm text-foreground">
                 {freeDeliveryProgress.unlocked
                   ? 'Livrare gratuită!'
-                  : `Mai adaugă ${freeDeliveryProgress.remaining.toFixed(0)} ${texts.common.currency} pentru livrare gratuită`}
+                  : `Mai adaugă ${formatInteger(freeDeliveryProgress.remaining)} ${texts.common.currency} pentru livrare gratuită`}
               </span>
             </div>
             <Progress
@@ -116,7 +119,7 @@ export const FriendlyCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                 <span className="text-sm text-foreground">
                   {freeProductProgress.unlocked
                     ? `${freeProductProgress.productNames[0] ?? 'Categorie'} gratis deblocat!`
-                    : `Mai adaugă ${freeProductProgress.remaining.toFixed(0)} ${texts.common.currency} și primești ${freeProductProgress.productNames[0] ?? 'categorie'} gratis`}
+                    : `Mai adaugă ${formatInteger(freeProductProgress.remaining)} ${texts.common.currency} și primești ${freeProductProgress.productNames[0] ?? 'categorie'} gratis`}
                 </span>
               </div>
               <Progress
@@ -153,7 +156,7 @@ export const FriendlyCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                           </p>
                         )}
                         <p className="text-lg font-bold text-primary mt-2">
-                          {(unitPriceWithConfiguration ?? product.price)} {texts.common.currency}
+                          {formatMoney(unitPriceWithConfiguration ?? product.price)}
                         </p>
                       </div>
                       <div className="flex flex-col items-end justify-between">
@@ -207,17 +210,17 @@ export const FriendlyCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex justify-between"><span className="text-muted-foreground">{texts.cart.subtotal}</span><span className="font-medium">{summarySubtotal} {texts.common.currency}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">{texts.cart.subtotal}</span><span className="font-medium">{formatMoney(summarySubtotal)}</span></div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{texts.cart.delivery}</span>
-                  <span className="font-medium">{summaryDelivery === 0 ? <span className="text-success">0 {texts.common.currency}</span> : `${summaryDelivery} ${texts.common.currency}`}</span>
+                  <span className="font-medium">{summaryDelivery === 0 ? <span className="text-success">{formatMoney(0)}</span> : formatMoney(summaryDelivery)}</span>
                 </div>
-                {summaryDelivery > 0 && <p className="text-xs text-muted-foreground">Livrare gratuită peste {orderPreview?.freeDeliveryThreshold ?? freeDeliveryProgress.threshold} {texts.common.currency}</p>}
+                {summaryDelivery > 0 && <p className="text-xs text-muted-foreground">Livrare gratuită peste {formatMoney(orderPreview?.freeDeliveryThreshold ?? freeDeliveryProgress.threshold)}</p>}
                 {summaryDiscountFreeProducts > 0 && (
                   <div className="flex justify-between">
                     <span className="text-success">{texts.freeProducts.cartDiscountLabel}</span>
                     <span className="text-success font-medium">
-                      -{summaryDiscountFreeProducts.toFixed(2)} {texts.common.currency}
+                      -{formatMoney(summaryDiscountFreeProducts)}
                     </span>
                   </div>
                 )}
@@ -225,26 +228,26 @@ export const FriendlyCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                   <div className="flex justify-between">
                     <span className="text-success">Puncte aplicate</span>
                     <span className="text-success font-medium">
-                      -{summaryDiscountPoints.toFixed(2)} {texts.common.currency}
+                      -{formatMoney(summaryDiscountPoints)}
                     </span>
                   </div>
                 )}
                 {freeProductProgress && !freeProductProgress.unlocked && (
                   <p className="text-xs text-muted-foreground">
-                    Mai adaugă {freeProductProgress.remaining.toFixed(2)} {texts.common.currency} pentru produse gratuite
+                    Mai adaugă {formatMoney(freeProductProgress.remaining)} pentru produse gratuite
                   </p>
                 )}
                 <Separator />
                 <div className="flex justify-between text-lg font-bold">
                   <span>{texts.cart.total}</span>
-                  <span className="text-primary">{summaryTotal} {texts.common.currency}</span>
+                  <span className="text-primary">{formatMoney(summaryTotal)}</span>
                 </div>
 
                 {totalSavings > 0 && (
                   <div className="flex items-center gap-2 bg-success/10 rounded-full px-4 py-2">
                     <PartyPopper className="h-4 w-4 text-success" />
                     <span className="text-sm font-medium text-success">
-                      Economisești {totalSavings.toFixed(2)} {texts.common.currency}!
+                      Economisești {formatMoney(totalSavings)}!
                     </span>
                   </div>
                 )}
@@ -252,7 +255,7 @@ export const FriendlyCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
               <CardFooter className="flex-col gap-2">
                 <Button className="w-full rounded-full" size="lg" onClick={handleCheckout}>
                   {totalSavings > 0
-                    ? `Finalizează — economisești ${totalSavings.toFixed(0)} ${texts.common.currency}`
+                    ? `Finalizează — economisești ${formatInteger(totalSavings)} ${texts.common.currency}`
                     : texts.cart.checkout}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>

@@ -6,8 +6,24 @@
 import { z } from 'zod';
 import dotenv from 'dotenv';
 
-// Încarcă variabilele din .env
-dotenv.config();
+// Încarcă variabilele din .env.<mediu>
+const runtimeEnv =
+  process.env.NODE_ENV === 'production'
+    ? 'production'
+    : process.env.NODE_ENV === 'test'
+      ? 'test'
+      : 'development';
+dotenv.config({ path: `.env.${runtimeEnv}` });
+
+/** Origine fără path / slash final — aliniere cu header-ul `Origin` din browser pentru CORS */
+function normalizeOriginUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    return `${u.protocol}//${u.host}`;
+  } catch {
+    return url;
+  }
+}
 
 // Schema de validare pentru variabilele de mediu
 const envSchema = z.object({
@@ -36,10 +52,27 @@ const envSchema = z.object({
   // Server
   PORT: z.string().default('4000').transform(Number),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  FRONTEND_URL: z.string().url().default('http://localhost:5173'),
+  FRONTEND_URL: z.string().url().default('http://localhost:5173').transform(normalizeOriginUrl),
   /** Optional: URL frontend pe rețea (ex: http://192.168.1.146:8080) pentru acces de pe telefon – folosit la CORS */
-  FRONTEND_URL_NETWORK: z.string().url().optional(),
-  ADMIN_URL: z.string().url().default('http://localhost:5174'),
+  FRONTEND_URL_NETWORK: z
+    .string()
+    .url()
+    .optional()
+    .transform((v) => (v === undefined ? undefined : normalizeOriginUrl(v))),
+  /** Opțional: origini extra pentru CORS, separate prin virgulă (ex. https://www.site.ro când FRONTEND_URL e fără www) */
+  CORS_EXTRA_ORIGINS: z
+    .string()
+    .optional()
+    .transform((s) =>
+      s
+        ? s
+            .split(',')
+            .map((x) => x.trim())
+            .filter(Boolean)
+            .map((url) => normalizeOriginUrl(url))
+        : []
+    ),
+  ADMIN_URL: z.string().url().default('http://localhost:5174').transform(normalizeOriginUrl),
   
   // Upload
   UPLOAD_DIR: z.string().default('./uploads'),

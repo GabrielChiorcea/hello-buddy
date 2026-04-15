@@ -221,7 +221,7 @@ const Welcome = () => {
           className="-mt-5 rounded-t-[20px] bg-card px-5 pb-6 pt-5 lg:mt-0 lg:flex lg:min-h-screen lg:flex-1 lg:flex-col lg:rounded-none lg:px-10 lg:py-[60px]"
         >
           <div className="w-full lg:mx-auto lg:max-w-[800px]">
-            <p className="mb-4 text-xl font-medium text-card-foreground lg:text-3xl">{texts.home.welcomeTitle}</p>
+            <p className="mb-4 text-xl font-medium text-card-foreground lg:mb-8 lg:text-3xl">{texts.home.welcomeTitle}</p>
             <div className="mb-4 border-b border-border/70 pb-4 lg:mb-6 lg:pb-6">
               <div className="flex items-start gap-3.5 lg:gap-6">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-muted/40 lg:h-16 lg:w-16">

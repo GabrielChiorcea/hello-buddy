@@ -55,12 +55,23 @@ async function startServer() {
 
   const app = express();
 
+  // cPanel / nginx trimit X-Forwarded-For; fără asta express-rate-limit aruncă ERR_ERL_UNEXPECTED_X_FORWARDED_FOR
+  // și req.ip nu reflectă clientul real. Nu depinde de NODE_ENV — pe server lipsește des NODE_ENV=production.
+  app.set('trust proxy', 1);
+
   // Middleware de securitate
   app.use(helmet({
     contentSecurityPolicy: isDevelopment ? false : undefined,
-    crossOriginResourcePolicy: { policy: 'same-site' }, // Doar same-site (localhost:5173+4000, sau app+api pe același domeniu)
+    // Producție: API pe subdomeniu (ex. back.*) e apelat cross-origin de pe magazin — „same-site” poate bloca răspunsuri
+    crossOriginResourcePolicy: isDevelopment
+      ? { policy: 'same-site' }
+      : { policy: 'cross-origin' },
   }));
-  const corsOrigins: string[] = [env.FRONTEND_URL, env.ADMIN_URL];
+  const corsOrigins: string[] = [
+    env.FRONTEND_URL,
+    env.ADMIN_URL,
+    ...env.CORS_EXTRA_ORIGINS,
+  ];
   if (env.FRONTEND_URL_NETWORK) corsOrigins.push(env.FRONTEND_URL_NETWORK);
   // În development: acceptă și orice origin de pe rețea locală (192.168.x.x, 10.x.x.x) pe portul 8080
   const corsOptions: cors.CorsOptions = {

@@ -3,7 +3,9 @@
  * Convertește path-urile relative (/storage/products/xxx.webp) în URL-uri absolute cu domeniu
  */
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
+import { resolveViteApiBaseUrl } from '@/config/runtimeApi';
+
+const API_BASE = resolveViteApiBaseUrl();
 
 /**
  * Returnează URL-ul complet pentru o imagine

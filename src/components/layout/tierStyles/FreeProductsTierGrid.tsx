@@ -5,6 +5,7 @@ import React from 'react';
 import { Gift } from 'lucide-react';
 import { CategoryIconDisplay } from '@/config/categoryIcons';
 import { texts } from '@/config/texts';
+import { formatDisplayNumber } from '@/lib/utils';
 
 type Summary = {
   id: string;
@@ -61,14 +62,14 @@ export const FreeProductsTierGrid: React.FC<{ summaries: Summary[] }> = ({ summa
   const hintText =
     effectiveMin > 0
       ? texts.freeProducts.rankInfoMinOrder
-          .replace('{amount}', String(effectiveMin))
+          .replace('{amount}', formatDisplayNumber(effectiveMin))
           .replace('{category}', categoryLabel)
       : texts.freeProducts.rankInfoNoMinOrder;
 
   return (
     <div className="mt-2 md:mt-3">
-      {/* Două coloane egale (50/50) pe toate breakpoints — stânga titlu + info, dreapta carduri categorii */}
-      <div className="grid grid-cols-2 items-stretch gap-2 sm:gap-3 md:gap-4 lg:gap-6">
+      {/* Layout pe coloană: info sus, produse jos */}
+      <div className="grid grid-cols-1 items-stretch gap-2 sm:gap-3 md:gap-4 lg:gap-6">
         <div className="flex min-w-0 flex-col justify-center gap-1.5 py-0.5 sm:gap-2 md:gap-3 md:py-1">
           <p className="mb-0 flex items-start gap-1.5 text-[11px] font-bold leading-tight text-primary sm:gap-2 sm:text-sm md:gap-2.5 md:text-base">
             <Gift className="mt-0.5 h-4 w-4 shrink-0 text-primary sm:h-5 sm:w-5 md:h-6 md:w-6" aria-hidden />

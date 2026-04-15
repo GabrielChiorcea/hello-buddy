@@ -15,7 +15,7 @@ import { CartAddonSectionWrapped } from '@/plugins/addons';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { getImageUrl } from '@/lib/imageUrl';
-import { cn } from '@/lib/utils';
+import { cn, formatDisplayNumber } from '@/lib/utils';
 import { buildCartItemKey, type CartDisplayData } from './shared';
 import type { OrderItemConfigurationGroup } from '@/types';
 
@@ -43,6 +43,9 @@ export const PremiumCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
     handleCheckout,
     handleContinueShoppingWithToast,
   } = data;
+  const formatMoney = (value: number) =>
+    `${formatDisplayNumber(value, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${texts.common.currency}`;
+  const formatInteger = (value: number) => formatDisplayNumber(value, { maximumFractionDigits: 0 });
 
   if (items.length === 0) {
     return (
@@ -93,7 +96,7 @@ export const PremiumCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
               <span className="text-xs text-muted-foreground">
                 {freeDeliveryProgress.unlocked
                   ? 'Livrare gratuită deblocată'
-                  : `Mai adaugă ${freeDeliveryProgress.remaining.toFixed(0)} ${texts.common.currency} pentru livrare gratuită`}
+                  : `Mai adaugă ${formatInteger(freeDeliveryProgress.remaining)} ${texts.common.currency} pentru livrare gratuită`}
               </span>
             </div>
             <Progress
@@ -112,7 +115,7 @@ export const PremiumCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                 <span className="text-xs text-muted-foreground">
                   {freeProductProgress.unlocked
                     ? `${freeProductProgress.productNames.join(', ')} — gratis`
-                    : `Mai adaugă ${freeProductProgress.remaining.toFixed(0)} ${texts.common.currency} — ${freeProductProgress.productNames[0] ?? 'categorie'} gratis`}
+                    : `Mai adaugă ${formatInteger(freeProductProgress.remaining)} ${texts.common.currency} — ${freeProductProgress.productNames[0] ?? 'categorie'} gratis`}
                 </span>
               </div>
               <Progress
@@ -156,7 +159,7 @@ export const PremiumCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                           </p>
                         )}
                         <p className="text-lg font-semibold text-primary mt-2">
-                          {(unitPriceWithConfiguration ?? product.price)} {texts.common.currency}
+                          {formatMoney(unitPriceWithConfiguration ?? product.price)}
                         </p>
                       </div>
                       <div className="flex flex-col items-end justify-between">
@@ -210,17 +213,17 @@ export const PremiumCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">{texts.cart.subtotal}</span><span className="font-medium">{summarySubtotal} {texts.common.currency}</span></div>
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">{texts.cart.subtotal}</span><span className="font-medium">{formatMoney(summarySubtotal)}</span></div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">{texts.cart.delivery}</span>
-                  <span className="font-medium">{summaryDelivery === 0 ? <span className="text-primary">0 {texts.common.currency}</span> : `${summaryDelivery} ${texts.common.currency}`}</span>
+                  <span className="font-medium">{summaryDelivery === 0 ? <span className="text-primary">{formatMoney(0)}</span> : formatMoney(summaryDelivery)}</span>
                 </div>
-                {summaryDelivery > 0 && <p className="text-xs text-muted-foreground">Gratuit peste {orderPreview?.freeDeliveryThreshold ?? freeDeliveryProgress.threshold} {texts.common.currency}</p>}
+                {summaryDelivery > 0 && <p className="text-xs text-muted-foreground">Gratuit peste {formatMoney(orderPreview?.freeDeliveryThreshold ?? freeDeliveryProgress.threshold)}</p>}
                 {summaryDiscountFreeProducts > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-primary">{texts.freeProducts.cartDiscountLabel}</span>
                     <span className="text-primary font-medium">
-                      -{summaryDiscountFreeProducts.toFixed(2)} {texts.common.currency}
+                      -{formatMoney(summaryDiscountFreeProducts)}
                     </span>
                   </div>
                 )}
@@ -228,32 +231,32 @@ export const PremiumCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                   <div className="flex justify-between text-sm">
                     <span className="text-primary">Puncte aplicate</span>
                     <span className="text-primary font-medium">
-                      -{summaryDiscountPoints.toFixed(2)} {texts.common.currency}
+                      -{formatMoney(summaryDiscountPoints)}
                     </span>
                   </div>
                 )}
                 {freeProductProgress && !freeProductProgress.unlocked && (
                   <p className="text-xs text-muted-foreground">
-                    Mai adaugă {freeProductProgress.remaining.toFixed(2)} {texts.common.currency} pentru produse gratuite
+                    Mai adaugă {formatMoney(freeProductProgress.remaining)} pentru produse gratuite
                   </p>
                 )}
                 <Separator className="bg-border/30" />
                 <div className="flex justify-between text-lg font-semibold">
                   <span>{texts.cart.total}</span>
-                  <span className="text-primary">{summaryTotal} {texts.common.currency}</span>
+                  <span className="text-primary">{formatMoney(summaryTotal)}</span>
                 </div>
 
                 {totalSavings > 0 && (
                   <div className="flex items-center gap-2 text-xs text-primary/80">
                     <Sparkles className="h-3.5 w-3.5" />
-                    <span>Economisești {totalSavings.toFixed(2)} {texts.common.currency}</span>
+                    <span>Economisești {formatMoney(totalSavings)}</span>
                   </div>
                 )}
               </CardContent>
               <CardFooter className="flex-col gap-2">
                 <Button className="w-full rounded-xl" size="lg" onClick={handleCheckout}>
                   {totalSavings > 0
-                    ? `Finalizează — economisești ${totalSavings.toFixed(0)} ${texts.common.currency}`
+                    ? `Finalizează — economisești ${formatInteger(totalSavings)} ${texts.common.currency}`
                     : texts.cart.checkout}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>

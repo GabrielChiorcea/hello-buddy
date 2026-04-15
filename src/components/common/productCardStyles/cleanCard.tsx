@@ -7,7 +7,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check, Plus } from 'lucide-react';
 import { texts } from '@/config/texts';
-import { cn } from '@/lib/utils';
+import { cn, formatDisplayNumber } from '@/lib/utils';
 import { getProductUrl } from '@/config/routes';
 import type { CardVariantProps } from './shared';
 import { getProductCardMetaLine } from './shared';
@@ -15,6 +15,8 @@ import { getProductCardMetaLine } from './shared';
 export const CleanCard: React.FC<CardVariantProps> = ({ product, className, data, compactSubtitle }) => {
   const navigate = useNavigate();
   const { handleAddToCart, isAdded, imageUrl, showFreeRibbon, hasOptions, activeCouponDiscount } = data;
+  const formatMoney = (value: number) =>
+    `${formatDisplayNumber(value, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${texts.common.currency}`;
 
   return (
     <div
@@ -77,7 +79,7 @@ export const CleanCard: React.FC<CardVariantProps> = ({ product, className, data
         {/* Desktop bottom */}
         <div className="hidden md:flex items-center justify-between mt-auto pt-2">
           <span className="text-sm font-semibold text-foreground">
-            {product.price} {texts.common.currency}
+            {formatMoney(product.price)}
           </span>
           <div className="flex items-center gap-1.5">
             {hasOptions && (
@@ -114,7 +116,7 @@ export const CleanCard: React.FC<CardVariantProps> = ({ product, className, data
         <div className="flex items-center justify-between mt-1 md:hidden">
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-foreground">
-              {product.price} {texts.common.currency}
+              {formatMoney(product.price)}
             </span>
             {activeCouponDiscount > 0 && (
               <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[9px] font-bold px-1.5">

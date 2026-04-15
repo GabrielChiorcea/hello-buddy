@@ -7,7 +7,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check, Plus, Clock } from 'lucide-react';
 import { texts } from '@/config/texts';
-import { cn } from '@/lib/utils';
+import { cn, formatDisplayNumber } from '@/lib/utils';
 import { getProductUrl } from '@/config/routes';
 import type { CardVariantProps } from './shared';
 import { getProductCardMetaLine } from './shared';
@@ -15,6 +15,8 @@ import { getProductCardMetaLine } from './shared';
 export const PremiumCard: React.FC<CardVariantProps> = ({ product, className, data, compactSubtitle }) => {
   const navigate = useNavigate();
   const { handleAddToCart, isAdded, pointsInfo, imageUrl, categoryLabel, showFreeRibbon, hasOptions, activeCouponDiscount } = data;
+  const formatMoney = (value: number) =>
+    `${formatDisplayNumber(value, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${texts.common.currency}`;
 
   return (
     <div
@@ -94,7 +96,7 @@ export const PremiumCard: React.FC<CardVariantProps> = ({ product, className, da
         <div className="hidden md:flex items-end justify-between mt-auto pt-4">
           <div>
             <span className="text-xl font-light tracking-tight text-foreground">
-              {product.price} {texts.common.currency}
+              {formatMoney(product.price)}
             </span>
             {product.preparationTime && (
               <div className="flex items-center gap-1 text-[11px] text-muted-foreground/60 mt-1">
@@ -140,7 +142,7 @@ export const PremiumCard: React.FC<CardVariantProps> = ({ product, className, da
         <div className="flex items-center justify-between mt-1 md:hidden">
           <div className="flex items-center gap-2">
             <span className="text-sm font-light text-foreground">
-              {product.price} {texts.common.currency}
+              {formatMoney(product.price)}
             </span>
             {activeCouponDiscount > 0 && (
               <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[9px] font-semibold px-1.5">

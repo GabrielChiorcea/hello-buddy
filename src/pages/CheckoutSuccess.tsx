@@ -29,6 +29,7 @@ import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { toast } from '@/hooks/use-toast';
 import { getImageUrl } from '@/lib/imageUrl';
+import { formatDisplayNumber } from '@/lib/utils';
 import type { Order, OrderItem } from '@/types';
 
 // Etapele de tracking al comenzii
@@ -55,6 +56,9 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ order }) => {
   const { user } = useAppSelector((s) => s.user);
   const pointsEarned = order.pointsEarned ?? 0;
   const totalSavings = (order.discountFromPoints ?? 0) + (order.discountFromFreeProducts ?? 0) + (order.deliveryFee === 0 ? 10 : 0);
+  const formatMoney = (value: number) =>
+    `${formatDisplayNumber(value, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} RON`;
+  const formatInteger = (value: number) => formatDisplayNumber(value, { maximumFractionDigits: 0 });
 
   return (
     <div className="space-y-6">
@@ -153,14 +157,14 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ order }) => {
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {item.configuration.map((g: any) =>
                       `${g.groupName}: ${g.options.map((o: any) =>
-                        o.priceDelta ? `${o.name} (+${o.priceDelta.toFixed(2)})` : o.name
+                        o.priceDelta ? `${o.name} (+${formatMoney(o.priceDelta)})` : o.name
                       ).join(', ')}`
                     ).join(' · ')}
                   </p>
                 )}
               </div>
               <p className="text-sm font-semibold text-foreground whitespace-nowrap">
-                {((item.unitPriceWithConfiguration ?? item.priceAtOrder) * item.quantity).toFixed(2)} RON
+                {formatMoney((item.unitPriceWithConfiguration ?? item.priceAtOrder) * item.quantity)}
               </p>
             </div>
           ))}
@@ -172,7 +176,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ order }) => {
         <div className="space-y-2 text-sm">
           <div className="flex justify-between text-muted-foreground">
             <span>Subtotal</span>
-            <span>{order.subtotal.toFixed(2)} RON</span>
+            <span>{formatMoney(order.subtotal)}</span>
           </div>
           <div className="flex justify-between text-muted-foreground">
             <span>Livrare</span>
@@ -180,33 +184,33 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ order }) => {
               {order.deliveryFee === 0 ? (
                 <span className="text-primary font-medium">Gratuită</span>
               ) : (
-                `${order.deliveryFee.toFixed(2)} RON`
+                formatMoney(order.deliveryFee)
               )}
             </span>
           </div>
           {(order.discountFromPoints ?? 0) > 0 && (
             <div className="flex justify-between text-primary">
               <span>Reducere puncte</span>
-              <span>-{(order.discountFromPoints ?? 0).toFixed(2)} RON</span>
+              <span>-{formatMoney(order.discountFromPoints ?? 0)}</span>
             </div>
           )}
           {(order.discountFromFreeProducts ?? 0) > 0 && (
             <div className="flex justify-between text-success">
               <span>Produse gratuite</span>
-              <span>-{(order.discountFromFreeProducts ?? 0).toFixed(2)} RON</span>
+              <span>-{formatMoney(order.discountFromFreeProducts ?? 0)}</span>
             </div>
           )}
           <Separator />
           <div className="flex justify-between font-bold text-base text-foreground">
             <span>Total</span>
-            <span>{order.total.toFixed(2)} RON</span>
+            <span>{formatMoney(order.total)}</span>
           </div>
 
           {/* Savings banner */}
           {totalSavings > 0 && (
             <div className="bg-success/10 border border-success/20 rounded-lg p-3 text-center mt-2">
               <p className="text-sm font-bold text-success">
-                🔥 Ai economisit {totalSavings.toFixed(2)} RON la această comandă!
+                🔥 Ai economisit {formatMoney(totalSavings)} la această comandă!
               </p>
             </div>
           )}
@@ -217,11 +221,11 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ order }) => {
           <div className="bg-gradient-to-r from-primary/10 to-primary/5 border-2 border-primary/20 rounded-2xl p-5 text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
               <Star className="w-6 h-6 text-primary fill-primary" />
-              <p className="text-xl font-extrabold text-primary">+{pointsEarned} puncte câștigate!</p>
+              <p className="text-xl font-extrabold text-primary">+{formatInteger(pointsEarned)} puncte câștigate!</p>
             </div>
             {user?.pointsBalance != null && (
               <p className="text-sm text-muted-foreground">
-                Sold total: <strong className="text-foreground">{user.pointsBalance} puncte</strong>
+                Sold total: <strong className="text-foreground">{formatInteger(user.pointsBalance)} puncte</strong>
               </p>
             )}
             {user?.xpToNextLevel != null && user.nextTier && (
@@ -239,7 +243,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ order }) => {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Încă <strong>{user.xpToNextLevel} XP</strong> până la {user.nextTier.name}
+                  Încă <strong>{formatInteger(user.xpToNextLevel)} XP</strong> până la {user.nextTier.name}
                 </p>
               </div>
             )}

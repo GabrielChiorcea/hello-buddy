@@ -15,7 +15,7 @@ import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { Button } from '@/components/ui/button';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
-import { cn } from '@/lib/utils';
+import { cn, formatDisplayNumber } from '@/lib/utils';
 import { useTierDisplayData } from '@/components/layout/tierStyles/shared';
 import { FreeProductsTierGrid } from '@/components/layout/tierStyles/FreeProductsTierGrid';
 import { HomeHeroLogo } from './HomeHeroLogo';
@@ -51,16 +51,16 @@ export const GamifiedHeroHub: React.FC = () => {
   const tierData = useTierDisplayData();
 
   const pointsBalance = user?.pointsBalance ?? 0;
+  const hasFreeProductsCard = Boolean(tierData?.hasFreeProductBenefits);
 
   return (
     <section className="relative bg-gradient-to-br from-primary via-primary/90 to-primary/70 overflow-hidden text-primary-foreground">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
       <div className="container relative mx-auto px-4 md:px-6 lg:px-8">
         {/* Top: logo în hero doar pe mobil (< md); pe desktop logo-ul e în navbar (VITE_APP_LOGO_URL). */}
-        <div className="pb-4 pt-12 md:pb-6 md:pt-16 lg:pt-20">
-          <div className="text-center">
-          {isAuthenticated && user ? (
-            <>
+        {isAuthenticated && user && (
+          <div className="pb-4 pt-12 md:pb-6 md:pt-16 lg:pt-20">
+            <div className="text-center">
               {pointsEnabled ? (
                 <div className="mb-2 flex w-full max-w-full flex-nowrap items-center gap-2 sm:gap-3 md:justify-center">
                   <div className="flex min-w-0 flex-1 items-center md:hidden">
@@ -74,7 +74,7 @@ export const GamifiedHeroHub: React.FC = () => {
                   >
                     <Star className="h-4 w-4 shrink-0 fill-current md:h-5 md:w-5" />
                     {pointsBalance > 0
-                      ? `${texts.home.heroPointsLabel.replace('{count}', String(pointsBalance))} ${texts.home.heroPointsAvailable}`
+                      ? `${texts.home.heroPointsLabel.replace('{count}', formatDisplayNumber(pointsBalance, { maximumFractionDigits: 0 }))} ${texts.home.heroPointsAvailable}`
                       : texts.home.heroEarnPoints}
                   </motion.div>
                 </div>
@@ -83,16 +83,9 @@ export const GamifiedHeroHub: React.FC = () => {
                   <HomeHeroLogo variant="gamified" align="center" />
                 </div>
               )}
-            </>
-          ) : (
-            <>
-              <div className="md:hidden">
-                <HomeHeroLogo variant="gamified" align="center" compactMobileSpacing />
-              </div>
-            </>
-          )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* ─── Authenticated: Tier accordion ─── */}
         {isAuthenticated && tiersEnabled && tierData && (
@@ -105,7 +98,18 @@ export const GamifiedHeroHub: React.FC = () => {
             {/* Compact rank bar */}
 
 
-            <div className="bg-white text-foreground rounded-2xl border border-primary/15 shadow-sm p-4 mb-1 md:rounded-3xl md:p-6 md:shadow-md">
+            <div
+              className={cn(
+                'flex flex-col gap-1',
+                hasFreeProductsCard ? 'md:flex-row md:items-stretch md:gap-4' : 'md:items-center',
+              )}
+            >
+              <div
+                className={cn(
+                  'bg-white text-foreground rounded-2xl border border-primary/15 shadow-sm p-4 md:rounded-3xl md:p-6 md:shadow-md',
+                  hasFreeProductsCard ? 'md:flex-1 md:min-w-0' : 'md:w-full md:max-w-3xl',
+                )}
+              >
 
   
   <div className="flex items-center gap-2 mb-4 md:mb-5 md:gap-3">
@@ -119,7 +123,10 @@ export const GamifiedHeroHub: React.FC = () => {
     )}
     {!tierData.isMaxLevel && tierData.nextTierThreshold && (
       <span className="ml-auto text-[11px] tabular-nums text-muted-foreground md:text-sm">
-        {tierData.currentXp} / {tierData.nextTierThreshold} XP
+        {formatDisplayNumber(tierData.currentXp, { maximumFractionDigits: 0 })} / {formatDisplayNumber(
+          tierData.nextTierThreshold,
+          { maximumFractionDigits: 0 }
+        )} XP
       </span>
     )}
   </div>
@@ -166,18 +173,18 @@ export const GamifiedHeroHub: React.FC = () => {
       {/* Al treilea rang — doar desktop, dacă există în listă */}
       {tierData.tierAfterNext && (
         <>
-          <div className="hidden md:flex flex-1 flex-col gap-1 mb-5 mx-1 min-w-[2rem] max-w-[6rem]">
-            <div className="h-1.5 rounded-full bg-primary/8 border border-dashed border-primary/30" />
+          <div className="flex flex-1 flex-col gap-1 mb-4 mx-0.5 min-w-[2rem] max-w-[3.5rem] md:mb-5 md:mx-1 md:max-w-[6rem]">
+            <div className="h-[3px] rounded-full bg-primary/8 border border-dashed border-primary/30 md:h-1.5" />
           </div>
-          <div className="hidden md:flex flex-col items-center gap-1.5 shrink-0">
+          <div className="flex flex-col items-center gap-1 md:gap-1.5 shrink-0">
             <div
-              className="w-12 h-12 rounded-full bg-muted/80 border border-dashed border-muted-foreground/35 flex items-center justify-center shadow-sm"
+              className="w-8 h-8 rounded-full bg-muted/80 border border-dashed border-muted-foreground/35 flex items-center justify-center shadow-sm md:w-12 md:h-12"
               aria-label={texts.home.heroTierMysteryLabel}
               title={texts.home.heroTierMysteryLabel}
             >
-              <span className="text-2xl font-bold leading-none text-muted-foreground select-none">?</span>
+              <span className="text-lg font-bold leading-none text-muted-foreground select-none md:text-2xl">?</span>
             </div>
-            <span className="text-xs font-medium text-foreground/80 whitespace-nowrap text-center">
+            <span className="text-[9px] font-medium text-foreground/80 whitespace-nowrap text-center md:text-xs">
               {texts.home.heroNextTierPointsLabel.replace(
                 '{multiplier}',
                 tierData.tierAfterNext.pointsMultiplier.toFixed(1),
@@ -195,7 +202,7 @@ export const GamifiedHeroHub: React.FC = () => {
     </p>
   )}
 
-</div>
+              </div>
 
 
 
@@ -205,12 +212,14 @@ export const GamifiedHeroHub: React.FC = () => {
               <div
                 className={cn(
                   'rounded-xl border-2 border-white/60 bg-white p-3 shadow-lg md:rounded-2xl md:p-5 md:shadow-xl',
-                  tierData.freeProductCampaignsSummary.length > 0 ? 'mb-0' : 'mb-3',
+                  'md:flex-1 md:min-w-0',
+                  tierData.freeProductCampaignsSummary.length > 0 ? 'mb-0' : 'mb-3 md:mb-0',
                 )}
               >
                 <FreeProductsTierGrid summaries={tierData.freeProductCampaignsSummary} />
               </div>
             )}
+            </div>
 
             {tierData.hasFreeProductBenefits && tierData.freeProductCampaignsSummary.length > 0 && (
               <>
@@ -278,7 +287,7 @@ export const GamifiedHeroHub: React.FC = () => {
             >
               <Link to={routes.catalog} className="flex items-center gap-2">
                 <ShoppingBag className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                {texts.home.orderNow}
+                {texts.home.order}
                 <AnimatedCtaArrows />
               </Link>
             </Button>
@@ -291,22 +300,27 @@ export const GamifiedHeroHub: React.FC = () => {
             <div className="mx-auto mb-4 w-full max-w-md md:mb-8 md:max-w-3xl">
               <BonusBanner visibility="all" />
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-3 md:gap-5">
+            <div className="mx-auto flex w-full max-w-md flex-col items-center gap-2.5 md:max-w-xl md:gap-3">
               <Button
                 size="lg"
                 variant="secondary"
                 asChild
-                className="rounded-xl font-bold md:h-14 md:rounded-2xl md:px-10 md:text-base"
+                className="min-w-0 w-full rounded-xl font-bold md:h-14 md:rounded-2xl md:px-10 md:text-base"
               >
-                <Link to={routes.catalog} className="flex items-center gap-2">
-                  {texts.home.orderNow}
+                <Link to={routes.catalog} className="flex w-full items-center justify-center gap-2">
+                  {texts.home.order}
                   <AnimatedCtaArrows size="md" className="ml-1 md:scale-110" />
                 </Link>
               </Button>
-              <Button size="lg" variant="secondary" asChild className="rounded-xl font-bold md:h-14 md:px-8">
+              <Button
+                size="lg"
+                variant="outline"
+                asChild
+                className="min-w-0 w-full rounded-xl border-primary-foreground/25 bg-primary-foreground/10 font-semibold text-primary-foreground hover:bg-primary-foreground/20 md:h-11 md:w-auto md:min-w-[240px] md:px-8"
+              >
                 <Link
                   to={routes.login}
-                  className="text-sm font-semibold text-primary-foreground underline-offset-4 hover:underline md:text-base"
+                  className="flex w-full items-center justify-center text-sm text-primary-foreground underline-offset-4 hover:underline md:text-base"
                 >
                   {texts.home.heroGuestFomoCta}
                 </Link>

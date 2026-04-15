@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Check, Plus } from 'lucide-react';
 import { texts } from '@/config/texts';
-import { cn } from '@/lib/utils';
+import { cn, formatDisplayNumber } from '@/lib/utils';
 import { getProductUrl } from '@/config/routes';
 import type { CardVariantProps } from './shared';
 import { getProductCardMetaLine } from './shared';
@@ -16,6 +16,8 @@ import { getProductCardMetaLine } from './shared';
 export const FriendlyCard: React.FC<CardVariantProps> = ({ product, className, data, compactSubtitle }) => {
   const navigate = useNavigate();
   const { handleAddToCart, isAdded, pointsInfo, imageUrl, categoryLabel, showFreeRibbon, hasOptions, activeCouponDiscount } = data;
+  const formatMoney = (value: number) =>
+    `${formatDisplayNumber(value, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${texts.common.currency}`;
 
   return (
     <div
@@ -108,7 +110,7 @@ export const FriendlyCard: React.FC<CardVariantProps> = ({ product, className, d
             </div>
             <div className="flex items-center gap-2.5">
               <span className="text-base font-bold text-primary tracking-tight">
-                {product.price} {texts.common.currency}
+                {formatMoney(product.price)}
               </span>
               <div className="flex items-center gap-1.5">
                 {hasOptions && (
@@ -149,7 +151,7 @@ export const FriendlyCard: React.FC<CardVariantProps> = ({ product, className, d
         <div className="flex items-center justify-between mt-1.5 md:hidden">
           <div className="flex items-center gap-2">
             <span className="text-sm font-bold text-primary">
-              {product.price} {texts.common.currency}
+              {formatMoney(product.price)}
             </span>
             {activeCouponDiscount > 0 && (
               <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[9px] font-extrabold px-1.5">

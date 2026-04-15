@@ -48,6 +48,8 @@ export const apiLimiter = rateLimit({
   legacyHeaders: false,
   handler: createRateLimitHandler('api'),
   ...createStoreForLimiter('api'),
+  /** CORS preflight — nu număra OPTIONS (evită răspunsuri fără header-e CORS) */
+  skip: (req: Request) => req.method === 'OPTIONS',
 });
 
 /**
@@ -119,6 +121,7 @@ export const refreshLimiter = rateLimit({
   legacyHeaders: false,
   handler: createRateLimitHandler('refresh'),
   ...createStoreForLimiter('refresh'),
+  skip: (req: Request) => req.method === 'OPTIONS',
 });
 
 /**
@@ -156,6 +159,7 @@ export const graphqlLoginLimiter = rateLimit({
   handler: createRateLimitHandler('graphql-login'),
   ...createStoreForLimiter('graphql-login'),
   skip: (req: Request) => {
+    if (req.method === 'OPTIONS') return true;
     if (req.path !== '/graphql' || req.method !== 'POST') return true;
     const body = req.body as { operationName?: string; query?: string } | undefined;
     if (!body) return true;
