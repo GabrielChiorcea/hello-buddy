@@ -19,6 +19,7 @@ export const USER_FRAGMENT = gql`
     pointsBalance
     welcomeBonusSeen
     welcomeBonusAmount
+    welcomeBonusAwardedPoints
     totalXp
     tier {
       id

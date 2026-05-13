@@ -14,7 +14,7 @@
 
 import { logError } from '../utils/safeErrorLogger.js';
 
-interface EmailOptions {
+export interface EmailOptions {
   to: string;
   subject: string;
   text: string;
@@ -79,87 +79,9 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
       html: options.html,
     });
 
-    console.log(`[Email] Trimis cu succes către ${options.to}: ${options.subject}`);
     return true;
   } catch (err) {
     logError('sendEmail', err);
     return false;
   }
-}
-
-// ============================================================================
-// Template-uri email predefinite
-// ============================================================================
-
-/**
- * Email resetare parolă
- */
-export async function sendPasswordResetEmail(
-  userEmail: string,
-  resetLink: string,
-  expiresInHours: number
-): Promise<boolean> {
-  return sendEmail({
-    to: userEmail,
-    subject: 'Resetare parolă',
-    text: `Folosește acest link pentru a-ți reseta parola: ${resetLink}\nLink-ul expiră în ${expiresInHours} ore.`,
-    html: `
-      <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto;">
-        <h2>Resetare parolă</h2>
-        <p>Ai solicitat resetarea parolei. Click pe butonul de mai jos:</p>
-        <a href="${resetLink}" style="display:inline-block;padding:12px 24px;background:#2563eb;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">
-          Resetează parola
-        </a>
-        <p style="margin-top:16px;font-size:13px;color:#666;">
-          Link-ul expiră în ${expiresInHours} ore. Dacă nu ai solicitat această resetare, ignoră acest email.
-        </p>
-      </div>
-    `,
-  });
-}
-
-/**
- * Email puncte câștigate
- */
-export async function sendPointsEarnedEmail(
-  userEmail: string,
-  pointsEarned: number,
-  totalPoints: number
-): Promise<boolean> {
-  return sendEmail({
-    to: userEmail,
-    subject: `Ai câștigat ${pointsEarned} puncte!`,
-    text: `Felicitări! Ai primit ${pointsEarned} puncte. Total puncte: ${totalPoints}.`,
-    html: `
-      <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto;">
-        <h2>🎉 Ai câștigat puncte!</h2>
-        <p>Felicitări! Ai primit <strong>${pointsEarned} puncte</strong> pentru comanda ta.</p>
-        <p style="font-size:24px;font-weight:700;color:#2563eb;">Total: ${totalPoints} puncte</p>
-        <p style="font-size:13px;color:#666;">Folosește-le la următoarea comandă pentru reduceri!</p>
-      </div>
-    `,
-  });
-}
-
-/**
- * Email level-up (tiers)
- */
-export async function sendLevelUpEmail(
-  userEmail: string,
-  tierName: string,
-  message: string
-): Promise<boolean> {
-  return sendEmail({
-    to: userEmail,
-    subject: `Nivel nou deblocat: ${tierName}!`,
-    text: message,
-    html: `
-      <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto;">
-        <h2>🏆 Nivel nou deblocat!</h2>
-        <p style="font-size:20px;font-weight:700;color:#d97706;">${tierName}</p>
-        <p>${message}</p>
-        <p style="font-size:13px;color:#666;">Continuă să comanzi pentru a debloca și mai multe beneficii!</p>
-      </div>
-    `,
-  });
 }

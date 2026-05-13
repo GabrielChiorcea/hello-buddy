@@ -14,6 +14,12 @@ export interface TierDisplayData {
   multiplier: number;
   currentXp: number;
   progressPercent: number;
+  /**
+   * Procent folosit DOAR pentru lățimea vizuală a barei.
+   * Poate include un „boost” vizual din punctele cadou la înregistrare (nu modifică XP-ul real).
+   * Calculul pentru text, praguri și milestone-uri rămâne pe `progressPercent`.
+   */
+  visualProgressPercent: number;
   isMaxLevel: boolean;
   xpToNextLevel: number | null;
   nextTierThreshold: number | undefined;
@@ -110,10 +116,24 @@ export function useTierDisplayData(): TierDisplayData | null {
 
   const currentTierThreshold = user?.tier?.xpThreshold ?? 0;
   let progressPercent = 100;
+  let tierXpRange = 0;
   if (!isMaxLevel && nextTierThreshold !== undefined && nextTierThreshold > currentTierThreshold) {
-    const range = nextTierThreshold - currentTierThreshold;
+    tierXpRange = nextTierThreshold - currentTierThreshold;
     const gained = currentXp - currentTierThreshold;
-    if (range > 0) progressPercent = Math.min(100, Math.max(0, Math.round((gained / range) * 100)));
+    if (tierXpRange > 0) {
+      progressPercent = Math.min(100, Math.max(0, Math.round((gained / tierXpRange) * 100)));
+    }
+  }
+
+  /** Boost vizual din punctele cadou la signup; scade pe măsură ce XP-ul real umple bara (fără să modifice pragurile). */
+  let visualProgressPercent = progressPercent;
+  if (!isMaxLevel && tierXpRange > 0) {
+    const welcomeAwarded = user?.welcomeBonusAwardedPoints ?? 0;
+    if (welcomeAwarded > 0) {
+      const rawBonusVisual = Math.min(45, (welcomeAwarded / tierXpRange) * 100);
+      const blend = 1 - progressPercent / 100;
+      visualProgressPercent = Math.min(100, Math.round(progressPercent + rawBonusVisual * blend));
+    }
   }
 
   const tierName = user?.tier?.name ?? 'Începător';
@@ -136,6 +156,7 @@ export function useTierDisplayData(): TierDisplayData | null {
 
   return {
     tierName, currentBadgeIcon, multiplier, currentXp, progressPercent,
+    visualProgressPercent,
     isMaxLevel, xpToNextLevel, nextTierThreshold, currentBenefit,
     xpFormulaText, nextTier, nextBenefitText, nextMultiplier,
     hasFreeProductBenefits: !!(freeProductsEnabled && user?.hasFreeProductBenefits),

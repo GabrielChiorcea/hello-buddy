@@ -6,7 +6,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { query, queryOne } from '../../../config/database.js';
-import { getTodayBucharest } from './campaignsRepository.js';
+import { getTodayBucharest, enrollmentJoinedWithinCampaignBounds } from './campaignsRepository.js';
 
 export interface UserStreakCampaignRow {
   id: string;
@@ -43,25 +43,48 @@ function mapRow(r: UserStreakCampaignRow): UserStreakCampaign {
   };
 }
 
+type RowWithCampaignBounds = UserStreakCampaignRow & {
+  sc_start_date: Date | string;
+  sc_end_date: Date | string;
+};
+
+async function pruneIfEnrollmentOutsideCampaignWindow(row: RowWithCampaignBounds): Promise<UserStreakCampaign | null> {
+  const ok = enrollmentJoinedWithinCampaignBounds(row.joined_at, row.sc_start_date, row.sc_end_date);
+  if (!ok) {
+    await deleteEnrollment(row.id);
+    return null;
+  }
+  return mapRow(row);
+}
+
 export async function getEnrollment(userId: string, campaignId: string): Promise<UserStreakCampaign | null> {
-  const row = await queryOne<UserStreakCampaignRow>(
-    'SELECT * FROM user_streak_campaigns WHERE user_id = ? AND campaign_id = ?',
+  const row = await queryOne<RowWithCampaignBounds>(
+    `SELECT usc.*, sc.start_date AS sc_start_date, sc.end_date AS sc_end_date
+     FROM user_streak_campaigns usc
+     INNER JOIN streak_campaigns sc ON sc.id = usc.campaign_id
+     WHERE usc.user_id = ? AND usc.campaign_id = ?`,
     [userId, campaignId]
   );
-  return row ? mapRow(row) : null;
+  if (!row) return null;
+  return pruneIfEnrollmentOutsideCampaignWindow(row);
 }
 
 export async function getEnrollmentByUserAndActive(userId: string): Promise<UserStreakCampaign | null> {
   const today = getTodayBucharest();
-  const row = await queryOne<UserStreakCampaignRow>(
-    `SELECT usc.* FROM user_streak_campaigns usc
+  const rows = await query<RowWithCampaignBounds[]>(
+    `SELECT usc.*, sc.start_date AS sc_start_date, sc.end_date AS sc_end_date
+     FROM user_streak_campaigns usc
      JOIN streak_campaigns sc ON sc.id = usc.campaign_id
      WHERE usc.user_id = ? AND sc.start_date <= ? AND sc.end_date >= ?
      ORDER BY usc.joined_at DESC
-     LIMIT 1`,
+     LIMIT 25`,
     [userId, today, today]
   );
-  return row ? mapRow(row) : null;
+  for (const row of rows) {
+    const ok = await pruneIfEnrollmentOutsideCampaignWindow(row);
+    if (ok) return ok;
+  }
+  return null;
 }
 
 export async function enrollUser(userId: string, campaignId: string): Promise<UserStreakCampaign> {
@@ -111,27 +134,38 @@ export async function getEnrollmentById(id: string): Promise<UserStreakCampaign 
   return row ? mapRow(row) : null;
 }
 
-export async function listEnrollmentsByCampaign(campaignId: string): Promise<UserStreakCampaign[]> {
+/** Doar enrollment-uri aliniate la perioada curentă (aceeași regulă ca storefront + prune). Nu șterge rânduri. */
+export async function listEnrollmentsByCampaignEdition(
+  campaignId: string,
+  editionStartDay: string,
+  editionEndDay: string
+): Promise<UserStreakCampaign[]> {
   const rows = await query<UserStreakCampaignRow[]>(
     'SELECT * FROM user_streak_campaigns WHERE campaign_id = ? ORDER BY joined_at DESC',
     [campaignId]
   );
-  return rows.map(mapRow);
+  return rows
+    .filter((r) => enrollmentJoinedWithinCampaignBounds(r.joined_at, editionStartDay, editionEndDay))
+    .map(mapRow);
 }
 
 export async function getActiveEnrollmentsForUser(userId: string): Promise<UserStreakCampaign[]> {
   const today = getTodayBucharest();
-  /** O singură campanie activă procesată per user: ultima înscriere (join) dintre cele încă în interval. */
-  const row = await queryOne<UserStreakCampaignRow>(
-    `SELECT usc.* FROM user_streak_campaigns usc
+  const rows = await query<RowWithCampaignBounds[]>(
+    `SELECT usc.*, sc.start_date AS sc_start_date, sc.end_date AS sc_end_date
+     FROM user_streak_campaigns usc
      JOIN streak_campaigns sc ON sc.id = usc.campaign_id
      WHERE usc.user_id = ? AND sc.start_date <= ? AND sc.end_date >= ?
      AND usc.completed_at IS NULL
      ORDER BY usc.joined_at DESC
-     LIMIT 1`,
+     LIMIT 25`,
     [userId, today, today]
   );
-  return row ? [mapRow(row)] : [];
+  for (const row of rows) {
+    const pruned = await pruneIfEnrollmentOutsideCampaignWindow(row);
+    if (pruned) return [pruned];
+  }
+  return [];
 }
 
 export async function deleteEnrollment(enrollmentId: string): Promise<void> {

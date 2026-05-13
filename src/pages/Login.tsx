@@ -111,9 +111,6 @@ const Login: React.FC = () => {
     const result = await dispatch(login(formData));
     
     if (login.fulfilled.match(result)) {
-      toast({
-        title: texts.notifications.loginSuccess,
-      });
       await dispatch(fetchCurrentUser());
       navigate(from, { replace: true });
     } else if (login.rejected.match(result)) {

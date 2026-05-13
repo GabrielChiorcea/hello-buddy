@@ -8,6 +8,7 @@ import { schemaExtension as welcomeBonusSchemaExtension } from '../plugins/welco
 import { schemaExtension as tiersSchemaExtension } from '../plugins/tiers/index.js';
 import { addonsSchemaExtension } from '../plugins/addons/index.js';
 import { schemaExtension as couponsSchemaExtension } from '../plugins/coupons/index.js';
+import { schemaExtension as gamificationToastsSchemaExtension } from '../plugins/gamification_toasts/index.js';
 
 const coreTypeDefs = `#graphql
   # ============================================
@@ -351,4 +352,6 @@ export const typeDefs =
   '\n' +
   addonsSchemaExtension +
   '\n' +
-  couponsSchemaExtension;
+  couponsSchemaExtension +
+  '\n' +
+  gamificationToastsSchemaExtension;

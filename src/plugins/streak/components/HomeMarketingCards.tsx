@@ -13,10 +13,16 @@ import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { useAppSelector } from '@/store';
 import { useComponentStyle } from '@/config/componentStyle';
 import { ACTIVE_STREAK_CAMPAIGNS, MY_STREAK_ENROLLMENT } from '../queries';
-import { isConsecutiveStreakBroken, isImpossibleToComplete, daysRemaining } from './campaignUtils';
+import {
+  isConsecutiveStreakBroken,
+  isImpossibleToComplete,
+  daysRemaining,
+  calculateCampaignStreakReward,
+  pickHeroCampaign,
+} from './campaignUtils';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
-import { GET_COUPONS_CATALOG_IDS } from '@/graphql/queries';
+import { GET_COUPONS_CATALOG_IDS, GET_TIERS_ECONOMY_SETTINGS } from '@/graphql/queries';
 import { getImageUrl } from '@/lib/imageUrl';
 import { useMarketingPromoFlags } from '@/hooks/useMarketingPromoFlags';
 import {
@@ -59,10 +65,22 @@ function streakHomeCardBorderClass(status: StreakStatus): string {
 interface StreakCardData {
   status: StreakStatus;
   statusText: string;
-  bonusPoints: number;
+  /**
+   * Recompensa SPECIFICĂ streak-ului pentru campania afișată: bonus final + praguri (`steps`).
+   * NU include `points_per_order` (puncte standard pe care userul le primește oricum, indiferent
+   * de campanie). Vezi `calculateCampaignStreakReward`.
+   *
+   * Pentru calculul de „economisești X RON" (toast) folosim totalul cu puncte standard
+   * via `calculateCampaignTotalPoints` — separare intenționată de afișaj.
+   */
+  totalPoints: number;
   progress?: { current: number; total: number };
   daysLeft?: number;
-  /** Zile până la finalul campaniei (available: minim pe toate campaniile active) — badge urgență gamified */
+  /**
+   * Zile până la finalul campaniei „erou" (când userul nu este înrolat: campania
+   * aleasă de `pickHeroCampaign`). Folosit pentru badge-ul de urgență gamified.
+   * Coerent acum cu `totalPoints` — provin din ACEEAȘI campanie.
+   */
   daysUntilCampaignEnd?: number;
   campaignName?: string;
   imageUrl?: string;
@@ -87,8 +105,15 @@ function useStreakCardData(opts?: { skip?: boolean }): StreakCardData | null {
     GET_STREAK_CARD_IMAGE,
     { fetchPolicy: 'cache-first', skip: querySkip }
   );
+  // Necesar pentru `calculateCampaignTotalPoints`: punctele standard pe comandă
+  // se adaugă peste bonusul de campanie + praguri, ca să afișăm totalul real.
+  const { data: economyData } = useQuery<{ points_per_order: string | null }>(
+    GET_TIERS_ECONOMY_SETTINGS,
+    { fetchPolicy: 'cache-first', skip: querySkip }
+  );
   const rawImage = imageData?.appSetting || undefined;
   const imageUrl = rawImage ? getImageUrl(rawImage) : undefined;
+  const pointsPerOrder = Math.max(0, parseInt(economyData?.points_per_order ?? '0', 10) || 0);
 
   if (!enabled || skip) return null;
 
@@ -100,16 +125,14 @@ function useStreakCardData(opts?: { skip?: boolean }): StreakCardData | null {
 
   if (campaigns.length === 0) return null;
 
-  const topBonus = campaigns.reduce((max, c) => Math.max(max, c.bonusPoints), 0);
-  const minDaysUntilEnd = Math.min(...campaigns.map((c) => daysRemaining(c.endDate)));
-
   // Completed
   if (enrollment?.completedAt) {
+    const heroForCompleted = enrolledCampaign ?? pickHeroCampaign(campaigns, pointsPerOrder);
     return {
       status: 'completed',
       statusText: texts.streak.homeCardCompleted,
-      bonusPoints: enrolledCampaign?.bonusPoints ?? topBonus,
-      campaignName: enrolledCampaign?.name,
+      totalPoints: heroForCompleted ? calculateCampaignStreakReward(heroForCompleted) : 0,
+      campaignName: heroForCompleted?.name,
       imageUrl,
     };
   }
@@ -118,12 +141,13 @@ function useStreakCardData(opts?: { skip?: boolean }): StreakCardData | null {
   if (enrollment && enrolledCampaign) {
     const broken = isConsecutiveStreakBroken(enrollment, enrolledCampaign);
     const impossible = isImpossibleToComplete(enrollment, enrolledCampaign);
+    const enrolledStreakReward = calculateCampaignStreakReward(enrolledCampaign);
 
     if (broken || impossible) {
       return {
         status: 'lost',
         statusText: texts.streak.homeCardLost,
-        bonusPoints: enrolledCampaign.bonusPoints,
+        totalPoints: enrolledStreakReward,
         progress: { current: enrollment.currentStreakCount, total: enrolledCampaign.ordersRequired },
         campaignName: enrolledCampaign.name,
         imageUrl,
@@ -133,7 +157,7 @@ function useStreakCardData(opts?: { skip?: boolean }): StreakCardData | null {
     return {
       status: 'active',
       statusText: texts.streak.homeCardActive,
-      bonusPoints: enrolledCampaign.bonusPoints,
+      totalPoints: enrolledStreakReward,
       progress: { current: enrollment.currentStreakCount, total: enrolledCampaign.ordersRequired },
       daysLeft: daysRemaining(enrolledCampaign.endDate),
       campaignName: enrolledCampaign.name,
@@ -141,13 +165,23 @@ function useStreakCardData(opts?: { skip?: boolean }): StreakCardData | null {
     };
   }
 
-  // Not enrolled but campaigns exist
+  // Neînrolat dar există campanii — alegem O singură campanie „erou" prin strategia hibridă
+  // (vezi `pickHeroCampaign`): prioritizăm campaniile care expiră în ≤7 zile, iar dintre cele
+  // alese o luăm pe cea cu cel mai mare total de puncte. Astfel `totalPoints` și
+  // `daysUntilCampaignEnd` reprezintă ACEEAȘI campanie — fără mismatch.
+  //
+  // Pe card afișăm doar recompensa specifică streak-ului (fără points_per_order), dar la
+  // sortarea în `pickHeroCampaign` folosim totalul (cu points_per_order) pentru că reflectă
+  // mai bine „valoarea" pentru user atunci când compară între campanii cu lungimi diferite.
   if (isAuthenticated || campaigns.length > 0) {
+    const hero = pickHeroCampaign(campaigns, pointsPerOrder);
+    if (!hero) return null;
     return {
       status: 'available',
       statusText: texts.streak.homeCardAvailable,
-      bonusPoints: topBonus,
-      daysUntilCampaignEnd: minDaysUntilEnd,
+      totalPoints: calculateCampaignStreakReward(hero),
+      daysUntilCampaignEnd: daysRemaining(hero.endDate),
+      campaignName: hero.name,
       imageUrl,
     };
   }
@@ -306,7 +340,7 @@ const MobileStreakCompactCard: React.FC<{ data: StreakCardData }> = ({ data }) =
           <div className="flex h-full flex-col px-3 pt-3 pb-3">
             <div className="flex flex-col gap-1.5">
               <div className="flex items-start justify-between gap-2">
-                <span className={`text-3xl font-extrabold leading-none tracking-tight ${toneClass}`}>+{data.bonusPoints}</span>
+                <span className={`text-3xl font-extrabold leading-none tracking-tight ${toneClass}`}>+{data.totalPoints}</span>
                 {urgency ? (
                   <span
                     className={`inline-block self-start rounded-md px-2 py-0.5 text-[10px] font-medium leading-tight ${urgencyChipClass(urgency.tone)}`}
@@ -430,7 +464,7 @@ const StreakCardBody: React.FC<{ data: StreakCardData }> = ({ data }) => {
 
           <div className="flex items-center justify-between mt-2">
             <span className="text-[10px] font-bold text-primary">
-              {texts.streak.homeCardPoints.replace('{points}', String(data.bonusPoints))}
+              {texts.streak.homeCardPoints.replace('{points}', String(data.totalPoints))}
             </span>
             <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-0.5 group-hover:text-primary transition-colors">
               {texts.streak.homeCardCta}
@@ -474,7 +508,7 @@ function urgencyChipClass(tone: UrgencyTone): string {
 
 /** Card Home streak — gamified: hero +N, deal, chip urgență, CTA unic */
 const GamifiedStreakCardBody: React.FC<{ data: StreakCardData }> = ({ data }) => {
-  const pts = data.bonusPoints;
+  const pts = data.totalPoints;
   const t = texts.streak;
   const urgency = gamifiedUrgencyChip(gamifiedUrgencyDays(data));
 

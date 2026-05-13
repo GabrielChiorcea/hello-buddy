@@ -90,7 +90,6 @@ export default function AdminLogin() {
     const result = await dispatch(adminLogin({ email, password }));
 
     if (adminLogin.fulfilled.match(result)) {
-      toast({ title: texts.admin.loginSuccess });
       const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/admin';
       navigate(from, { replace: true });
     } else if (adminLogin.rejected.match(result)) {

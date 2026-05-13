@@ -20,7 +20,6 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { fetchOrders, fetchCurrentUser, logout } from '@/store/slices/userSlice';
 import { texts } from '@/config/texts';
 import { routes } from '@/config/routes';
-import { toast } from '@/hooks/use-toast';
 import { OrderStatus } from '@/types';
 import { PointsBalance, PointsOrderBadge, PointsOrderDetails } from '@/plugins/points';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
@@ -77,7 +76,6 @@ const Profile: React.FC = () => {
 
   const handleLogout = async () => {
     await dispatch(logout());
-    toast({ title: texts.notifications.logoutSuccess });
     navigate(routes.home);
   };
 

@@ -31,7 +31,7 @@ import {
 import { sendPasswordResetEmail } from '../../utils/passwordResetEmail.js';
 import { env } from '../../config/env.js';
 import { isPluginEnabled } from '../../utils/pluginFlags.js';
-import { queryOne } from '../../config/database.js';
+import { queryOne, query } from '../../config/database.js';
 
 // Rate limiting în memorie pentru signup și requestPasswordReset (per IP)
 const signupRateLimits = new Map<string, { count: number; resetAt: number }>();
@@ -169,6 +169,10 @@ export const authResolvers = {
         if (amount > 0) {
           const { addPoints } = await import('../../plugins/points/repositories/transactionsRepository.js');
           await addPoints(user.id, amount, null, 'earned');
+          await query(
+            'UPDATE users SET welcome_bonus_awarded = ? WHERE id = ? AND is_deleted = FALSE',
+            [amount, user.id]
+          );
           userToReturn = (await UserModel.findById(user.id)) ?? user;
         }
       }

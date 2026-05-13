@@ -10,7 +10,7 @@ import type { TierDisplayData } from './shared';
 import { FreeProductsTierGrid } from './FreeProductsTierGrid';
 
 export const PremiumTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
-  const { tierName, currentBadgeIcon, multiplier, currentXp, progressPercent, isMaxLevel, xpToNextLevel, nextTierThreshold, currentBenefit, nextTier, nextBenefitText, nextMultiplier, hasFreeProductBenefits, freeProductCampaignsSummary } = data;
+  const { tierName, currentBadgeIcon, multiplier, currentXp, visualProgressPercent, isMaxLevel, xpToNextLevel, nextTierThreshold, currentBenefit, nextTier, nextBenefitText, nextMultiplier, hasFreeProductBenefits, freeProductCampaignsSummary } = data;
 
   return (
     <div className={cn(
@@ -46,7 +46,7 @@ export const PremiumTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
           <div className="h-1 w-full rounded-full bg-border/40 overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
-              animate={{ width: `${progressPercent}%` }}
+              animate={{ width: `${visualProgressPercent}%` }}
               transition={{ duration: 1, ease: 'easeOut' }}
               className="h-full rounded-full bg-primary/80"
             />
@@ -67,10 +67,6 @@ export const PremiumTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
         </p>
         {hasFreeProductBenefits ? (
           <div className="mt-1">
-            <p className="text-[10px] text-success">
-              {texts.freeProducts.rankInfoActivePrefix}{' '}
-              {freeProductCampaignsSummary.length > 0 ? freeProductCampaignsSummary.map((c) => c.name).join(', ') : ''}
-            </p>
             <FreeProductsTierGrid summaries={freeProductCampaignsSummary} />
           </div>
         ) : (

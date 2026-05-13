@@ -75,11 +75,19 @@ export async function updateSettings(req: Request, res: Response): Promise<void>
       'plugin_tiers_enabled',
       'plugin_free_products_enabled',
       'plugin_coupons_enabled',
+      'plugin_gamification_toasts_enabled',
+      'gamification_toast_points_enabled',
       'tiers_notify_on_level_up',
       'tiers_notify_message',
       'has_tables',
       'streak_home_card_image',
       'coupons_home_card_image',
+      'gamification_toast_points_text',
+      'gamification_toast_points_image',
+      'gamification_toast_points_interval_ms',
+      'gamification_toast_points_duration_ms',
+      'gamification_toasts_points_items',
+      'gamification_toasts_items',
     ];
     
     for (const [key, value] of Object.entries(updates)) {
@@ -111,10 +119,40 @@ export async function updateSettings(req: Request, res: Response): Promise<void>
           return;
         }
       }
-      if (['plugin_points_enabled', 'plugin_streak_enabled', 'plugin_welcome_bonus_enabled', 'plugin_addons_enabled', 'plugin_tiers_enabled', 'plugin_free_products_enabled', 'plugin_coupons_enabled', 'tiers_notify_on_level_up'].includes(key)) {
+      if ([
+        'plugin_points_enabled',
+        'plugin_streak_enabled',
+        'plugin_welcome_bonus_enabled',
+        'plugin_addons_enabled',
+        'plugin_tiers_enabled',
+        'plugin_free_products_enabled',
+        'plugin_coupons_enabled',
+        'plugin_gamification_toasts_enabled',
+        'gamification_toast_points_enabled',
+        'tiers_notify_on_level_up',
+      ].includes(key)) {
         const v = String(value).toLowerCase();
         if (!['true', 'false'].includes(v)) {
           res.status(400).json({ error: `${key} trebuie să fie true sau false` });
+          return;
+        }
+      }
+      if (['gamification_toast_points_interval_ms', 'gamification_toast_points_duration_ms'].includes(key)) {
+        const numValue = parseInt(value as string, 10);
+        if (isNaN(numValue) || numValue <= 0) {
+          res.status(400).json({ error: `${key} trebuie să fie un număr întreg > 0` });
+          return;
+        }
+      }
+      if (['gamification_toasts_points_items', 'gamification_toasts_items'].includes(key)) {
+        try {
+          const parsed = JSON.parse(String(value));
+          if (!Array.isArray(parsed)) {
+            res.status(400).json({ error: `${key} trebuie să fie un array JSON valid` });
+            return;
+          }
+        } catch {
+          res.status(400).json({ error: `${key} trebuie să fie JSON valid` });
           return;
         }
       }

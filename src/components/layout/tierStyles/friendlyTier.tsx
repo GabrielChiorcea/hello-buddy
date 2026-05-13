@@ -10,7 +10,7 @@ import type { TierDisplayData } from './shared';
 import { FreeProductsTierGrid } from './FreeProductsTierGrid';
 
 export const FriendlyTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
-  const { tierName, currentBadgeIcon, multiplier, currentXp, progressPercent, isMaxLevel, xpToNextLevel, nextTierThreshold, currentBenefit, xpFormulaText, nextTier, nextBenefitText, nextMultiplier, hasFreeProductBenefits, freeProductCampaignsSummary } = data;
+  const { tierName, currentBadgeIcon, multiplier, currentXp, visualProgressPercent, isMaxLevel, xpToNextLevel, nextTierThreshold, currentBenefit, xpFormulaText, nextTier, nextBenefitText, nextMultiplier, hasFreeProductBenefits, freeProductCampaignsSummary } = data;
 
   return (
     <div className={cn(
@@ -43,7 +43,7 @@ export const FriendlyTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
           <div className="h-2.5 w-full rounded-full bg-secondary overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
-              animate={{ width: `${progressPercent}%` }}
+              animate={{ width: `${visualProgressPercent}%` }}
               transition={{ duration: 0.7, ease: 'easeOut' }}
               className="h-full rounded-full bg-primary"
             />
@@ -63,10 +63,6 @@ export const FriendlyTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
         </p>
         {hasFreeProductBenefits ? (
           <div className="mt-1">
-            <p className="text-[10px] text-success">
-              {texts.freeProducts.rankInfoActivePrefix}{' '}
-              {freeProductCampaignsSummary.length > 0 ? freeProductCampaignsSummary.map((c) => c.name).join(', ') : ''}
-            </p>
             <FreeProductsTierGrid summaries={freeProductCampaignsSummary} />
           </div>
         ) : (

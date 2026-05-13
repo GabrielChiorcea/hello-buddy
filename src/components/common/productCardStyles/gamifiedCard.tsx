@@ -77,8 +77,13 @@ export const GamifiedCard: React.FC<CardVariantProps> = ({ product, className, d
 
       {/* Info */}
       <div className={cn('flex flex-1 min-w-0 flex-col justify-between gap-0.5', 'md:px-4 md:pt-3 md:pb-3.5 md:flex-1')}>
-        <div className="flex items-center gap-1.5">
-          <h3 className="font-bold text-foreground text-sm md:text-[15px] truncate md:line-clamp-1">{product.name}</h3>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <h3 className="font-bold text-foreground text-sm md:text-[15px] truncate md:line-clamp-1 min-w-0 flex-1">{product.name}</h3>
+          {activeCouponDiscount > 0 && (
+            <span className="md:hidden shrink-0 ml-auto inline-flex items-center rounded-full bg-primary text-primary-foreground text-[11px] font-black px-2 py-1 leading-none tracking-wide">
+              Cupon activ -{activeCouponDiscount}%
+            </span>
+          )}
         </div>
         {compactSubtitle ? (
           <p className="text-xs md:text-[13px] text-muted-foreground/80 line-clamp-2 break-words min-w-0 mt-1 leading-snug">
@@ -145,11 +150,6 @@ export const GamifiedCard: React.FC<CardVariantProps> = ({ product, className, d
                 <>{formatMoney(product.price)}</>
               )}
             </span>
-            {activeCouponDiscount > 0 && (
-              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[14px] font-black px-2">
-                -{activeCouponDiscount}%
-              </span>
-            )}
           </div>
           <div className="flex items-center gap-1.5">
             {hasOptions && (

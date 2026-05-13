@@ -26,6 +26,7 @@ import { ConfettiIcon } from '@/admin/components/ConfettiIcon';
 import { pointsPlugin } from '@/plugins/points';
 import { streakPlugin } from '@/plugins/streak';
 import { tiersPlugin } from '@/plugins/tiers';
+import { gamificationToastsPlugin } from '@/plugins/gamification_toasts';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import {
   Sidebar,
@@ -73,6 +74,7 @@ export function AdminSidebar() {
   const { enabled: tiersEnabled } = usePluginEnabled('tiers');
   const { enabled: freeProductsEnabled } = usePluginEnabled('free_products');
   const { enabled: couponsEnabled } = usePluginEnabled('coupons');
+  const { enabled: gamificationToastsEnabled } = usePluginEnabled('gamification_toasts');
 
   const mainNavItems = [
     ...baseNavItems,
@@ -85,6 +87,7 @@ export function AdminSidebar() {
       : []),
     ...(addonsEnabled ? [{ title: texts.admin.navAddonRules, url: '/admin/addon-rules', icon: Puzzle }] : []),
     ...(couponsEnabled ? [{ title: 'Cupoane', url: '/admin/coupons', icon: Ticket }] : []),
+    ...(gamificationToastsEnabled ? gamificationToastsPlugin.navItems : []),
   ];
 
   const isActive = (path: string) => {

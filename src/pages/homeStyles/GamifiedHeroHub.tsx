@@ -19,8 +19,6 @@ import { cn, formatDisplayNumber } from '@/lib/utils';
 import { useTierDisplayData } from '@/components/layout/tierStyles/shared';
 import { FreeProductsTierGrid } from '@/components/layout/tierStyles/FreeProductsTierGrid';
 import { HomeHeroLogo } from './HomeHeroLogo';
-import { FreeCampaignUrgencyBanner } from './FreeCampaignUrgencyBanner';
-import { HeroStoryConnector } from './HeroStoryConnector';
 
 const easeOut: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -146,12 +144,12 @@ export const GamifiedHeroHub: React.FC = () => {
         </span>
       </div>
 
-      {/* Connector cu progres (până la următorul rang) */}
+      {/* Connector cu progres vizual (include „boost” din puncte cadou la signup, fără XP real) */}
       <div className="flex-1 flex flex-col gap-1 mb-4 mx-0.5 min-w-[2rem] md:mb-5 md:mx-1">
         <div className="h-[3px] rounded-full bg-primary/10 overflow-hidden md:h-1.5">
           <div
             className="h-full rounded-full bg-primary transition-all duration-1000 ease-out"
-            style={{ width: `${tierData.progressPercent}%` }}
+            style={{ width: `${tierData.visualProgressPercent}%` }}
           />
         </div>
       </div>
@@ -207,11 +205,15 @@ export const GamifiedHeroHub: React.FC = () => {
 
 
 
-            {/* Free products — always visible (not only inside accordion) */}
+            {/*
+             * Free products — fiecare campanie redă propriul card complet
+             * (badges Rang/Gratis + countdown + CTA + minim coș), deci nu mai
+             * avem nevoie de wrapper-ul alb extern și nici de bannerul separat
+             * de urgență dedesubt.
+             */}
             {tierData.hasFreeProductBenefits && (
               <div
                 className={cn(
-                  'rounded-xl border-2 border-white/60 bg-white p-3 shadow-lg md:rounded-2xl md:p-5 md:shadow-xl',
                   'md:flex-1 md:min-w-0',
                   tierData.freeProductCampaignsSummary.length > 0 ? 'mb-0' : 'mb-3 md:mb-0',
                 )}
@@ -221,33 +223,7 @@ export const GamifiedHeroHub: React.FC = () => {
             )}
             </div>
 
-            {tierData.hasFreeProductBenefits && tierData.freeProductCampaignsSummary.length > 0 && (
-              <>
-                <HeroStoryConnector />
-                <FreeCampaignUrgencyBanner
-                  campaigns={tierData.freeProductCampaignsSummary}
-                  className={cn('mt-4 md:mt-6', !tierData.isMaxLevel ? '!mb-0' : undefined)}
-                  action={
-                    !tierData.isMaxLevel ? (
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        asChild
-                        className="w-full justify-center rounded-full font-bold text-xs shadow-sm sm:w-auto md:h-11 md:px-6 md:text-sm"
-                      >
-                        <Link to={routes.catalog} className="flex items-center gap-2">
-                          <ShoppingBag className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                          {texts.home.heroOrderForXp}
-                          <AnimatedCtaArrows />
-                        </Link>
-                      </Button>
-                    ) : undefined
-                  }
-                />
-              </>
-            )}
-
-            {/* CTA separat doar dacă nu e deja în bannerul de urgență */}
+            {/* CTA separat când nu există campanii cu CTA propriu (cardurile au deja Comandă) */}
             {!tierData.isMaxLevel &&
               !(tierData.hasFreeProductBenefits && tierData.freeProductCampaignsSummary.length > 0) && (
                 <div className="mt-3 text-center md:mt-4">

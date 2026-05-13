@@ -32,6 +32,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { WelcomeBonusGateWrapped } from "@/plugins/welcome_bonus";
+import { GamificationToastsGateWrapped, AdminGamificationToasts } from "@/plugins/gamification_toasts";
 import { Provider } from "react-redux";
 import { store } from "@/store";
 import { routes } from "@/config/routes";
@@ -160,6 +161,8 @@ const App = () => (
             <TokenRefreshHandler>
               {/* Modal cadou puncte la prima autentificare */}
               <WelcomeBonusGateWrapped />
+              {/* Toast-uri gamification configurabile din admin */}
+              <GamificationToastsGateWrapped />
               {/* Error Boundary - prinde erori React și afișează fallback */}
               <ErrorBoundary>
                 <Routes>
@@ -208,6 +211,7 @@ const App = () => (
                   <Route path="addon-rules" element={<AdminAddonRules />} />
                   <Route path="product-options" element={<AdminProductOptions />} />
                   <Route path="coupons" element={<AdminCoupons />} />
+                  <Route path="gamification-toasts" element={<AdminGamificationToasts />} />
                 </Route>
                 
                 {/* Rută catch-all pentru 404 */}

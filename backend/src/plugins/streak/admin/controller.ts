@@ -181,7 +181,11 @@ export async function getCampaignEnrollments(req: Request, res: Response): Promi
       res.status(404).json({ error: 'Campania nu a fost găsită' });
       return;
     }
-    const enrollments = await EnrollmentsRepo.listEnrollmentsByCampaign(id);
+    const enrollments = await EnrollmentsRepo.listEnrollmentsByCampaignEdition(
+      id,
+      campaign.startDate,
+      campaign.endDate
+    );
     const userIds = [...new Set(enrollments.map((e) => e.userId))];
     let usersMap = new Map<string, { name: string; email: string }>();
     if (userIds.length > 0) {

@@ -10,7 +10,6 @@ import { texts } from '@/config/texts';
 import { useAppSelector, useAppDispatch } from '@/store';
 import { logout } from '@/store/slices/userSlice';
 import { selectCartItemCount } from '@/store/slices/cartSlice';
-import { toast } from '@/hooks/use-toast';
 import { useMarketingPromoFlags } from '@/hooks/useMarketingPromoFlags';
 
 export type DesktopPromoNavItem = {
@@ -41,7 +40,6 @@ export function useNavbarData(): NavbarDisplayData {
 
   const handleLogout = async () => {
     await dispatch(logout());
-    toast({ title: texts.notifications.logoutSuccess });
     navigate(routes.home);
   };
 

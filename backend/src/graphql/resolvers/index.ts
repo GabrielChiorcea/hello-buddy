@@ -14,6 +14,7 @@ import { tiersResolvers } from '../../plugins/tiers/index.js';
 import { resolvers as welcomeBonusResolvers } from '../../plugins/welcome_bonus/index.js';
 import { addonsResolvers } from '../../plugins/addons/index.js';
 import { resolvers as couponsResolvers } from '../../plugins/coupons/index.js';
+import { resolvers as gamificationToastsResolvers } from '../../plugins/gamification_toasts/index.js';
 import { freeProductsUserResolvers } from './freeProductsUser.js';
 import { queryOne } from '../../config/database.js';
 
@@ -30,6 +31,7 @@ export const resolvers: any = {
     ...tiersResolvers.Query,
     ...addonsResolvers.Query,
     ...couponsResolvers.Query,
+    ...gamificationToastsResolvers.Query,
 
     /**
      * Returnează valoarea unei setări din app_settings
@@ -52,6 +54,7 @@ export const resolvers: any = {
     ...streakResolvers.Mutation,
     ...welcomeBonusResolvers.Mutation,
     ...couponsResolvers.Mutation,
+    ...gamificationToastsResolvers.Mutation,
   },
   // Field resolvers
   Product: productResolvers.Product,

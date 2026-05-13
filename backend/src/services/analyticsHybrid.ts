@@ -1,5 +1,5 @@
 /**
- * Analytics strict din tabelele dedicate (analytics_*), fără fallback live.
+ * Analytics /admin/analytics – citire exclusiv din tabele pre-agregate (analytics_daily_* etc.).
  */
 
 import { analyticsQuery } from '../config/database.js';
@@ -262,19 +262,234 @@ export async function fetchRevenueByCategoryHybrid(daysBack: number): Promise<Re
     .sort((a, b) => b.revenue - a.revenue);
 }
 
-export async function fetchProductPairs(off: number): Promise<
+export async function fetchTopCustomersHybrid(daysBack: number): Promise<
+  {
+    id: string;
+    name: string;
+    orders_count: string | number;
+    total_spent: string | number;
+    avg_order: string | number;
+    last_day: Date | string | null;
+  }[]
+> {
+  const off = firstDayIntervalDays(daysBack);
+  return analyticsQuery<
+    {
+      id: string;
+      name: string;
+      orders_count: string | number;
+      total_spent: string | number;
+      avg_order: string | number;
+      last_day: Date | string | null;
+    }[]
+  >(
+    `SELECT
+       u.id,
+       u.name,
+       COALESCE(SUM(d.order_count), 0) AS orders_count,
+       COALESCE(SUM(d.total_spent), 0) AS total_spent,
+       COALESCE(SUM(d.total_spent) / NULLIF(SUM(d.order_count), 0), 0) AS avg_order,
+       MAX(d.report_date) AS last_day
+     FROM analytics_daily_user_sales d
+     INNER JOIN users u ON u.id = d.user_id
+     WHERE d.report_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+     GROUP BY u.id, u.name
+     ORDER BY total_spent DESC
+     LIMIT 10`,
+    [off]
+  );
+}
+
+export async function fetchPointsDistinctUsersHybrid(daysBack: number): Promise<{
+  uniqueEarners: number;
+  uniqueRedeemers: number;
+}> {
+  const off = firstDayIntervalDays(daysBack);
+  const [earners] = await analyticsQuery<{ c: string | number }[]>(
+    `SELECT COUNT(DISTINCT user_id) AS c
+     FROM analytics_daily_user_points
+     WHERE report_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+       AND points_earned > 0`,
+    [off]
+  );
+  const [redeemers] = await analyticsQuery<{ c: string | number }[]>(
+    `SELECT COUNT(DISTINCT user_id) AS c
+     FROM analytics_daily_user_points
+     WHERE report_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+       AND points_spent > 0`,
+    [off]
+  );
+  return {
+    uniqueEarners: int(earners?.c),
+    uniqueRedeemers: int(redeemers?.c),
+  };
+}
+
+export async function fetchTopPointsEarnersHybrid(daysBack: number): Promise<
+  {
+    id: string;
+    name: string;
+    points_balance: string | number;
+    earned: string | number;
+    spent: string | number;
+  }[]
+> {
+  const off = firstDayIntervalDays(daysBack);
+  return analyticsQuery(
+    `SELECT
+       u.id,
+       u.name,
+       u.points_balance,
+       COALESCE(SUM(p.points_earned), 0) AS earned,
+       COALESCE(SUM(p.points_spent), 0) AS spent
+     FROM analytics_daily_user_points p
+     INNER JOIN users u ON u.id = p.user_id
+     WHERE p.report_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+     GROUP BY u.id, u.name, u.points_balance
+     ORDER BY earned DESC
+     LIMIT 10`,
+    [off]
+  );
+}
+
+export async function fetchOrdersPointsInsightsHybrid(daysBack: number): Promise<{
+  aovWithPoints: number;
+  aovWithoutPoints: number;
+  totalDiscount: number;
+}> {
+  const off = firstDayIntervalDays(daysBack);
+  const [sales] = await analyticsQuery<
+    {
+      ow: string | number;
+      rw: string | number;
+      onp: string | number;
+      rnp: string | number;
+    }[]
+  >(
+    `SELECT
+       COALESCE(SUM(orders_with_points), 0) AS ow,
+       COALESCE(SUM(revenue_with_points), 0) AS rw,
+       COALESCE(SUM(orders_without_points), 0) AS onp,
+       COALESCE(SUM(revenue_without_points), 0) AS rnp
+     FROM analytics_daily_sales
+     WHERE report_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)`,
+    [off]
+  );
+  const [disc] = await analyticsQuery<{ d: string | number }[]>(
+    `SELECT COALESCE(SUM(discount_total), 0) AS d
+     FROM analytics_daily_points
+     WHERE report_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)`,
+    [off]
+  );
+  const ow = int(sales?.ow);
+  const onp = int(sales?.onp);
+  return {
+    aovWithPoints: ow > 0 ? num(sales?.rw) / ow : 0,
+    aovWithoutPoints: onp > 0 ? num(sales?.rnp) / onp : 0,
+    totalDiscount: num(disc?.d),
+  };
+}
+
+export async function fetchStreakCampaignsRollup(daysBack: number): Promise<
+  {
+    id: string;
+    name: string;
+    orders_required: number;
+    bonus_points: number;
+    start_date: Date | string;
+    end_date: Date | string;
+    enrolled: string | number;
+    completed: string | number;
+    active: string | number;
+    avg_streak: string | number;
+    points_awarded: string | number;
+  }[]
+> {
+  const off = firstDayIntervalDays(daysBack);
+  return analyticsQuery(
+    `SELECT
+       sc.id,
+       sc.name,
+       sc.orders_required,
+       sc.bonus_points,
+       sc.start_date,
+       sc.end_date,
+       COALESCE(sts.enrolled_count, 0) AS enrolled,
+       COALESCE(sts.completed_count, 0) AS completed,
+       COALESCE(sts.active_count, 0) AS active,
+       COALESCE(sts.avg_streak, 0) AS avg_streak,
+       COALESCE(sts.points_awarded, 0) AS points_awarded
+     FROM streak_campaigns sc
+     LEFT JOIN (
+       SELECT ads.*
+       FROM analytics_daily_streaks ads
+       INNER JOIN (
+         SELECT campaign_id, MAX(report_date) AS mx
+         FROM analytics_daily_streaks
+         WHERE report_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+         GROUP BY campaign_id
+       ) lx ON lx.campaign_id = ads.campaign_id AND lx.mx = ads.report_date
+     ) sts ON sts.campaign_id = sc.id
+     ORDER BY sc.start_date DESC
+     LIMIT 10`,
+    [off]
+  );
+}
+
+export async function fetchTierAnalyticsRollup(daysBack: number): Promise<
+  {
+    tier_id: string;
+    tier_name: string;
+    sort_order: string | number;
+    multiplier: string | number;
+    user_count: string | number;
+    revenue: string | number;
+    orders_count: string | number;
+    avg_order: string | number;
+  }[]
+> {
+  const off = firstDayIntervalDays(daysBack);
+  return analyticsQuery(
+    `SELECT
+       lm.tier_id,
+       lm.tier_name,
+       COALESCE(lt.sort_order, 999) AS sort_order,
+       COALESCE(lt.points_multiplier, 1) AS multiplier,
+       lm.user_count,
+       agg.rev AS revenue,
+       agg.oc AS orders_count,
+       COALESCE(agg.rev / NULLIF(agg.oc, 0), 0) AS avg_order
+     FROM (
+       SELECT tier_id, MAX(report_date) AS md
+       FROM analytics_daily_tiers
+       WHERE report_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+       GROUP BY tier_id
+     ) x
+     JOIN analytics_daily_tiers lm ON lm.tier_id = x.tier_id AND lm.report_date = x.md
+     LEFT JOIN loyalty_tiers lt ON lt.id = lm.tier_id AND lm.tier_id <> 'none'
+     JOIN (
+       SELECT tier_id, SUM(total_revenue) AS rev, SUM(total_orders) AS oc
+       FROM analytics_daily_tiers
+       WHERE report_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+       GROUP BY tier_id
+     ) agg ON agg.tier_id = lm.tier_id
+     ORDER BY COALESCE(lt.sort_order, 999) ASC`,
+    [off, off]
+  );
+}
+export async function fetchProductPairs(daysBack: number): Promise<
   { product_a: string; product_b: string; pair_count: number }[]
 > {
+  const off = firstDayIntervalDays(daysBack);
   const rows = await analyticsQuery<
     { product_a: string; product_b: string; pair_count: string | number }[]
   >(
-    `SELECT a.product_name AS product_a, b.product_name AS product_b, COUNT(*) AS pair_count
-     FROM order_items a
-     JOIN order_items b ON a.order_id = b.order_id AND a.id < b.id
-     JOIN orders o ON o.id = a.order_id
-     WHERE o.status != 'cancelled'
-       AND o.created_at >= CONCAT(DATE_SUB(CURDATE(), INTERVAL ? DAY), ' 00:00:00')
-     GROUP BY a.product_name, b.product_name ORDER BY pair_count DESC LIMIT 10`,
+    `SELECT product_a, product_b, SUM(pair_count) AS pair_count
+     FROM analytics_daily_product_pairs
+     WHERE report_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+     GROUP BY product_a, product_b
+     ORDER BY pair_count DESC
+     LIMIT 10`,
     [off]
   );
   return rows.map(r => ({

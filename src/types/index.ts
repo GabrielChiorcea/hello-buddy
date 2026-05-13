@@ -27,6 +27,8 @@ export interface User {
   pointsBalance?: number;
   welcomeBonusSeen?: boolean;
   welcomeBonusAmount?: number;
+  /** Puncte cadou la signup (persistent); nu sunt XP — folosit doar pentru efecte vizuale (ex. bară rang) */
+  welcomeBonusAwardedPoints?: number;
   /** Total XP acumulat (din pluginul de niveluri) */
   totalXp: number;
   /** Nivelul curent de loialitate (dacă pluginul tiers este activ) */

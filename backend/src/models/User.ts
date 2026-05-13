@@ -25,6 +25,8 @@ export interface User {
   deletedAt: Date | null;
   pointsBalance: number;
   welcomeBonusSeen: boolean;
+  /** Puncte cadou acordate la înregistrare (afișare vizuală tier; nu sunt XP) */
+  welcomeBonusAwarded: number;
   /** Total XP acumulat (nu se consumă) */
   totalXp: number;
   /** ID nivel curent (tier) sau null dacă nu are */
@@ -44,6 +46,7 @@ interface UserRow {
   deleted_at: Date | null;
   points_balance: number;
   welcome_bonus_seen: number | boolean;
+  welcome_bonus_awarded: number;
   total_xp: number;
   tier_id: string | null;
   created_at: Date;
@@ -51,7 +54,7 @@ interface UserRow {
 }
 
 /** Coloane standard selectate din users (fără password_hash) */
-const USER_COLUMNS = `id, email, name, phone, is_blocked, is_deleted, deleted_at, points_balance, welcome_bonus_seen, total_xp, tier_id, created_at, updated_at`;
+const USER_COLUMNS = `id, email, name, phone, is_blocked, is_deleted, deleted_at, points_balance, welcome_bonus_seen, welcome_bonus_awarded, total_xp, tier_id, created_at, updated_at`;
 
 export interface CreateUserInput {
   email: string;
@@ -77,6 +80,7 @@ function mapRowToUser(row: UserRow): User {
     deletedAt: row.deleted_at ?? null,
     pointsBalance: row.points_balance ?? 0,
     welcomeBonusSeen: Boolean(row.welcome_bonus_seen),
+    welcomeBonusAwarded: row.welcome_bonus_awarded ?? 0,
     totalXp: row.total_xp ?? 0,
     tierId: row.tier_id ?? null,
     createdAt: row.created_at,

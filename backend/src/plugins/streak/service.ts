@@ -303,7 +303,11 @@ export async function recalcAllEnrollmentsProgress(): Promise<{ processed: numbe
   let processed = 0;
   let updated = 0;
   for (const c of campaigns) {
-    const enrollments = await EnrollmentsRepo.listEnrollmentsByCampaign(c.id);
+    const enrollments = await EnrollmentsRepo.listEnrollmentsByCampaignEdition(
+      c.id,
+      c.startDate,
+      c.endDate
+    );
     for (const e of enrollments) {
       processed++;
       const result = await recalcEnrollmentProgressFromLogs(e.id);

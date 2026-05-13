@@ -17,7 +17,7 @@ import { signup, clearError, fetchCurrentUser } from '@/store/slices/userSlice';
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { toast } from '@/hooks/use-toast';
-import { UtensilsCrossed } from 'lucide-react';
+import { UtensilsCrossed, Check, X } from 'lucide-react';
 
 // Validation schema
 const signupSchema = z.object({
@@ -62,6 +62,22 @@ interface FormData {
 
 type FormErrors = Partial<Record<keyof FormData, string>>;
 
+interface PasswordRequirementProps {
+  met: boolean;
+  label: string;
+}
+
+const PasswordRequirement: React.FC<PasswordRequirementProps> = ({ met, label }) => (
+  <li className="flex items-center gap-2 text-xs">
+    {met ? (
+      <Check className="h-3.5 w-3.5 text-green-600 shrink-0" />
+    ) : (
+      <X className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+    )}
+    <span className={met ? 'text-green-700' : 'text-muted-foreground'}>{label}</span>
+  </li>
+);
+
 const Signup: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -76,6 +92,17 @@ const Signup: React.FC = () => {
     acceptTerms: false,
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  const [passwordFocused, setPasswordFocused] = useState(false);
+
+  const passwordChecks = {
+    minChars: formData.password.length >= 6,
+    uppercase: /[A-Z]/.test(formData.password),
+    digit: /[0-9]/.test(formData.password),
+    match:
+      formData.password.length > 0 &&
+      formData.password === formData.confirmPassword,
+  };
+  const showPasswordHelp = passwordFocused || formData.password.length > 0;
 
   useEffect(() => {
     dispatch(clearError());
@@ -206,11 +233,34 @@ const Signup: React.FC = () => {
                   placeholder={texts.auth.passwordPlaceholder}
                   value={formData.password}
                   onChange={handleChange}
+                  onFocus={() => setPasswordFocused(true)}
                   error={errors.password}
                   required
                   autoComplete="new-password"
                   disabled={isLoading}
                 />
+
+                {showPasswordHelp && (
+                  <div className="rounded-md border border-border bg-muted/40 p-3">
+                    <p className="text-xs font-medium text-foreground mb-2">
+                      {texts.auth.passwordRequirementsTitle}
+                    </p>
+                    <ul className="space-y-1">
+                      <PasswordRequirement
+                        met={passwordChecks.minChars}
+                        label={texts.auth.passwordReqMinChars}
+                      />
+                      <PasswordRequirement
+                        met={passwordChecks.uppercase}
+                        label={texts.auth.passwordReqUppercase}
+                      />
+                      <PasswordRequirement
+                        met={passwordChecks.digit}
+                        label={texts.auth.passwordReqDigit}
+                      />
+                    </ul>
+                  </div>
+                )}
 
                 <FormInput
                   name="confirmPassword"
@@ -224,6 +274,15 @@ const Signup: React.FC = () => {
                   autoComplete="new-password"
                   disabled={isLoading}
                 />
+
+                {formData.confirmPassword.length > 0 && (
+                  <ul className="space-y-1 -mt-2">
+                    <PasswordRequirement
+                      met={passwordChecks.match}
+                      label={texts.auth.passwordReqMatch}
+                    />
+                  </ul>
+                )}
 
                 {/* GDPR Consent Checkbox */}
                 <div className="space-y-1">

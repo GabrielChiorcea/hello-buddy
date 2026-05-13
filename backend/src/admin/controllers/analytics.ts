@@ -1,12 +1,13 @@
 /**
- * Controller analitice admin — mix rollup + live, limite, cache, timeout
+ * Controller analitice admin — strictly din tabele pre-agregate (analytics_daily_* etc.)
  */
 
+import { timingSafeEqual } from 'node:crypto';
 import { Request, Response } from 'express';
 import { logError } from '../../utils/safeErrorLogger.js';
 import { logger } from '../../config/logger.js';
 import { env } from '../../config/env.js';
-import { analyticsQuery } from '../../config/database.js';
+import { analyticsQuery, pool } from '../../config/database.js';
 import {
   fetchDailyRevenueTrendHybrid,
   fetchFulfillmentSplitHybrid,
@@ -18,6 +19,12 @@ import {
   fetchProductPairs,
   fetchRevenueByCategoryHybrid,
   fetchSalesKpisHybrid,
+  fetchTopCustomersHybrid,
+  fetchPointsDistinctUsersHybrid,
+  fetchTopPointsEarnersHybrid,
+  fetchOrdersPointsInsightsHybrid,
+  fetchStreakCampaignsRollup,
+  fetchTierAnalyticsRollup,
   firstDayIntervalDays,
 } from '../../services/analyticsHybrid.js';
 import { getAnalyticsCacheJson, setAnalyticsCacheJson } from '../../services/analyticsCache.js';
@@ -51,9 +58,19 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   });
 }
 
-async function buildAnalyticsPayload(daysBack: number) {
-  const off = firstDayIntervalDays(daysBack);
+function intFromDb(v: string | number | null | undefined): number {
+  if (v == null) return 0;
+  const n = typeof v === 'string' ? parseInt(v, 10) : Math.round(Number(v));
+  return Number.isFinite(n) ? n : 0;
+}
 
+function formatAnalyticsDate(d: Date | string | null | undefined): string | null {
+  if (d == null) return null;
+  if (typeof d === 'string') return d.slice(0, 10);
+  return d.toISOString().slice(0, 10);
+}
+
+async function buildAnalyticsPayload(daysBack: number) {
   const salesMix = await fetchSalesKpisHybrid(daysBack);
   const previousGross = await fetchPrevPeriodGrossRevenue(daysBack);
 
@@ -73,20 +90,7 @@ async function buildAnalyticsPayload(daysBack: number) {
   const cancelledCount = salesMix.cancelledOrders;
   const cancellationRate = totalAll > 0 ? (cancelledCount / totalAll) * 100 : 0;
 
-  const topCustomers = await analyticsQuery<any[]>(
-    `SELECT
-       u.id, u.name,
-       COUNT(o.id) AS orders_count,
-       COALESCE(SUM(o.total), 0) AS total_spent,
-       COALESCE(AVG(o.total), 0) AS avg_order,
-       MAX(o.created_at) AS last_order_at
-     FROM users u
-     JOIN orders o ON o.user_id = u.id
-     WHERE o.status != 'cancelled'
-       AND o.created_at >= CONCAT(DATE_SUB(CURDATE(), INTERVAL ? DAY), ' 00:00:00')
-     GROUP BY u.id ORDER BY total_spent DESC LIMIT 10`,
-    [off]
-  );
+  const topCustomersRows = await fetchTopCustomersHybrid(daysBack);
 
   const revenueByCategory = await fetchRevenueByCategoryHybrid(daysBack);
 
@@ -100,74 +104,17 @@ async function buildAnalyticsPayload(daysBack: number) {
   const totalSpent = pointsTotals.totalSpent;
   const redemptionRate = totalEarned > 0 ? (totalSpent / totalEarned) * 100 : 0;
 
-  const pointsStatsExtras = await analyticsQuery<any[]>(
-    `SELECT
-       COUNT(DISTINCT CASE WHEN pt.type = 'earned' THEN pt.user_id END) AS unique_earners,
-       COUNT(DISTINCT CASE WHEN pt.type = 'spent' THEN pt.user_id END) AS unique_redeemers
-     FROM points_transactions pt
-     WHERE pt.created_at >= CONCAT(DATE_SUB(CURDATE(), INTERVAL ? DAY), ' 00:00:00')`,
-    [off]
-  );
+  const distinctPointsUsers = await fetchPointsDistinctUsersHybrid(daysBack);
 
-  const topPointsEarners = await analyticsQuery<any[]>(
-    `SELECT u.id, u.name, u.points_balance,
-       COALESCE(SUM(CASE WHEN pt.type = 'earned' THEN pt.amount ELSE 0 END), 0) AS earned,
-       COALESCE(SUM(CASE WHEN pt.type = 'spent' THEN ABS(pt.amount) ELSE 0 END), 0) AS spent
-     FROM users u
-     JOIN points_transactions pt ON pt.user_id = u.id
-     WHERE pt.created_at >= CONCAT(DATE_SUB(CURDATE(), INTERVAL ? DAY), ' 00:00:00')
-     GROUP BY u.id ORDER BY earned DESC LIMIT 10`,
-    [off]
-  );
+  const topPointsEarnersRows = await fetchTopPointsEarnersHybrid(daysBack);
 
-  const aovWithPoints = await analyticsQuery<any[]>(
-    `SELECT
-       COALESCE(AVG(CASE WHEN o.points_used > 0 THEN o.total END), 0) AS aov_with_points,
-       COALESCE(AVG(CASE WHEN o.points_used = 0 THEN o.total END), 0) AS aov_without_points,
-       COALESCE(SUM(o.discount_from_points), 0) AS total_discount
-     FROM orders o
-     WHERE o.status != 'cancelled'
-       AND o.created_at >= CONCAT(DATE_SUB(CURDATE(), INTERVAL ? DAY), ' 00:00:00')`,
-    [off]
-  );
+  const ordersPointsInsights = await fetchOrdersPointsInsightsHybrid(daysBack);
 
   const pointsTrend = await fetchPointsTrendHybrid(daysBack);
 
-  const streakCampaigns = await analyticsQuery<any[]>(
-    `SELECT
-       sc.id, sc.name, sc.orders_required, sc.bonus_points,
-       sc.start_date, sc.end_date,
-       COUNT(DISTINCT usc.id) AS enrolled,
-       COUNT(DISTINCT CASE WHEN usc.completed_at IS NOT NULL THEN usc.id END) AS completed,
-       COUNT(DISTINCT CASE WHEN usc.completed_at IS NULL AND usc.current_streak_count > 0 THEN usc.id END) AS active,
-       COALESCE(AVG(usc.current_streak_count), 0) AS avg_streak,
-       COALESCE(SUM(CASE WHEN usc.bonus_awarded_at IS NOT NULL THEN sc.bonus_points ELSE 0 END), 0) AS points_awarded
-     FROM streak_campaigns sc
-     LEFT JOIN user_streak_campaigns usc ON usc.campaign_id = sc.id
-     GROUP BY sc.id
-     ORDER BY sc.start_date DESC LIMIT 10`
-  );
+  const streakCampaigns = await fetchStreakCampaignsRollup(daysBack);
 
-  const tierDistribution = await analyticsQuery<any[]>(
-    `SELECT
-       COALESCE(lt.id, 'none') AS tier_id,
-       COALESCE(lt.name, 'Fără nivel') AS tier_name,
-       COALESCE(lt.sort_order, 0) AS sort_order,
-       COALESCE(lt.points_multiplier, 1) AS multiplier,
-       COUNT(DISTINCT u.id) AS user_count,
-       COALESCE(SUM(CASE WHEN o.status != 'cancelled'
-         AND o.created_at >= CONCAT(DATE_SUB(CURDATE(), INTERVAL ? DAY), ' 00:00:00') THEN o.total ELSE 0 END), 0) AS revenue,
-       COUNT(CASE WHEN o.status != 'cancelled'
-         AND o.created_at >= CONCAT(DATE_SUB(CURDATE(), INTERVAL ? DAY), ' 00:00:00') THEN o.id END) AS orders_count,
-       COALESCE(AVG(CASE WHEN o.status != 'cancelled'
-         AND o.created_at >= CONCAT(DATE_SUB(CURDATE(), INTERVAL ? DAY), ' 00:00:00') THEN o.total END), 0) AS avg_order
-     FROM users u
-     LEFT JOIN loyalty_tiers lt ON u.tier_id = lt.id
-     LEFT JOIN orders o ON o.user_id = u.id
-     GROUP BY lt.id, lt.name, lt.sort_order, lt.points_multiplier
-     ORDER BY sort_order ASC`,
-    [off, off, off]
-  );
+  const tierDistribution = await fetchTierAnalyticsRollup(daysBack);
 
   return {
     period: `${daysBack}d`,
@@ -181,10 +128,13 @@ async function buildAnalyticsPayload(daysBack: number) {
       cancellationRate: parseFloat(cancellationRate.toFixed(1)),
       cancelledOrders: cancelledCount,
     },
-    topCustomers: topCustomers.map(c => ({
-      id: c.id, name: c.name, ordersCount: c.orders_count,
-      totalSpent: parseFloat(c.total_spent), avgOrder: parseFloat(c.avg_order),
-      lastOrderAt: c.last_order_at,
+    topCustomers: topCustomersRows.map(c => ({
+      id: c.id,
+      name: c.name,
+      ordersCount: intFromDb(c.orders_count),
+      totalSpent: parseFloat(String(c.total_spent)),
+      avgOrder: parseFloat(String(c.avg_order)),
+      lastOrderAt: formatAnalyticsDate(c.last_day),
     })),
     revenueByCategory: revenueByCategory.map(c => ({
       category: c.category, ordersCount: c.ordersCount, itemsSold: c.itemsSold,
@@ -210,33 +160,48 @@ async function buildAnalyticsPayload(daysBack: number) {
       totalSpent,
       redemptionRate: parseFloat(redemptionRate.toFixed(1)),
       redemptionsCount: pointsTotals.redemptionsCount,
-      uniqueEarners: parseInt(pointsStatsExtras[0]?.unique_earners || '0', 10),
-      uniqueRedeemers: parseInt(pointsStatsExtras[0]?.unique_redeemers || '0', 10),
-      aovWithPoints: parseFloat(aovWithPoints[0]?.aov_with_points || '0'),
-      aovWithoutPoints: parseFloat(aovWithPoints[0]?.aov_without_points || '0'),
-      totalDiscount: parseFloat(aovWithPoints[0]?.total_discount || '0'),
-      topEarners: topPointsEarners.map(e => ({
-        id: e.id, name: e.name, balance: e.points_balance,
-        earned: parseInt(String(e.earned), 10), spent: parseInt(String(e.spent), 10),
+      uniqueEarners: distinctPointsUsers.uniqueEarners,
+      uniqueRedeemers: distinctPointsUsers.uniqueRedeemers,
+      aovWithPoints: parseFloat(ordersPointsInsights.aovWithPoints.toFixed(2)),
+      aovWithoutPoints: parseFloat(ordersPointsInsights.aovWithoutPoints.toFixed(2)),
+      totalDiscount: parseFloat(ordersPointsInsights.totalDiscount.toFixed(2)),
+      topEarners: topPointsEarnersRows.map(e => ({
+        id: e.id,
+        name: e.name,
+        balance: intFromDb(e.points_balance),
+        earned: intFromDb(e.earned),
+        spent: intFromDb(e.spent),
       })),
       trend: pointsTrend.map(d => ({
         day: d.day, earned: d.earned, spent: d.spent,
       })),
     },
     streakAnalytics: streakCampaigns.map(sc => ({
-      id: sc.id, name: sc.name, ordersRequired: sc.orders_required,
-      bonusPoints: sc.bonus_points, startDate: sc.start_date, endDate: sc.end_date,
-      enrolled: sc.enrolled, completed: sc.completed, active: sc.active,
-      avgStreak: parseFloat(parseFloat(sc.avg_streak).toFixed(1)),
-      pointsAwarded: sc.points_awarded,
-      completionRate: sc.enrolled > 0 ? parseFloat(((sc.completed / sc.enrolled) * 100).toFixed(1)) : 0,
+      id: sc.id,
+      name: sc.name,
+      ordersRequired: Number(sc.orders_required),
+      bonusPoints: Number(sc.bonus_points),
+      startDate: sc.start_date,
+      endDate: sc.end_date,
+      enrolled: intFromDb(sc.enrolled),
+      completed: intFromDb(sc.completed),
+      active: intFromDb(sc.active),
+      avgStreak: parseFloat(parseFloat(String(sc.avg_streak)).toFixed(1)),
+      pointsAwarded: intFromDb(sc.points_awarded),
+      completionRate:
+        intFromDb(sc.enrolled) > 0
+          ? parseFloat(((intFromDb(sc.completed) / intFromDb(sc.enrolled)) * 100).toFixed(1))
+          : 0,
     })),
     tierAnalytics: tierDistribution.map(t => ({
-      tierId: t.tier_id, tierName: t.tier_name, sortOrder: t.sort_order,
-      multiplier: parseFloat(t.multiplier),
-      userCount: parseInt(t.user_count, 10),
-      revenue: parseFloat(t.revenue), ordersCount: parseInt(t.orders_count, 10),
-      avgOrder: parseFloat(t.avg_order),
+      tierId: t.tier_id,
+      tierName: t.tier_name,
+      sortOrder: intFromDb(t.sort_order),
+      multiplier: parseFloat(String(t.multiplier)),
+      userCount: intFromDb(t.user_count),
+      revenue: parseFloat(String(t.revenue)),
+      ordersCount: intFromDb(t.orders_count),
+      avgOrder: parseFloat(String(t.avg_order)),
     })),
   };
 }
@@ -303,8 +268,7 @@ export async function getAnalyticsProductPairs(req: Request, res: Response): Pro
       res.status(typeof err.status === 'number' ? err.status : 400).json({ error: (e as Error).message });
       return;
     }
-    const off = firstDayIntervalDays(daysBack);
-    const rows = await withTimeout(fetchProductPairs(off), env.ANALYTICS_REQUEST_TIMEOUT_MS);
+    const rows = await withTimeout(fetchProductPairs(daysBack), env.ANALYTICS_REQUEST_TIMEOUT_MS);
     const ms = Date.now() - t0;
     logger.info({ msg: 'analytics_product_pairs', durationMs: ms, period: `${daysBack}d` });
     res.json({
@@ -326,43 +290,99 @@ export async function getAnalyticsProductPairs(req: Request, res: Response): Pro
 }
 
 /**
+ * Verifică acoperirea rollup pe aceeași fereastră ca KPI-urile din analyticsHybrid.ts:
+ * INTERVAL firstDayIntervalDays(daysBack); include și ziua curentă dacă cron a scris rând pentru azi.
+ * `note` explică cazuri în care „lipsa” nu înseamnă neapărat cron defect.
+ */
+async function rollupDayCoverage(
+  daysBack: number,
+  table:
+    | 'analytics_daily_sales'
+    | 'analytics_daily_points'
+    | 'analytics_daily_streaks'
+    | 'analytics_daily_product_pairs',
+  expectedDates: string[]
+): Promise<{ missingDates: string[]; presentCount: number; lastPresentDate: string | null; note?: string }> {
+  const off = firstDayIntervalDays(daysBack);
+  const presentRows = await analyticsQuery<{ report_date: Date | string }[]>(
+    `SELECT DISTINCT report_date
+     FROM ${table}
+     WHERE report_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+     ORDER BY report_date ASC`,
+    [off]
+  );
+
+  const present = new Set(presentRows.map(r => formatHealthDate(r.report_date)));
+  const missingDates = expectedDates.filter(d => !present.has(d));
+
+  let lastPresentDate: string | null = null;
+  if (presentRows.length > 0) {
+    lastPresentDate = formatHealthDate(presentRows[presentRows.length - 1].report_date);
+  }
+
+  const base = { missingDates, presentCount: present.size, lastPresentDate };
+  if (table === 'analytics_daily_product_pairs') {
+    return {
+      ...base,
+      note:
+        'O zi poate lipsi din tabel dacă nu s-au putut forma perechi de produse în comenzi; compară cu analytics_daily_sales pentru aceeași dată.',
+    };
+  }
+  if (table === 'analytics_daily_streaks') {
+    return {
+      ...base,
+      note:
+        'Dacă nu există campanii streak în baza de date, snapshot-ul zilnic poate fi gol chiar cu cron corect.',
+    };
+  }
+  return base;
+}
+
+/** Zile consecutive de la DATE_SUB(off) până la azi inclusiv — aceeași fereastră ca interogările rollup din hybrid. */
+async function buildExpectedAnalyticsWindowDates(daysBack: number): Promise<string[]> {
+  const off = firstDayIntervalDays(daysBack);
+  const out: string[] = [];
+  for (let k = off; k >= 0; k--) {
+    const dr = await analyticsQuery<{ d: Date | string }[]>(
+      `SELECT DATE_SUB(CURDATE(), INTERVAL ? DAY) AS d`,
+      [k]
+    );
+    out.push(formatHealthDate(dr[0]?.d));
+  }
+  return out;
+}
+
+/**
  * GET /admin/analytics/rollup-health?days=7
+ * Verifică acoperirea pe zile pentru tabelele rollup folosite de /admin/analytics.
+ * Parametrul `days` folosește aceeași semantica ca `period` pe GET /admin/analytics (N zile încheiate cu azi inclusiv).
+ * Câmpurile de nivel rădăcină (missingDates, presentCount, lastPresentDate) rămân cele pentru vânzări (compat).
  */
 export async function getAnalyticsRollupHealth(req: Request, res: Response): Promise<void> {
   try {
     const days = Math.min(Math.max(parseInt(String(req.query.days || '7'), 10) || 7, 1), 90);
 
-    const presentRows = await analyticsQuery<{ report_date: Date | string }[]>(
-      `SELECT DISTINCT report_date
-       FROM analytics_daily_sales
-       WHERE report_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
-         AND report_date < CURDATE()
-       ORDER BY report_date ASC`,
-      [days]
-    );
+    const expectedDates = await buildExpectedAnalyticsWindowDates(days);
 
-    const present = new Set(presentRows.map(r => formatHealthDate(r.report_date)));
-    const missingDates: string[] = [];
-    for (let i = days; i >= 1; i--) {
-      const dr = await analyticsQuery<{ d: Date | string }[]>(
-        `SELECT DATE_SUB(CURDATE(), INTERVAL ? DAY) AS d`,
-        [i]
-      );
-      const ds = formatHealthDate(dr[0]?.d);
-      if (!present.has(ds)) missingDates.push(ds);
-    }
-
-    let lastPresentDate: string | null = null;
-    if (presentRows.length > 0) {
-      lastPresentDate = formatHealthDate(presentRows[presentRows.length - 1].report_date);
-    }
+    const [sales, points, streaks, productPairs] = await Promise.all([
+      rollupDayCoverage(days, 'analytics_daily_sales', expectedDates),
+      rollupDayCoverage(days, 'analytics_daily_points', expectedDates),
+      rollupDayCoverage(days, 'analytics_daily_streaks', expectedDates),
+      rollupDayCoverage(days, 'analytics_daily_product_pairs', expectedDates),
+    ]);
 
     res.json({
       daysChecked: days,
-      presentCount: present.size,
       expectedCount: days,
-      missingDates,
-      lastPresentDate,
+      missingDates: sales.missingDates,
+      presentCount: sales.presentCount,
+      lastPresentDate: sales.lastPresentDate,
+      rollups: {
+        analytics_daily_sales: sales,
+        analytics_daily_points: points,
+        analytics_daily_streaks: streaks,
+        analytics_daily_product_pairs: productPairs,
+      },
     });
   } catch (error) {
     logError('analytics-rollup-health', error);
@@ -373,4 +393,56 @@ export async function getAnalyticsRollupHealth(req: Request, res: Response): Pro
 function formatHealthDate(d: Date | string): string {
   if (typeof d === 'string') return d.slice(0, 10);
   return d.toISOString().slice(0, 10);
+}
+
+/**
+ * GET /admin/analytics/run-daily-rollup?days=1
+ * Secret: header `X-Cron-Secret`, sau `Authorization: Bearer <secret>`, sau `?secret=` (ultimul poate apărea în loguri).
+ */
+export async function getRunDailyAnalyticsRollup(req: Request, res: Response): Promise<void> {
+  const cronSecret = env.ANALYTICS_CRON_SECRET;
+  if (!cronSecret) {
+    res.status(503).json({ error: 'Agregarea programată este dezactivată (lipsește ANALYTICS_CRON_SECRET).' });
+    return;
+  }
+
+  const fromHeader =
+    typeof req.headers['x-cron-secret'] === 'string' ? req.headers['x-cron-secret'].trim() : '';
+  const auth = typeof req.headers.authorization === 'string' ? req.headers.authorization.trim() : '';
+  const bearer = /^Bearer\s+/i.test(auth) ? auth.replace(/^Bearer\s+/i, '').trim() : '';
+  const fromQuery = typeof req.query.secret === 'string' ? req.query.secret.trim() : '';
+  const provided = fromHeader || bearer || fromQuery;
+
+  const safeEquals = (a: string, b: string) => {
+    if (a.length !== b.length) return false;
+    try {
+      return timingSafeEqual(Buffer.from(a, 'utf8'), Buffer.from(b, 'utf8'));
+    } catch {
+      return false;
+    }
+  };
+
+  if (!provided || !safeEquals(provided, cronSecret)) {
+    res.status(401).json({ error: 'Neautorizat' });
+    return;
+  }
+
+  const parsed = parseInt(String(req.query.days ?? '1'), 10);
+  const days = Math.min(365, Math.max(1, Number.isFinite(parsed) ? parsed : 1));
+
+  const t0 = Date.now();
+  try {
+    const conn = await pool.getConnection();
+    try {
+      await conn.query('CALL sp_backfill_analytics(?)', [days]);
+    } finally {
+      conn.release();
+    }
+    const ms = Date.now() - t0;
+    logger.info({ msg: 'analytics_run_daily_rollup', durationMs: ms, days });
+    res.json({ ok: true, days, durationMs: ms });
+  } catch (error) {
+    logError('analytics-run-daily-rollup', error);
+    res.status(500).json({ error: 'Eroare la rularea agregărilor' });
+  }
 }

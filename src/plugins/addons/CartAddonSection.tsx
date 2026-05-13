@@ -11,7 +11,6 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { addItem, changeQuantity } from '@/store/slices/cartSlice';
 import { getImageUrl } from '@/lib/imageUrl';
 import { texts } from '@/config/texts';
-import { toast } from '@/hooks/use-toast';
 import {
   fetchSuggestedAddonsForCartApi,
   fetchAddonProductsApi,
@@ -102,7 +101,6 @@ export function CartAddonSection() {
 
   const handleAdd = (suggestion: AddonSuggestion) => {
     dispatch(addItem({ product: suggestion.product }));
-    toast({ title: 'Adăugat în coș', description: suggestion.product.name });
     trackAddonConversion({
       productId: suggestion.product.id,
       ruleId: suggestion.ruleId,

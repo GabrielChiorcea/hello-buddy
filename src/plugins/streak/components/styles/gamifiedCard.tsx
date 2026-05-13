@@ -10,7 +10,13 @@ import type { StreakCampaign, StreakEnrollment } from '../../types';
 import { StreakProgressBar } from '../StreakProgressBar';
 import { CampaignJoinButton } from '../CampaignJoinButton';
 import { Skeleton } from '@/components/ui/skeleton';
-import { buildRuleDescription, formatDate, daysRemaining } from '../campaignUtils';
+import {
+  buildRuleDescription,
+  formatDate,
+  daysRemaining,
+  calculateCampaignTotalPoints,
+  calculateMaxDiscountFromPoints,
+} from '../campaignUtils';
 import { RewardStepsLadder } from '../RewardStepsLadder';
 import { getImageUrl } from '@/lib/imageUrl';
 import { CampaignCompactPreview } from '../CampaignCompactPreview';
@@ -31,25 +37,6 @@ interface Props {
   pointsPerOrder?: number;
 }
 
-function calculateMaxDiscountFromPoints(totalPoints: number, pointsRewards: PointsReward[], maxRedemptions: number): number {
-  const rewards = pointsRewards.filter((reward) => reward.isActive && reward.pointsCost > 0 && reward.discountAmount > 0);
-  if (rewards.length === 0 || totalPoints <= 0 || maxRedemptions <= 0) return 0;
-  const cap = Math.floor(totalPoints);
-  const usesCap = Math.floor(maxRedemptions);
-  const dp = Array.from({ length: usesCap + 1 }, () => new Array<number>(cap + 1).fill(0));
-  for (let use = 1; use <= usesCap; use++) {
-    for (let p = 0; p <= cap; p++) {
-      dp[use][p] = dp[use - 1][p];
-      for (const reward of rewards) {
-        if (reward.pointsCost <= p) {
-          dp[use][p] = Math.max(dp[use][p], dp[use - 1][p - reward.pointsCost] + reward.discountAmount);
-        }
-      }
-    }
-  }
-  return dp[usesCap][cap];
-}
-
 /** Deterministic fake participant count based on campaign id */
 function fakeParticipants(id: string): number {
   let hash = 0;
@@ -67,8 +54,8 @@ export const GamifiedCard: React.FC<Props> = ({
     ? campaign.bonusPoints + campaign.rewardSteps.reduce((sum, step) => sum + step.pointsAwarded, 0)
     : campaign.bonusPoints;
   const remainingOrders = Math.max(0, ordersRequired - currentCount);
-  const displayPoints = potentialPoints + remainingOrders * pointsPerOrder;
-  const estimatedSavingsRon = calculateMaxDiscountFromPoints(displayPoints, pointsRewards, remainingOrders);
+  const totalCampaignPoints = calculateCampaignTotalPoints(campaign, pointsPerOrder);
+  const estimatedSavingsRon = calculateMaxDiscountFromPoints(totalCampaignPoints, pointsRewards, ordersRequired);
 
   if (variant === 'compact') {
     return (

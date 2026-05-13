@@ -1,11 +1,10 @@
 /**
  * MobileBottomNav — Premium (Apple-like)
- * Floating pill simplu, fără bg-primary/15 pe itemul activ.
+ * Docked la baza ecranului (ca celelalte stiluri), cu efect de sticlă/blur premium.
  */
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { PREMIUM_GLASS_CLASSES } from '@/components/layout/premiumGlass';
 import { cn } from '@/lib/utils';
 import type { MobileNavDisplayData } from './shared';
 
@@ -13,17 +12,25 @@ export const PremiumMobileNav: React.FC<{ data: MobileNavDisplayData }> = ({ dat
   const { navItems, isActive } = data;
 
   return (
-    <div className="fixed bottom-5 left-4 right-4 z-50 md:hidden safe-area-bottom">
-      <nav className={cn('mx-auto max-w-md flex items-center justify-around px-3 py-2', PREMIUM_GLASS_CLASSES)}>
+    <nav
+      className={cn(
+        'fixed bottom-0 left-0 right-0 z-50 md:hidden safe-area-bottom',
+        'border-t border-primary/20',
+        'bg-background/80 supports-[backdrop-filter]:bg-background/50',
+        'supports-[backdrop-filter]:backdrop-blur-2xl supports-[backdrop-filter]:backdrop-saturate-150',
+        'shadow-[0_-4px_24px_hsl(var(--primary)/0.08)]'
+      )}
+    >
+      <div className="flex items-center justify-around h-16 px-2">
         {navItems.map(({ path, label, icon: Icon, badge }) => (
           <Link
             key={path}
             to={path}
             className={cn(
-              'flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 rounded-[2rem] transition-all duration-200',
+              'flex flex-col items-center justify-center gap-0.5 flex-1 h-full py-2 transition-all duration-200',
               isActive(path)
                 ? 'text-primary'
-                : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                : 'text-muted-foreground hover:text-foreground'
             )}
           >
             <div className="relative">
@@ -34,11 +41,12 @@ export const PremiumMobileNav: React.FC<{ data: MobileNavDisplayData }> = ({ dat
                 </span>
               )}
             </div>
-            <span className={cn('text-[10px] tracking-wide', isActive(path) ? 'font-semibold' : 'font-medium')}>{label}</span>
+            <span className={cn('text-[10px] tracking-wide', isActive(path) ? 'font-semibold' : 'font-medium')}>
+              {label}
+            </span>
           </Link>
         ))}
-      </nav>
-    </div>
+      </div>
+    </nav>
   );
 };
-

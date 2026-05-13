@@ -103,6 +103,11 @@ export const texts = {
       passwordPlaceholder: 'Introduceți parola',
       confirmPasswordLabel: 'Confirmă parola',
       confirmPasswordPlaceholder: 'Reintroduceți parola',
+      passwordRequirementsTitle: 'Parola ta trebuie să conțină:',
+      passwordReqMinChars: 'Cel puțin 6 caractere',
+      passwordReqUppercase: 'O literă mare (A-Z) - recomandat',
+      passwordReqDigit: 'O cifră (0-9) - recomandat',
+      passwordReqMatch: 'Parolele să coincidă',
       nameLabel: 'Nume complet',
       namePlaceholder: 'Ion Popescu',
       phoneLabel: 'Telefon',
@@ -274,13 +279,10 @@ export const texts = {
   
     // Notificări
     notifications: {
-      loginSuccess: 'Autentificat cu succes!',
       loginError: 'Email sau parolă incorectă',
       signupSuccess: 'Cont creat cu succes!',
       signupError: 'Eroare la crearea contului',
-      logoutSuccess: 'Deconectat',
       profileUpdated: 'Profil actualizat',
-      addedToCart: 'Produs adăugat în coș',
       removedFromCart: 'Produs eliminat din coș',
       orderPlaced: 'Comanda a fost plasată cu succes!',
       orderError: 'Eroare la plasarea comenzii',
@@ -429,6 +431,15 @@ export const texts = {
         'Adaugă un produs din categoriile de mai jos în coș și îl primești gratuit (1 unitate).',
       rankInfoCta: 'Adaugă în coș pentru a beneficia.',
       availableOnlyForYourRank: 'Produse gratuite doar pentru rangul tău!',
+      yourRankBadge: 'Doar pentru rangul tău',
+      freeBadge: 'GRATIS',
+      oneUnitAutoAdded: 'Adăugă la comanda',
+      orderCta: 'Comandă',
+      minOrderToActivate: 'Minim {amount} RON în coș pentru a activa',
+      countdownDays: 'ZILE',
+      countdownHours: 'ORE',
+      countdownMinutes: 'MIN',
+      countdownSeconds: 'SEC',
       cartGridTitle: 'Produse gratuite pentru rangul tău',
       cartDiscountLabel: 'Produse gratuite',
       cartInfoNone:
@@ -449,7 +460,7 @@ export const texts = {
       homeCardPoints: '+{points} puncte posibile',
       comboCardTitle: 'Combouri speciale',
       comboCardSubtitle: 'În curând...',
-      homeGamifiedDealUnit: 'puncte bonus',
+      homeGamifiedDealUnit: 'puncte total',
       homeGamifiedUrgencyDays: '{days} zile rămase',
       homeGamifiedUrgencyTwo: 'Ultimele 2 zile',
       homeGamifiedUrgencyLast: 'Ultima zi — nu rata bonusul',
@@ -486,12 +497,31 @@ export const texts = {
         daysLeft: '{days} days!',
         leave: 'Leave',
       },
+      toast: {
+        limited: 'Limitat',
+        statusLastChance: 'ULTIMA SANSA',
+        statusExpiringSoon: 'EXPIRA CURAND',
+        almostDone: 'Aproape gata: {current}/{total}',
+        ordersProgress: '{current}/{total} comenzi',
+        savingsLabel: 'Castigi pana la {amount} RON',
+        savingsShort: 'Castigi pana la {amount} RON',
+        pointsFallback: '+{points} puncte',
+        pointsShort: '+{points} pct',
+      },
       detail: {
         title: 'Campaign details',
         subtitle: 'Full rules, rewards, progress, and actions',
       },
     },
-  
+
+    gamificationToasts: {
+      textSimple: {
+        label: 'Anunt',
+        badge: 'Nou',
+        hint: 'Apasa pentru detalii',
+      },
+    },
+
     // Texte admin comune
     admin: {
       error: 'Eroare',
@@ -518,7 +548,6 @@ export const texts = {
       loginPasswordLabel: 'Parolă',
       loginButton: 'Autentifică-te',
       loginAuthenticating: 'Se autentifică...',
-      loginSuccess: 'Autentificare reușită',
       loginFailed: 'Autentificare eșuată',
       loginDevCredentials: 'Credențiale implicite: admin@foodorder.com / admin123secure',
       controlPanel: 'Panou de control',
@@ -834,7 +863,6 @@ export const texts = {
       addNewTier: 'Adaugă rang nou',
       addonFreeDelivery: 'Livrare gratuită',
       addonLowPrice: 'Preț redus',
-      addonAddedToCart: 'Adăugat în coș',
       errorOccurred: 'A apărut o eroare',
       errorFallbackMessage: 'Ceva nu a funcționat. Poți încerca să reîncarci pagina.',
       reloadPage: 'Reîncarcă pagina',

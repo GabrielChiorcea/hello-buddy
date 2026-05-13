@@ -7,6 +7,8 @@ export const welcomeBonusSchemaExtension = `#graphql
   extend type User {
     welcomeBonusSeen: Boolean!
     welcomeBonusAmount: Int!
+    """Puncte cadou acordate la înregistrare (0 dacă nu s-a primit). Folosit doar pentru UX (ex. bară rang), nu sunt XP."""
+    welcomeBonusAwardedPoints: Int!
   }
 
   extend type Mutation {

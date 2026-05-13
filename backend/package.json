@@ -9,6 +9,7 @@
     "build": "tsc",
     "start": "NODE_ENV=production node dist/index.js",
     "migrate": "tsx src/scripts/migrate.ts",
+    "db:ensure-welcome-bonus-column": "tsx src/scripts/ensureWelcomeBonusAwardedColumn.ts",
     "seed": "tsx src/scripts/seed.ts",
     "seed:complete": "tsx src/scripts/seed-complete.ts",
     "seed:admin": "tsx src/scripts/admin-seed.ts"

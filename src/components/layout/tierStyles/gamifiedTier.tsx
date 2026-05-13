@@ -59,6 +59,7 @@ export const GamifiedTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
     multiplier,
     currentXp,
     progressPercent,
+    visualProgressPercent,
     isMaxLevel,
     xpToNextLevel,
     nextTierThreshold,
@@ -112,7 +113,7 @@ export const GamifiedTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
             Încă <span className="font-semibold text-foreground">{xpToNextLevel}</span> XP
           </p>
         )}
-        <GradientProgressBar percent={progressPercent} />
+        <GradientProgressBar percent={visualProgressPercent} />
         {!isMaxLevel && xpToNextLevel != null && (isAlmostThere || isHalfway) && (
           <div className="mt-1">
             {isAlmostThere && (
@@ -143,12 +144,6 @@ export const GamifiedTier: React.FC<{ data: TierDisplayData }> = ({ data }) => {
         </InfoPill>
         {hasFreeProductBenefits ? (
           <div className="mt-1">
-            <p className="text-[10px] text-success">
-              {texts.freeProducts.rankInfoActivePrefix}{' '}
-              {freeProductCampaignsSummary.length > 0
-                ? freeProductCampaignsSummary.map((c) => c.name).join(', ')
-                : ''}
-            </p>
             <FreeProductsTierGrid summaries={freeProductCampaignsSummary} />
           </div>
         ) : (

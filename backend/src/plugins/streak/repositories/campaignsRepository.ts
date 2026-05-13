@@ -86,6 +86,22 @@ export function getTodayBucharest(): string {
   return new Date().toLocaleDateString('en-CA', { timeZone: APP_TIMEZONE });
 }
 
+/**
+ * Ziua înrolării (Europe/Bucharest) în intervalul ediției campaniei — folosit pentru prune + admin + KPI.
+ */
+export function enrollmentJoinedWithinCampaignBounds(
+  joinedAt: Date | string,
+  campaignStart: Date | string,
+  campaignEnd: Date | string
+): boolean {
+  const j = joinedAt instanceof Date ? joinedAt : new Date(joinedAt);
+  if (isNaN(j.getTime())) return false;
+  const joinedDay = j.toLocaleDateString('en-CA', { timeZone: APP_TIMEZONE });
+  const start = toDateString(campaignStart);
+  const end = toDateString(campaignEnd);
+  return joinedDay >= start && joinedDay <= end;
+}
+
 /** Data calendar (YYYY-MM-DD) în Europe/Bucharest pentru un Date – ex. pentru ziua livrării la streak. */
 export function getDateInBucharest(d: Date): string {
   return d.toLocaleDateString('en-CA', { timeZone: APP_TIMEZONE });

@@ -41,6 +41,7 @@ interface EditableSettings {
   plugin_tiers_enabled: boolean;
    plugin_free_products_enabled: boolean;
   plugin_coupons_enabled: boolean;
+  plugin_gamification_toasts_enabled: boolean;
   has_tables: boolean;
   points_per_order: string;
 }
@@ -61,6 +62,7 @@ function parseSettings(map: SettingsMap): EditableSettings {
     plugin_tiers_enabled: (map.plugin_tiers_enabled?.value ?? 'true') === 'true',
     plugin_free_products_enabled: (map.plugin_free_products_enabled?.value ?? 'false') === 'true',
     plugin_coupons_enabled: (map.plugin_coupons_enabled?.value ?? 'true') === 'true',
+    plugin_gamification_toasts_enabled: (map.plugin_gamification_toasts_enabled?.value ?? 'false') === 'true',
     has_tables: (map.has_tables?.value ?? 'true') === 'true',
     points_per_order: map.points_per_order?.value ?? '5',
   };
@@ -80,10 +82,10 @@ export default function AdminSettings() {
   const fetchSettings = async () => {
     setIsLoading(true);
     try {
-      const data = await getSettings();
+      const data = (await getSettings()) as SettingsMap | { settings?: SettingsMap };
       // API returnează direct SettingsMap sau wrapped în { settings }
-      const map: SettingsMap = (data as any)?.settings ?? data;
-      setSettings(parseSettings(map as SettingsMap));
+      const map: SettingsMap = 'settings' in data && data.settings ? data.settings : data;
+      setSettings(parseSettings(map));
     } catch (error) {
       console.error('Eroare la încărcarea setărilor:', error);
       toast({
@@ -116,6 +118,7 @@ export default function AdminSettings() {
         plugin_tiers_enabled: settings.plugin_tiers_enabled ? 'true' : 'false',
         plugin_free_products_enabled: settings.plugin_free_products_enabled ? 'true' : 'false',
         plugin_coupons_enabled: settings.plugin_coupons_enabled ? 'true' : 'false',
+        plugin_gamification_toasts_enabled: settings.plugin_gamification_toasts_enabled ? 'true' : 'false',
         has_tables: settings.has_tables ? 'true' : 'false',
         points_per_order: settings.points_per_order,
       });
@@ -417,6 +420,18 @@ export default function AdminSettings() {
             <Switch
               checked={settings.plugin_coupons_enabled}
               onCheckedChange={(checked) => updateField('plugin_coupons_enabled', checked)}
+            />
+          </div>
+          <div className="flex items-center justify-between pt-4 border-t">
+            <div>
+              <Label>Plugin gamification toasts</Label>
+              <p className="text-sm text-muted-foreground">
+                Activeaza sistemul de toast-uri gamification configurabile din pagina dedicata.
+              </p>
+            </div>
+            <Switch
+              checked={settings.plugin_gamification_toasts_enabled}
+              onCheckedChange={(checked) => updateField('plugin_gamification_toasts_enabled', checked)}
             />
           </div>
         </CardContent>

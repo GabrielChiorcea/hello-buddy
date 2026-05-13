@@ -21,6 +21,10 @@ export const welcomeBonusResolvers = {
   },
 
   User: {
+    welcomeBonusAwardedPoints(user: User): number {
+      return user.welcomeBonusAwarded ?? 0;
+    },
+
     async welcomeBonusAmount(user: User): Promise<number> {
       const enabled = await isPluginEnabled('welcome_bonus');
       if (!enabled) return 0;

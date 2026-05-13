@@ -30,7 +30,6 @@ const categoryNames: Record<string, string> = {
   desert: 'Deserturi',
   bauturi: 'Băuturi',
 };
-import { toast } from '@/hooks/use-toast';
 import { cn, formatDisplayNumber } from '@/lib/utils';
 import { ProductCard } from '@/components/common/ProductCard';
 import { Loader } from '@/components/common/Loader';
@@ -69,10 +68,6 @@ const ProductDetails: React.FC = () => {
       })
     );
     setIsAdded(true);
-    toast({
-      title: texts.notifications.addedToCart,
-      description: product.name,
-    });
     setTimeout(() => setIsAdded(false), 2000);
   };
 

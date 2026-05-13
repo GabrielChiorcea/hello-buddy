@@ -9,6 +9,8 @@ import { query } from '../../config/database.js';
 import { pointsPlugin } from '../../plugins/points/index.js';
 import { streakPlugin } from '../../plugins/streak/index.js';
 import { tiersPlugin } from '../../plugins/tiers/index.js';
+import * as UserModel from '../../models/User.js';
+import { sendOrderStatusEmail } from '../../utils/orderStatusEmail.js';
 
 /**
  * GET /admin/orders
@@ -158,6 +160,20 @@ export async function updateOrderStatus(req: Request, res: Response): Promise<vo
     if (!order) {
       res.status(404).json({ error: 'Comanda nu a fost găsită' });
       return;
+    }
+
+    // Email status intermediar: evităm email generic pe "delivered"
+    const notifiableStatuses: OrderModel.OrderStatus[] = [
+      'confirmed',
+      'preparing',
+      'delivering',
+      'cancelled',
+    ];
+    if (notifiableStatuses.includes(status)) {
+      const user = await UserModel.findById(order.userId);
+      if (user?.email) {
+        sendOrderStatusEmail(user.email, id, status, notes);
+      }
     }
 
     if (status === 'delivered') {

@@ -488,6 +488,13 @@ PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
+-- Puncte cadou efectiv acordate la signup (pentru efect vizual pe bara de XP la rang, fără a modifica total_xp)
+SET @col_wba = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'welcome_bonus_awarded');
+SET @sql_wba = IF(@col_wba = 0, 'ALTER TABLE users ADD COLUMN welcome_bonus_awarded INT NOT NULL DEFAULT 0', 'SELECT 1');
+PREPARE stmt_wba FROM @sql_wba;
+EXECUTE stmt_wba;
+DEALLOCATE PREPARE stmt_wba;
+
 -- Utilizatori existenți: nu afișa popup-ul după deploy
 UPDATE users SET welcome_bonus_seen = 1 WHERE welcome_bonus_seen = 0;
 
@@ -1047,6 +1054,10 @@ CREATE TABLE IF NOT EXISTS analytics_daily_sales (
     new_customers INT NOT NULL DEFAULT 0,
     delivery_count INT NOT NULL DEFAULT 0,
     in_location_count INT NOT NULL DEFAULT 0,
+    orders_with_points INT NOT NULL DEFAULT 0,
+    orders_without_points INT NOT NULL DEFAULT 0,
+    revenue_with_points DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    revenue_without_points DECIMAL(12, 2) NOT NULL DEFAULT 0,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_ads_date (report_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -1093,7 +1104,40 @@ CREATE TABLE IF NOT EXISTS analytics_daily_streaks (
     INDEX idx_adst_date (report_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 5. Analitice orare de vârf (pe oră, per zi)
+-- 5b–5d: Rollups per-utilizator / perechi (admin analytics din tabele agregate)
+CREATE TABLE IF NOT EXISTS analytics_daily_user_sales (
+    report_date DATE NOT NULL,
+    user_id VARCHAR(36) NOT NULL,
+    order_count INT NOT NULL DEFAULT 0,
+    total_spent DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (report_date, user_id),
+    INDEX idx_adus_report (report_date),
+    CONSTRAINT fk_adus_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS analytics_daily_user_points (
+    report_date DATE NOT NULL,
+    user_id VARCHAR(36) NOT NULL,
+    points_earned INT NOT NULL DEFAULT 0,
+    points_spent INT NOT NULL DEFAULT 0,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (report_date, user_id),
+    INDEX idx_adup_report (report_date),
+    CONSTRAINT fk_adup_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS analytics_daily_product_pairs (
+    report_date DATE NOT NULL,
+    product_a VARCHAR(255) NOT NULL,
+    product_b VARCHAR(255) NOT NULL,
+    pair_count INT NOT NULL DEFAULT 0,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (report_date, product_a, product_b),
+    INDEX idx_adpp_report (report_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 6. Analitice orare de vârf (pe oră, per zi)
 CREATE TABLE IF NOT EXISTS analytics_hourly_orders (
     report_date DATE NOT NULL,
     hour_of_day TINYINT NOT NULL,
@@ -1104,165 +1148,29 @@ CREATE TABLE IF NOT EXISTS analytics_hourly_orders (
     INDEX idx_aho_date (report_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Coloane AOV puncte pe zilnic (analytics_daily_sales): pentru DB vechi unde tabelul exista fără ele
+SET @c_ads_pts = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'analytics_daily_sales' AND COLUMN_NAME = 'orders_with_points');
+SET @q_ads_pts = IF(@c_ads_pts = 0, 'ALTER TABLE analytics_daily_sales ADD COLUMN orders_with_points INT NOT NULL DEFAULT 0 AFTER in_location_count', 'SELECT 1');
+PREPARE stmt_ads_pts FROM @q_ads_pts; EXECUTE stmt_ads_pts; DEALLOCATE PREPARE stmt_ads_pts;
+
+SET @c_ads_npts = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'analytics_daily_sales' AND COLUMN_NAME = 'orders_without_points');
+SET @q_ads_npts = IF(@c_ads_npts = 0, 'ALTER TABLE analytics_daily_sales ADD COLUMN orders_without_points INT NOT NULL DEFAULT 0 AFTER orders_with_points', 'SELECT 1');
+PREPARE stmt_ads_npts FROM @q_ads_npts; EXECUTE stmt_ads_npts; DEALLOCATE PREPARE stmt_ads_npts;
+
+SET @c_ads_rp = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'analytics_daily_sales' AND COLUMN_NAME = 'revenue_with_points');
+SET @q_ads_rp = IF(@c_ads_rp = 0, 'ALTER TABLE analytics_daily_sales ADD COLUMN revenue_with_points DECIMAL(12, 2) NOT NULL DEFAULT 0 AFTER orders_without_points', 'SELECT 1');
+PREPARE stmt_ads_rp FROM @q_ads_rp; EXECUTE stmt_ads_rp; DEALLOCATE PREPARE stmt_ads_rp;
+
+SET @c_ads_rnp = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'analytics_daily_sales' AND COLUMN_NAME = 'revenue_without_points');
+SET @q_ads_rnp = IF(@c_ads_rnp = 0, 'ALTER TABLE analytics_daily_sales ADD COLUMN revenue_without_points DECIMAL(12, 2) NOT NULL DEFAULT 0 AFTER revenue_with_points', 'SELECT 1');
+PREPARE stmt_ads_rnp FROM @q_ads_rnp; EXECUTE stmt_ads_rnp; DEALLOCATE PREPARE stmt_ads_rnp;
+
 -- ============================================
--- EVENT-URI PROGRAMATE (rulează zilnic la 02:00)
+-- Agregări analytics zilnice (analytics_daily_*)
+-- Nu mai folosim MySQL EVENT: agregarea zilnică se face din procesul API (ex. cron GET
+-- /admin/analytics/run-daily-rollup?days=1 + X-Cron-Secret → CALL sp_backfill_analytics(1)).
+-- Evenimentele vechi se șterg la migrarea 002_drop_mysql_analytics_events.sql
 -- ============================================
-
-DELIMITER //
-
--- Event 1: Agregare vânzări zilnice (actualizează ieri)
-CREATE EVENT IF NOT EXISTS evt_analytics_daily_sales
-ON SCHEDULE EVERY 1 DAY
-STARTS (TIMESTAMP(CURDATE()) + INTERVAL 1 DAY + INTERVAL 2 HOUR)
-DO
-BEGIN
-  DECLARE v_date DATE DEFAULT DATE_SUB(CURDATE(), INTERVAL 1 DAY);
-
-  INSERT INTO analytics_daily_sales (
-    report_date, total_orders, cancelled_orders, gross_revenue, net_revenue,
-    total_delivery_fees, avg_order_value, unique_customers, new_customers,
-    delivery_count, in_location_count
-  )
-  SELECT
-    v_date,
-    COUNT(CASE WHEN o.status != 'cancelled' THEN 1 END),
-    COUNT(CASE WHEN o.status = 'cancelled' THEN 1 END),
-    COALESCE(SUM(CASE WHEN o.status != 'cancelled' THEN o.total ELSE 0 END), 0),
-    COALESCE(SUM(CASE WHEN o.status != 'cancelled' THEN o.total - o.delivery_fee ELSE 0 END), 0),
-    COALESCE(SUM(CASE WHEN o.status != 'cancelled' THEN o.delivery_fee ELSE 0 END), 0),
-    COALESCE(AVG(CASE WHEN o.status != 'cancelled' THEN o.total END), 0),
-    COUNT(DISTINCT CASE WHEN o.status != 'cancelled' THEN o.user_id END),
-    (SELECT COUNT(*) FROM users u2 WHERE DATE(u2.created_at) = v_date),
-    COUNT(CASE WHEN o.status != 'cancelled' AND COALESCE(o.fulfillment_type, 'delivery') = 'delivery' THEN 1 END),
-    COUNT(CASE WHEN o.status != 'cancelled' AND o.fulfillment_type = 'in_location' THEN 1 END)
-  FROM orders o
-  WHERE DATE(o.created_at) = v_date
-  ON DUPLICATE KEY UPDATE
-    total_orders = VALUES(total_orders),
-    cancelled_orders = VALUES(cancelled_orders),
-    gross_revenue = VALUES(gross_revenue),
-    net_revenue = VALUES(net_revenue),
-    total_delivery_fees = VALUES(total_delivery_fees),
-    avg_order_value = VALUES(avg_order_value),
-    unique_customers = VALUES(unique_customers),
-    new_customers = VALUES(new_customers),
-    delivery_count = VALUES(delivery_count),
-    in_location_count = VALUES(in_location_count);
-END //
-
--- Event 2: Agregare puncte zilnice
-CREATE EVENT IF NOT EXISTS evt_analytics_daily_points
-ON SCHEDULE EVERY 1 DAY
-STARTS (TIMESTAMP(CURDATE()) + INTERVAL 1 DAY + INTERVAL 2 HOUR + INTERVAL 5 MINUTE)
-DO
-BEGIN
-  DECLARE v_date DATE DEFAULT DATE_SUB(CURDATE(), INTERVAL 1 DAY);
-
-  INSERT INTO analytics_daily_points (
-    report_date, points_earned, points_spent, redemptions_count,
-    discount_total, unique_earners, unique_redeemers
-  )
-  SELECT
-    v_date,
-    COALESCE(SUM(CASE WHEN pt.type = 'earned' THEN pt.amount ELSE 0 END), 0),
-    COALESCE(SUM(CASE WHEN pt.type = 'spent' THEN ABS(pt.amount) ELSE 0 END), 0),
-    COUNT(CASE WHEN pt.type = 'spent' THEN 1 END),
-    COALESCE((
-      SELECT SUM(o2.discount_from_points)
-      FROM orders o2
-      WHERE DATE(o2.created_at) = v_date AND o2.discount_from_points > 0
-    ), 0),
-    COUNT(DISTINCT CASE WHEN pt.type = 'earned' THEN pt.user_id END),
-    COUNT(DISTINCT CASE WHEN pt.type = 'spent' THEN pt.user_id END)
-  FROM points_transactions pt
-  WHERE DATE(pt.created_at) = v_date
-  ON DUPLICATE KEY UPDATE
-    points_earned = VALUES(points_earned),
-    points_spent = VALUES(points_spent),
-    redemptions_count = VALUES(redemptions_count),
-    discount_total = VALUES(discount_total),
-    unique_earners = VALUES(unique_earners),
-    unique_redeemers = VALUES(unique_redeemers);
-END //
-
--- Event 3: Snapshot distribuție tiers
-CREATE EVENT IF NOT EXISTS evt_analytics_daily_tiers
-ON SCHEDULE EVERY 1 DAY
-STARTS (TIMESTAMP(CURDATE()) + INTERVAL 1 DAY + INTERVAL 2 HOUR + INTERVAL 10 MINUTE)
-DO
-BEGIN
-  DECLARE v_date DATE DEFAULT DATE_SUB(CURDATE(), INTERVAL 1 DAY);
-
-  DELETE FROM analytics_daily_tiers WHERE report_date = v_date;
-
-  INSERT INTO analytics_daily_tiers (
-    report_date, tier_id, tier_name, user_count, total_revenue, total_orders, avg_order_value
-  )
-  SELECT
-    v_date,
-    COALESCE(lt.id, 'none'),
-    COALESCE(lt.name, 'Fără nivel'),
-    COUNT(DISTINCT u.id),
-    COALESCE(SUM(CASE WHEN o.status != 'cancelled' THEN o.total ELSE 0 END), 0),
-    COUNT(CASE WHEN o.status != 'cancelled' THEN o.id END),
-    COALESCE(AVG(CASE WHEN o.status != 'cancelled' THEN o.total END), 0)
-  FROM users u
-  LEFT JOIN loyalty_tiers lt ON u.tier_id = lt.id
-  LEFT JOIN orders o ON o.user_id = u.id AND DATE(o.created_at) = v_date
-  GROUP BY lt.id, lt.name;
-END //
-
--- Event 4: Snapshot campanii streak
-CREATE EVENT IF NOT EXISTS evt_analytics_daily_streaks
-ON SCHEDULE EVERY 1 DAY
-STARTS (TIMESTAMP(CURDATE()) + INTERVAL 1 DAY + INTERVAL 2 HOUR + INTERVAL 15 MINUTE)
-DO
-BEGIN
-  DECLARE v_date DATE DEFAULT DATE_SUB(CURDATE(), INTERVAL 1 DAY);
-
-  DELETE FROM analytics_daily_streaks WHERE report_date = v_date;
-
-  INSERT INTO analytics_daily_streaks (
-    report_date, campaign_id, campaign_name, enrolled_count, completed_count,
-    active_count, avg_streak, points_awarded
-  )
-  SELECT
-    v_date,
-    sc.id,
-    sc.name,
-    COUNT(DISTINCT usc.id),
-    COUNT(DISTINCT CASE WHEN usc.completed_at IS NOT NULL THEN usc.id END),
-    COUNT(DISTINCT CASE WHEN usc.completed_at IS NULL AND usc.current_streak_count > 0 THEN usc.id END),
-    COALESCE(AVG(usc.current_streak_count), 0),
-    COALESCE(SUM(CASE WHEN usc.bonus_awarded_at IS NOT NULL THEN sc.bonus_points ELSE 0 END), 0)
-  FROM streak_campaigns sc
-  LEFT JOIN user_streak_campaigns usc ON usc.campaign_id = sc.id
-  WHERE sc.start_date <= v_date
-  GROUP BY sc.id, sc.name;
-END //
-
--- Event 5: Orare de vârf
-CREATE EVENT IF NOT EXISTS evt_analytics_hourly_orders
-ON SCHEDULE EVERY 1 DAY
-STARTS (TIMESTAMP(CURDATE()) + INTERVAL 1 DAY + INTERVAL 2 HOUR + INTERVAL 20 MINUTE)
-DO
-BEGIN
-  DECLARE v_date DATE DEFAULT DATE_SUB(CURDATE(), INTERVAL 1 DAY);
-
-  DELETE FROM analytics_hourly_orders WHERE report_date = v_date;
-
-  INSERT INTO analytics_hourly_orders (report_date, hour_of_day, order_count, revenue)
-  SELECT
-    v_date,
-    HOUR(o.created_at),
-    COUNT(*),
-    COALESCE(SUM(o.total), 0)
-  FROM orders o
-  WHERE DATE(o.created_at) = v_date AND o.status != 'cancelled'
-  GROUP BY HOUR(o.created_at);
-END //
-
-DELIMITER ;
 
 
 -- ============================================================================
@@ -1633,7 +1541,7 @@ CREATE INDEX IF NOT EXISTS idx_orders_user_created_at ON orders (user_id, create
 -- ============================================================================
 
 -- Agregare zilnică venit pe categorie (analitice)
--- Populare prin event zilnic + opțional backfill din backend
+-- Populare prin cron GET pe API (sp_backfill_analytics), vezi comentariul de mai sus.
 
 CREATE TABLE IF NOT EXISTS analytics_daily_category (
     report_date DATE NOT NULL,
@@ -1647,47 +1555,14 @@ CREATE TABLE IF NOT EXISTS analytics_daily_category (
     INDEX idx_adc_date (report_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-DELIMITER //
-
-CREATE EVENT IF NOT EXISTS evt_analytics_daily_category
-ON SCHEDULE EVERY 1 DAY
-STARTS (TIMESTAMP(CURDATE()) + INTERVAL 1 DAY + INTERVAL 2 HOUR + INTERVAL 25 MINUTE)
-DO
-BEGIN
-  DECLARE v_date DATE DEFAULT DATE_SUB(CURDATE(), INTERVAL 1 DAY);
-
-  DELETE FROM analytics_daily_category WHERE report_date = v_date;
-
-  INSERT INTO analytics_daily_category (
-    report_date, category_id, category_name, orders_count, items_sold, revenue
-  )
-  SELECT
-    v_date,
-    c.id,
-    c.display_name,
-    COUNT(DISTINCT o.id),
-    COALESCE(SUM(oi.quantity), 0),
-    COALESCE(SUM(oi.quantity * oi.price_at_order), 0)
-  FROM categories c
-  INNER JOIN products p ON c.id = p.category_id
-  INNER JOIN order_items oi ON p.id = oi.product_id
-  INNER JOIN orders o ON oi.order_id = o.id
-  WHERE o.status != 'cancelled' AND DATE(o.created_at) = v_date
-  GROUP BY c.id, c.display_name;
-END //
-
-DELIMITER ;
-
 
 -- ============================================================================
 -- 040_analytics_backfill_procedure.sql
 -- ============================================================================
 
--- Backfill analytics tables by day range.
--- Usage after migration:
---   CALL sp_backfill_analytics(90);
--- Optional cleanup:
---   DROP PROCEDURE sp_backfill_analytics;
+-- Backfill analytics tables by day range (folosit și de cron zilnic).
+-- Zilnic (ieri inclusiv dacă dai 1): CALL sp_backfill_analytics(1);
+-- Istoric după migrare: CALL sp_backfill_analytics(90);
 
 DELIMITER //
 
@@ -1712,7 +1587,8 @@ BEGIN
     INSERT INTO analytics_daily_sales (
       report_date, total_orders, cancelled_orders, gross_revenue, net_revenue,
       total_delivery_fees, avg_order_value, unique_customers, new_customers,
-      delivery_count, in_location_count
+      delivery_count, in_location_count,
+      orders_with_points, orders_without_points, revenue_with_points, revenue_without_points
     )
     SELECT
       v_date,
@@ -1725,7 +1601,11 @@ BEGIN
       COUNT(DISTINCT CASE WHEN o.status != 'cancelled' THEN o.user_id END),
       (SELECT COUNT(*) FROM users u2 WHERE DATE(u2.created_at) = v_date),
       COUNT(CASE WHEN o.status != 'cancelled' AND COALESCE(o.fulfillment_type, 'delivery') = 'delivery' THEN 1 END),
-      COUNT(CASE WHEN o.status != 'cancelled' AND o.fulfillment_type = 'in_location' THEN 1 END)
+      COUNT(CASE WHEN o.status != 'cancelled' AND o.fulfillment_type = 'in_location' THEN 1 END),
+      COUNT(CASE WHEN o.status != 'cancelled' AND COALESCE(o.points_used, 0) > 0 THEN 1 END),
+      COUNT(CASE WHEN o.status != 'cancelled' AND COALESCE(o.points_used, 0) = 0 THEN 1 END),
+      COALESCE(SUM(CASE WHEN o.status != 'cancelled' AND COALESCE(o.points_used, 0) > 0 THEN o.total ELSE 0 END), 0),
+      COALESCE(SUM(CASE WHEN o.status != 'cancelled' AND COALESCE(o.points_used, 0) = 0 THEN o.total ELSE 0 END), 0)
     FROM orders o
     WHERE DATE(o.created_at) = v_date
     ON DUPLICATE KEY UPDATE
@@ -1738,7 +1618,18 @@ BEGIN
       unique_customers = VALUES(unique_customers),
       new_customers = VALUES(new_customers),
       delivery_count = VALUES(delivery_count),
-      in_location_count = VALUES(in_location_count);
+      in_location_count = VALUES(in_location_count),
+      orders_with_points = VALUES(orders_with_points),
+      orders_without_points = VALUES(orders_without_points),
+      revenue_with_points = VALUES(revenue_with_points),
+      revenue_without_points = VALUES(revenue_without_points);
+
+    DELETE FROM analytics_daily_user_sales WHERE report_date = v_date;
+    INSERT INTO analytics_daily_user_sales (report_date, user_id, order_count, total_spent)
+    SELECT v_date, o.user_id, COUNT(*), COALESCE(SUM(o.total), 0)
+    FROM orders o
+    WHERE DATE(o.created_at) = v_date AND o.status != 'cancelled'
+    GROUP BY o.user_id;
 
     INSERT INTO analytics_daily_points (
       report_date, points_earned, points_spent, redemptions_count,
@@ -1766,6 +1657,29 @@ BEGIN
       unique_earners = VALUES(unique_earners),
       unique_redeemers = VALUES(unique_redeemers);
 
+    DELETE FROM analytics_daily_user_points WHERE report_date = v_date;
+    INSERT INTO analytics_daily_user_points (report_date, user_id, points_earned, points_spent)
+    SELECT
+      v_date,
+      pt.user_id,
+      COALESCE(SUM(CASE WHEN pt.type = 'earned' THEN pt.amount ELSE 0 END), 0),
+      COALESCE(SUM(CASE WHEN pt.type = 'spent' THEN ABS(pt.amount) ELSE 0 END), 0)
+    FROM points_transactions pt
+    WHERE DATE(pt.created_at) = v_date
+    GROUP BY pt.user_id;
+
+    DELETE FROM analytics_daily_product_pairs WHERE report_date = v_date;
+    INSERT INTO analytics_daily_product_pairs (report_date, product_a, product_b, pair_count)
+    SELECT v_date, t.product_a, t.product_b, t.cnt FROM (
+      SELECT a.product_name AS product_a, b.product_name AS product_b, COUNT(*) AS cnt
+      FROM order_items a
+      INNER JOIN order_items b ON a.order_id = b.order_id AND a.id < b.id
+      INNER JOIN orders o ON o.id = a.order_id
+      WHERE DATE(o.created_at) = v_date AND o.status != 'cancelled'
+      GROUP BY a.product_name, b.product_name
+      ORDER BY cnt DESC
+      LIMIT 80
+    ) t;
     DELETE FROM analytics_daily_tiers WHERE report_date = v_date;
     INSERT INTO analytics_daily_tiers (
       report_date, tier_id, tier_name, user_count, total_revenue, total_orders, avg_order_value
@@ -1773,7 +1687,7 @@ BEGIN
     SELECT
       v_date,
       COALESCE(lt.id, 'none'),
-      COALESCE(lt.name, 'Fara nivel'),
+      COALESCE(lt.name, 'Fără nivel'),
       COUNT(DISTINCT u.id),
       COALESCE(SUM(CASE WHEN o.status != 'cancelled' THEN o.total ELSE 0 END), 0),
       COUNT(CASE WHEN o.status != 'cancelled' THEN o.id END),
@@ -1799,6 +1713,7 @@ BEGIN
       COALESCE(SUM(CASE WHEN usc.bonus_awarded_at IS NOT NULL THEN sc.bonus_points ELSE 0 END), 0)
     FROM streak_campaigns sc
     LEFT JOIN user_streak_campaigns usc ON usc.campaign_id = sc.id
+      AND DATE(usc.joined_at) BETWEEN sc.start_date AND sc.end_date
     WHERE sc.start_date <= v_date
     GROUP BY sc.id, sc.name;
 
@@ -1920,3 +1835,16 @@ CREATE TABLE IF NOT EXISTS order_coupon_redemptions (
 ALTER TABLE orders
   ADD COLUMN discount_from_coupons DECIMAL(10,2) NOT NULL DEFAULT 0 AFTER discount_from_free_products;
 
+-- =============================================================================
+-- Coloană welcome_bonus_awarded (puncte cadou la signup — UX bară rang)
+-- Idempotent: nu face nimic dacă coloana există deja.
+-- =============================================================================
+
+SET @col_wba = (
+  SELECT COUNT(*) FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'welcome_bonus_awarded'
+);
+SET @sql_wba = IF(@col_wba = 0, 'ALTER TABLE users ADD COLUMN welcome_bonus_awarded INT NOT NULL DEFAULT 0', 'SELECT 1');
+PREPARE stmt_wba FROM @sql_wba;
+EXECUTE stmt_wba;
+DEALLOCATE PREPARE stmt_wba;

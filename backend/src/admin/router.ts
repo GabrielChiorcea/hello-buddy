@@ -20,6 +20,7 @@ import { streakPlugin } from '../plugins/streak/index.js';
 import { tiersPlugin } from '../plugins/tiers/index.js';
 import { freeProductsPlugin } from '../plugins/free-products/index.js';
 import { couponsPlugin } from '../plugins/coupons/index.js';
+import { gamificationToastsPlugin } from '../plugins/gamification_toasts/index.js';
 import * as addonsController from './controllers/addons.js';
 import * as optionTemplatesController from './controllers/optionTemplates.js';
 import * as uploadController from './controllers/upload.js';
@@ -38,12 +39,14 @@ export function createAdminRouter(limiters: AdminRateLimiters) {
   // ============================================
   router.post('/auth/login', limiters.adminAuthLimiter, authController.login);
   router.post('/auth/refresh', limiters.refreshLimiter, authController.refreshToken);
-router.post('/auth/logout', authController.logout);
+  router.post('/auth/logout', authController.logout);
 
-// ============================================
-// Toate rutele de mai jos necesită autentificare admin
-// ============================================
-router.use(requireAdmin);
+  router.get('/analytics/run-daily-rollup', analyticsController.getRunDailyAnalyticsRollup);
+
+  // ============================================
+  // Toate rutele de mai jos necesită autentificare admin
+  // ============================================
+  router.use(requireAdmin);
 
 // Upload imagini (multipart, câmp `image`)
 router.post('/upload', uploadController.postUpload);
@@ -99,6 +102,8 @@ streakPlugin.registerAdminRoutes(router);
   freeProductsPlugin.registerAdminRoutes(router);
   // Cupoane (plugin)
   couponsPlugin.registerAdminRoutes(router);
+  // Gamification Toasts (plugin)
+  gamificationToastsPlugin.registerAdminRoutes(router);
 
 // Reguli add-on per categorie
 router.get('/addon-rules/full', addonsController.getAddonRulesFull);

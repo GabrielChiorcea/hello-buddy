@@ -4,11 +4,9 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { Product } from '@/types';
-import { texts } from '@/config/texts';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { addItem } from '@/store/slices/cartSlice';
 import { fetchActiveCouponDiscounts } from '@/store/slices/productsSlice';
-import { toast } from '@/hooks/use-toast';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { getImageUrl } from '@/lib/imageUrl';
 
@@ -70,7 +68,6 @@ export function useProductCardData(
     e.stopPropagation();
     dispatch(addItem({ product }));
     setIsAdded(true);
-    toast({ title: texts.notifications.addedToCart, description: product.name });
     setTimeout(() => setIsAdded(false), 2000);
   };
 

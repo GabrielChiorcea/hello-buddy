@@ -460,6 +460,21 @@ export const useAdminApi = () => {
     [fetchWithAuth]
   );
 
+  // Gamification Toasts
+  const getGamificationToasts = useCallback(
+    () => fetchWithAuth<{ items: unknown[] }>('/admin/gamification-toasts/items'),
+    [fetchWithAuth]
+  );
+
+  const updateGamificationToasts = useCallback(
+    (items: unknown[]) =>
+      fetchWithAuth<{ items: unknown[] }>('/admin/gamification-toasts/items', {
+        method: 'PUT',
+        body: JSON.stringify({ items }),
+      }),
+    [fetchWithAuth]
+  );
+
   const getCouponsAnalyticsAdmin = useCallback(
     (from?: string, to?: string) => {
       const params = new URLSearchParams();
@@ -654,6 +669,8 @@ export const useAdminApi = () => {
     updateCouponAdmin,
     deleteCouponAdmin,
     getCouponsAnalyticsAdmin,
+    getGamificationToasts,
+    updateGamificationToasts,
     // Add-on rules
     getAddonRules,
     getAddonRulesFull,
