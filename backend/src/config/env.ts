@@ -42,12 +42,6 @@ const envSchema = z.object({
   ANALYTICS_REQUEST_TIMEOUT_MS: z.string().default('25000').transform(Number),
   /** 0 = cache dezactivat */
   ANALYTICS_CACHE_TTL_SECONDS: z.string().default('90').transform(Number),
-  /** Minim 16 caractere. Dacă lipsește, GET run-daily-rollup răspunde 503. */
-  ANALYTICS_CRON_SECRET: z
-    .preprocess(
-      (v) => (typeof v === 'string' && v.trim().length > 0 ? v.trim() : undefined),
-      z.string().min(16).optional()
-    ),
 
   // JWT
   JWT_ACCESS_SECRET: z.string().min(32, 'JWT_ACCESS_SECRET trebuie să aibă minim 32 caractere'),

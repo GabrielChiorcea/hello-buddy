@@ -13,7 +13,7 @@ export const FriendlyMobileNav: React.FC<{ data: MobileNavDisplayData }> = ({ da
   const { navItems, isActive } = data;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 safe-area-bottom">
+    <nav className="fixed fixed-mobile-vv-bottom left-0 right-0 z-50 md:hidden border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 safe-area-bottom">
       <div className="flex items-center justify-around h-16 px-2">
         {navItems.map(({ path, label, icon: Icon, badge }) => (
           <Link

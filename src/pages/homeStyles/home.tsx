@@ -16,7 +16,7 @@ import { HomeMarketingCards } from '@/plugins/streak/components/HomeMarketingCar
 import { routes } from '@/config/routes';
 import { texts } from '@/config/texts';
 import { cn } from '@/lib/utils';
-import { CATEGORY_ICON_ID_COMBO, CategoryIconDisplay, splitCategoriesPinnedComboFirst } from '@/config/categoryIcons';
+import { CategoryIconDisplay, isComboCategory, splitCategoriesPinnedComboFirst } from '@/config/categoryIcons';
 import type { HomeDisplayData } from './shared';
 import { fadeUp, staggerContainer, cardVariant } from './shared';
 
@@ -105,7 +105,7 @@ export const HomePage: React.FC<{ data: HomeDisplayData }> = ({ data }) => {
                       to={routes.catalog}
                       onClick={() => handleCategoryClick(category.name)}
                       className={categoryLinkClassPinned}
-                      variants={category.icon === CATEGORY_ICON_ID_COMBO ? undefined : cardVariant}
+                      variants={isComboCategory(category) ? undefined : cardVariant}
                     >
                       {homeCategoryLinkInner(category)}
                     </MotionLink>

@@ -40,7 +40,7 @@ export function setAdminRefreshTokenCookie(res: Response, refreshToken: string):
   const options: CookieOptions = {
     ...getBaseCookieOptions(),
     maxAge: jwtConfig.refresh.expiresIn * 1000,
-    path: '/admin', // Limitat la rutele admin
+    // path '/' — trimis la /admin/auth/refresh; path '/admin' poate lipsi la fetch cross-origin
   };
   
   res.cookie(ADMIN_REFRESH_TOKEN_COOKIE, refreshToken, options);
@@ -61,7 +61,6 @@ export function clearRefreshTokenCookie(res: Response): void {
 export function clearAdminRefreshTokenCookie(res: Response): void {
   res.clearCookie(ADMIN_REFRESH_TOKEN_COOKIE, {
     ...getBaseCookieOptions(),
-    path: '/admin',
   });
 }
 

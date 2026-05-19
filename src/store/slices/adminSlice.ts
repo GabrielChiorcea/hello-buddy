@@ -8,8 +8,9 @@
 
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { AdminAuthState, AdminUser, AdminLoginCredentials } from '@/types/admin';
+import { resolveViteApiBaseUrl } from '@/config/runtimeApi';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
+const API_BASE = resolveViteApiBaseUrl();
 
 // =============================================================================
 // STARE INIȚIALĂ
@@ -170,7 +171,7 @@ const adminSlice = createSlice({
       })
       // REFRESH TOKEN
       .addCase(adminRefreshToken.pending, (state) => {
-        // Nu setăm isLoading pentru refresh în background
+        state.isLoading = true;
       })
       .addCase(adminRefreshToken.fulfilled, (state, action) => {
         state.token = action.payload.accessToken;

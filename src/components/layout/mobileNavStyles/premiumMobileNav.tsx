@@ -14,7 +14,7 @@ export const PremiumMobileNav: React.FC<{ data: MobileNavDisplayData }> = ({ dat
   return (
     <nav
       className={cn(
-        'fixed bottom-0 left-0 right-0 z-50 md:hidden safe-area-bottom',
+        'fixed fixed-mobile-vv-bottom left-0 right-0 z-50 md:hidden safe-area-bottom',
         'border-t border-primary/20',
         'bg-background/80 supports-[backdrop-filter]:bg-background/50',
         'supports-[backdrop-filter]:backdrop-blur-2xl supports-[backdrop-filter]:backdrop-saturate-150',

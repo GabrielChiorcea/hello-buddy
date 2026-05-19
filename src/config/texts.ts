@@ -368,6 +368,13 @@ export const texts = {
       tierMultiplier: 'Multiplicator',
       tierDistribution: 'Distribuție utilizatori pe rang',
       tierLtv: 'Valoare per rang',
+      couponsTitle: 'Analiză cupoane',
+      couponsTotalDiscount: 'Reducere totală acordată',
+      couponsActivated: 'Cupoane activate',
+      couponsUsed: 'Cupoane folosite',
+      couponsUsageRate: 'Rată de utilizare',
+      couponsTopActivated: 'Cele mai activate cupoane',
+      activations: 'activări',
     },
   
     // Plugin produse gratuite

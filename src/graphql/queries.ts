@@ -449,3 +449,17 @@ export const GET_FREE_DELIVERY_THRESHOLD_SETTING = gql`
     free_delivery_threshold: appSetting(key: "free_delivery_threshold")
   }
 `;
+
+/** Toate plugin_*_enabled într-un singur request (PluginFlagsProvider) */
+export const GET_PLUGIN_FLAGS = gql`
+  query GetPluginFlags {
+    plugin_points_enabled: appSetting(key: "plugin_points_enabled")
+    plugin_streak_enabled: appSetting(key: "plugin_streak_enabled")
+    plugin_welcome_bonus_enabled: appSetting(key: "plugin_welcome_bonus_enabled")
+    plugin_addons_enabled: appSetting(key: "plugin_addons_enabled")
+    plugin_tiers_enabled: appSetting(key: "plugin_tiers_enabled")
+    plugin_free_products_enabled: appSetting(key: "plugin_free_products_enabled")
+    plugin_coupons_enabled: appSetting(key: "plugin_coupons_enabled")
+    plugin_gamification_toasts_enabled: appSetting(key: "plugin_gamification_toasts_enabled")
+  }
+`;

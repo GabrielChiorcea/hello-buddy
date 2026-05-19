@@ -1,6 +1,6 @@
 /**
  * ProductCard — Dispatcher care alege varianta vizuală
- * în funcție de stilul configurat la build-time în src/config/themes/styles.ts
+ * în funcție de stilul configurat la build-time în src/config/themes/index.ts
  */
 
 import React from 'react';
@@ -8,18 +8,15 @@ import { Link } from 'react-router-dom';
 import { Product } from '@/types';
 import { getProductUrl } from '@/config/routes';
 import { useProductCardStyle } from '@/config/themes';
-import { useProductCardData } from './productCardStyles/shared';
-import { GamifiedCard } from './productCardStyles/gamifiedCard';
-import { CleanCard } from './productCardStyles/cleanCard';
-import { PremiumCard } from './productCardStyles/premiumCard';
-import { FriendlyCard } from './productCardStyles/friendlyCard';
+import { createStyleVariants, StyleVariantSuspense } from '@/lib/styleVariants';
+import { useProductCardData, type CardVariantProps } from './productCardStyles/shared';
 
-const CARD_VARIANTS = {
-  gamified: GamifiedCard,
-  clean: CleanCard,
-  premium: PremiumCard,
-  friendly: FriendlyCard,
-} as const;
+const CARD_VARIANTS = createStyleVariants<CardVariantProps>({
+  gamified: () => import('./productCardStyles/gamifiedCard').then((m) => ({ default: m.GamifiedCard })),
+  clean: () => import('./productCardStyles/cleanCard').then((m) => ({ default: m.CleanCard })),
+  premium: () => import('./productCardStyles/premiumCard').then((m) => ({ default: m.PremiumCard })),
+  friendly: () => import('./productCardStyles/friendlyCard').then((m) => ({ default: m.FriendlyCard })),
+});
 
 interface ProductCardProps {
   product: Product;
@@ -43,7 +40,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const Variant = CARD_VARIANTS[style];
 
   const card = (
-    <Variant product={product} className={className} data={data} compactSubtitle={compactSubtitle} />
+    <StyleVariantSuspense>
+      <Variant product={product} className={className} data={data} compactSubtitle={compactSubtitle} />
+    </StyleVariantSuspense>
   );
 
   if (disableLink) return card;

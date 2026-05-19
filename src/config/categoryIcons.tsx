@@ -98,32 +98,46 @@ const DEFAULT_CATEGORY_MAP: Record<string, string> = {
   meniu_combo: 'combo',
 };
 
-/** Id icon pentru categoria „combo”; dacă există, e afișată prima în liste (Home, Catalog). */
+/** Id icon pentru categoria „combo”. */
 export const CATEGORY_ICON_ID_COMBO = 'combo' as const;
 
-/** Pune categoriile cu icon „combo” primele; dacă nu există niciuna, ordinea rămâne cea din API. */
+// Slug-uri canonice care marchează o categorie drept „combo”.
+// Detectarea se face DOAR pe baza slug-ului (Category.name), nu pe icon —
+// icon-ul poate fi schimbat din admin fără să strice pinning-ul.
+const COMBO_CATEGORY_SLUGS: ReadonlySet<string> = new Set(['combo', 'combouri', 'meniu_combo']);
+
+function normalizeCategorySlug(name: string | null | undefined): string {
+  return (name ?? '').toLowerCase().replace(/[^a-z0-9]/g, '_');
+}
+
+/** True dacă slug-ul categoriei se încadrează la „combo". */
+export function isComboCategory(category: Pick<Category, 'name'>): boolean {
+  return COMBO_CATEGORY_SLUGS.has(normalizeCategorySlug(category.name));
+}
+
+/** Pune categoriile combo primele; dacă nu există niciuna, ordinea rămâne cea din API. */
 export function sortCategoriesComboFirst(categories: Category[]): Category[] {
   const combo: Category[] = [];
   const rest: Category[] = [];
   for (const c of categories) {
-    if (c.icon === CATEGORY_ICON_ID_COMBO) combo.push(c);
+    if (isComboCategory(c)) combo.push(c);
     else rest.push(c);
   }
   return [...combo, ...rest];
 }
 
 /**
- * Pentru Home: categoriile cu icon „combo” de la început (după sort) în grup sticky;
+ * Pentru Home: categoriile combo de la început (după sort) în grup sticky;
  * restul derulează în același rând (fără stil extra pe carduri).
  */
 export function splitCategoriesPinnedComboFirst(categories: Category[]): {
   pinned: Category[];
   scroll: Category[];
 } {
-  if (categories.length === 0 || categories[0].icon !== CATEGORY_ICON_ID_COMBO) {
+  if (categories.length === 0 || !isComboCategory(categories[0])) {
     return { pinned: [], scroll: categories };
   }
-  const firstNonCombo = categories.findIndex((c) => c.icon !== CATEGORY_ICON_ID_COMBO);
+  const firstNonCombo = categories.findIndex((c) => !isComboCategory(c));
   const end = firstNonCombo === -1 ? categories.length : firstNonCombo;
   return {
     pinned: categories.slice(0, end),

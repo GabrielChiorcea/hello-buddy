@@ -1,29 +1,31 @@
 /**
  * Navbar — Dispatcher care alege varianta vizuală
- * în funcție de stilul configurat la build-time în src/config/themes/styles.ts
+ * în funcție de stilul configurat la build-time în src/config/themes/index.ts
  */
 
 import React from 'react';
 import { useNavbarStyle } from '@/config/themes';
+import { createStyleVariants, StyleVariantSuspense } from '@/lib/styleVariants';
 import { useNavbarData } from './navbarStyles/shared';
-import { GamifiedNav } from './navbarStyles/gamifiedNav';
-import { CleanNav } from './navbarStyles/cleanNav';
-import { PremiumNav } from './navbarStyles/premiumNav';
-import { FriendlyNav } from './navbarStyles/friendlyNav';
+import type { NavbarDisplayData } from './navbarStyles/shared';
 
-const NAV_VARIANTS = {
-  gamified: GamifiedNav,
-  clean: CleanNav,
-  premium: PremiumNav,
-  friendly: FriendlyNav,
-} as const;
+const NAV_VARIANTS = createStyleVariants<{ data: NavbarDisplayData }>({
+  gamified: () => import('./navbarStyles/gamifiedNav').then((m) => ({ default: m.GamifiedNav })),
+  clean: () => import('./navbarStyles/cleanNav').then((m) => ({ default: m.CleanNav })),
+  premium: () => import('./navbarStyles/premiumNav').then((m) => ({ default: m.PremiumNav })),
+  friendly: () => import('./navbarStyles/friendlyNav').then((m) => ({ default: m.FriendlyNav })),
+});
 
 const Navbar: React.FC = () => {
   const style = useNavbarStyle();
   const data = useNavbarData();
   const Variant = NAV_VARIANTS[style];
 
-  return <Variant data={data} />;
+  return (
+    <StyleVariantSuspense>
+      <Variant data={data} />
+    </StyleVariantSuspense>
+  );
 };
 
 export { Navbar };

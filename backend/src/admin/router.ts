@@ -20,6 +20,7 @@ import { streakPlugin } from '../plugins/streak/index.js';
 import { tiersPlugin } from '../plugins/tiers/index.js';
 import { freeProductsPlugin } from '../plugins/free-products/index.js';
 import { couponsPlugin } from '../plugins/coupons/index.js';
+import * as CouponsAdminController from '../plugins/coupons/admin/controller.js';
 import { gamificationToastsPlugin } from '../plugins/gamification_toasts/index.js';
 import * as addonsController from './controllers/addons.js';
 import * as optionTemplatesController from './controllers/optionTemplates.js';
@@ -41,8 +42,6 @@ export function createAdminRouter(limiters: AdminRateLimiters) {
   router.post('/auth/refresh', limiters.refreshLimiter, authController.refreshToken);
   router.post('/auth/logout', authController.logout);
 
-  router.get('/analytics/run-daily-rollup', analyticsController.getRunDailyAnalyticsRollup);
-
   // ============================================
   // Toate rutele de mai jos necesită autentificare admin
   // ============================================
@@ -58,6 +57,7 @@ router.get('/dashboard/stats', dashboardController.getStats);
 // Analitice (rute specifice înainte de /analytics dacă se adaugă parametri)
 router.get('/analytics/rollup-health', analyticsController.getAnalyticsRollupHealth);
 router.get('/analytics/product-pairs', analyticsController.getAnalyticsProductPairs);
+router.get('/analytics/coupons', CouponsAdminController.getCouponsAnalytics);
 router.get('/analytics', analyticsController.getAnalytics);
 
 // Produse

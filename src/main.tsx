@@ -1,9 +1,14 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { applyTheme, DEFAULT_THEME } from "./config/themes";
+import { applyNavbarLayoutCssVars, loadAndApplyTheme, DEFAULT_THEME } from "./config/themes";
 
-// Apply selected theme (override CSS variables) — user side rămâne doar light.
-applyTheme(DEFAULT_THEME);
+const rootEl = document.getElementById("root");
 
-createRoot(document.getElementById("root")!).render(<App />);
+applyNavbarLayoutCssVars();
+
+loadAndApplyTheme(DEFAULT_THEME).then(() => {
+  if (rootEl) {
+    createRoot(rootEl).render(<App />);
+  }
+});

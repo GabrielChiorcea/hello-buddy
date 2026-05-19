@@ -1,6 +1,6 @@
 /**
  * Pagina AdminAnalytics — analitice avansate
- * Secțiuni: Vânzări, Puncte loialitate, Campanii streak, Ranguri
+ * Secțiuni: Vânzări, Puncte loialitate, Campanii streak, Ranguri, Cupoane
  */
 
 import { useEffect, useState } from 'react';
@@ -11,12 +11,14 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { texts } from '@/config/texts';
+import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import { analyticsPeriods, type AnalyticsData, type ProductPairRow } from './analytics/types';
 import { AnalyticsSkeleton } from './analytics/shared/AnalyticsSkeleton';
 import { SalesTab } from './analytics/tabs/SalesTab';
 import { PointsTab } from './analytics/tabs/PointsTab';
 import { StreaksTab } from './analytics/tabs/StreaksTab';
 import { TiersTab } from './analytics/tabs/TiersTab';
+import { CouponsTab } from './analytics/tabs/CouponsTab';
 
 const t = texts.analytics;
 
@@ -25,6 +27,7 @@ const tabErrorMsg =
 
 export default function AdminAnalytics() {
   const { getAnalytics, getAnalyticsProductPairs } = useAdminApi();
+  const { enabled: couponsEnabled } = usePluginEnabled('coupons');
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [productPairs, setProductPairs] = useState<ProductPairRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -94,11 +97,14 @@ export default function AdminAnalytics() {
       </div>
 
       <Tabs defaultValue="sales" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className={cn('grid w-full', couponsEnabled ? 'grid-cols-5' : 'grid-cols-4')}>
           <TabsTrigger value="sales" className="text-xs sm:text-sm">Vânzări</TabsTrigger>
           <TabsTrigger value="points" className="text-xs sm:text-sm">Puncte</TabsTrigger>
           <TabsTrigger value="streaks" className="text-xs sm:text-sm">Streak</TabsTrigger>
           <TabsTrigger value="tiers" className="text-xs sm:text-sm">Ranguri</TabsTrigger>
+          {couponsEnabled && (
+            <TabsTrigger value="coupons" className="text-xs sm:text-sm">Cupoane</TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="sales" className="space-y-6">
@@ -124,6 +130,14 @@ export default function AdminAnalytics() {
             <TiersTab data={data.tierAnalytics} />
           </ErrorBoundary>
         </TabsContent>
+
+        {couponsEnabled && (
+          <TabsContent value="coupons" className="space-y-6">
+            <ErrorBoundary fallbackMessage={tabErrorMsg}>
+              <CouponsTab period={period} />
+            </ErrorBoundary>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

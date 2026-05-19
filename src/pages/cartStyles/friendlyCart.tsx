@@ -146,7 +146,7 @@ export const FriendlyCart: React.FC<{ data: CartDisplayData }> = ({ data }) => {
                         <h3 className="font-semibold text-foreground truncate">{product.name}</h3>
                         <p className="text-sm text-muted-foreground line-clamp-1">{product.description}</p>
                         {configuration && configuration.length > 0 && (
-                          <p className="text-xs text-muted-foreground mt-1">
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
                             {configuration
                               .map(
                                 (g: OrderItemConfigurationGroup) =>

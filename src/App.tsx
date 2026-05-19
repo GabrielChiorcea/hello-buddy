@@ -28,11 +28,13 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { PageLoader } from "@/components/common/Loader";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { WelcomeBonusGateWrapped } from "@/plugins/welcome_bonus";
-import { GamificationToastsGateWrapped, AdminGamificationToasts } from "@/plugins/gamification_toasts";
+import { GamificationToastsGateWrapped } from "@/plugins/gamification_toasts";
 import { Provider } from "react-redux";
 import { store } from "@/store";
 import { routes } from "@/config/routes";
@@ -42,6 +44,7 @@ import { useSessionRestore } from "@/hooks/useSessionRestore";
 // Import Apollo Provider
 import { ApolloProvider } from "@apollo/client";
 import { apolloClient } from "@/graphql/client";
+import { PluginFlagsProvider } from "@/contexts/PluginFlagsProvider";
 
 // Import stil providers din config centralizat
 import {
@@ -74,28 +77,7 @@ import StreakPage from "./pages/StreakPage";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
-// ============================================================================
-// IMPORTURI ADMIN
-// ============================================================================
-
-import { AdminLayout } from "./admin/components/AdminLayout";
-import { AdminProtectedRoute } from "./admin/components/AdminProtectedRoute";
-import AdminLogin from "./admin/pages/AdminLogin";
-import AdminDashboard from "./admin/pages/AdminDashboard";
-import AdminProducts from "./admin/pages/AdminProducts";
-import AdminCategories from "./admin/pages/AdminCategories";
-import AdminOrders from "./admin/pages/AdminOrders";
-import AdminUsers from "./admin/pages/AdminUsers";
-import { AdminPoints } from "./plugins/points";
-import { AdminStreakCampaigns } from "./plugins/streak";
-import { AdminTiers } from "./plugins/tiers";
-import AdminSettings from "./admin/pages/AdminSettings";
-import AdminWelcomeBonus from "./admin/pages/AdminWelcomeBonus";
-import AdminAnalytics from "./admin/pages/AdminAnalytics";
-import AdminAddonRules from "./admin/pages/AdminAddonRules";
-import AdminFreeProductCampaigns from "./admin/pages/AdminFreeProductCampaigns";
-import AdminProductOptions from "./admin/pages/AdminProductOptions";
-import AdminCoupons from "./admin/pages/AdminCoupons";
+const AdminRoutes = lazy(() => import("./admin/AdminRoutes"));
 
 // ============================================================================
 // CONFIGURARE QUERY CLIENT
@@ -137,10 +119,11 @@ const TokenRefreshHandler: React.FC<{ children: React.ReactNode }> = ({ children
  * App - Componenta rădăcină a aplicației
  * 
  * Structura ierarhică a provider-ilor:
- * ApolloProvider -> Redux Provider -> Style Providers -> QueryClientProvider -> TooltipProvider -> Routes
+ * ApolloProvider -> PluginFlagsProvider -> Redux Provider -> Style Providers -> ...
  */
 const App = () => (
   <ApolloProvider client={apolloClient}>
+    <PluginFlagsProvider>
     <Provider store={store}>
       <ComponentStyleProvider value={STYLES.component}>
       <TierStyleProvider value={STYLES.tier}>
@@ -186,34 +169,15 @@ const App = () => (
                 <Route path={routes.profile} element={<Profile />} />
                 <Route path={routes.myCoupons} element={<MyCouponsPage />} />
 
-                {/* Rute Admin Panel */}
-                <Route path="/admin/login" element={<AdminLogin />} />
                 <Route
-                  path="/admin"
+                  path="/admin/*"
                   element={
-                    <AdminProtectedRoute>
-                      <AdminLayout />
-                    </AdminProtectedRoute>
+                    <Suspense fallback={<PageLoader />}>
+                      <AdminRoutes />
+                    </Suspense>
                   }
-                >
-                  <Route index element={<AdminDashboard />} />
-                  <Route path="analytics" element={<AdminAnalytics />} />
-                  <Route path="products" element={<AdminProducts />} />
-                  <Route path="categories" element={<AdminCategories />} />
-                  <Route path="points" element={<AdminPoints />} />
-                  <Route path="welcome-bonus" element={<AdminWelcomeBonus />} />
-                  <Route path="streak" element={<AdminStreakCampaigns />} />
-                  <Route path="tiers" element={<AdminTiers />} />
-                  <Route path="free-products" element={<AdminFreeProductCampaigns />} />
-                  <Route path="orders" element={<AdminOrders />} />
-                  <Route path="users" element={<AdminUsers />} />
-                  <Route path="settings" element={<AdminSettings />} />
-                  <Route path="addon-rules" element={<AdminAddonRules />} />
-                  <Route path="product-options" element={<AdminProductOptions />} />
-                  <Route path="coupons" element={<AdminCoupons />} />
-                  <Route path="gamification-toasts" element={<AdminGamificationToasts />} />
-                </Route>
-                
+                />
+
                 {/* Rută catch-all pentru 404 */}
                 {/* IMPORTANT: Toate rutele personalizate trebuie adăugate DEASUPRA acestei rute */}
                 <Route path="*" element={<NotFound />} />
@@ -228,6 +192,7 @@ const App = () => (
       </TierStyleProvider>
       </ComponentStyleProvider>
     </Provider>
+    </PluginFlagsProvider>
   </ApolloProvider>
 );
 

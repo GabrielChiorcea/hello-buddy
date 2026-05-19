@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { logError } from '../../../utils/safeErrorLogger.js';
+import { fetchCouponsAnalyticsRollup } from '../../../services/analyticsHybrid.js';
 import { query } from '../../../config/database.js';
 import * as CouponsRepo from '../repositories/couponsRepository.js';
 
@@ -243,52 +244,29 @@ export async function deleteCoupon(req: Request, res: Response): Promise<void> {
   }
 }
 
+function resolveCouponsAnalyticsQuery(query: Request['query']): {
+  daysBack?: number;
+  from?: Date;
+  to?: Date;
+} {
+  const period = typeof query.period === 'string' ? query.period : null;
+  if (period === '7d') return { daysBack: 7 };
+  if (period === '30d') return { daysBack: 30 };
+  if (period === '90d') return { daysBack: 90 };
+
+  const fromRaw = query.from ? new Date(String(query.from)) : undefined;
+  const toRaw = query.to ? new Date(String(query.to)) : undefined;
+  const from = fromRaw && !isNaN(fromRaw.getTime()) ? fromRaw : undefined;
+  const to = toRaw && !isNaN(toRaw.getTime()) ? toRaw : undefined;
+  if (from || to) return { from, to };
+
+  return { daysBack: 30 };
+}
+
 export async function getCouponsAnalytics(req: Request, res: Response): Promise<void> {
   try {
-    const from = req.query.from ? new Date(String(req.query.from)) : null;
-    const to = req.query.to ? new Date(String(req.query.to)) : null;
-    const params: unknown[] = [];
-    const where: string[] = [];
-    if (from && !isNaN(from.getTime())) {
-      where.push('uc.activated_at >= ?');
-      params.push(from);
-    }
-    if (to && !isNaN(to.getTime())) {
-      where.push('uc.activated_at <= ?');
-      params.push(to);
-    }
-    const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
-
-    const topActivated = await query<any[]>(
-      `SELECT c.id, c.title, COUNT(*) as activations
-       FROM user_coupons uc
-       INNER JOIN coupons c ON c.id = uc.coupon_id
-       ${whereSql}
-       GROUP BY c.id, c.title
-       ORDER BY activations DESC
-       LIMIT 10`,
-      params
-    );
-    const totals = await query<any[]>(
-      `SELECT
-         COALESCE(SUM(ocr.discount_amount), 0) as total_discount,
-         COUNT(DISTINCT uc.id) as total_activated,
-         COUNT(DISTINCT CASE WHEN uc.status = 'used' THEN uc.id ELSE NULL END) as total_used
-       FROM user_coupons uc
-       LEFT JOIN order_coupon_redemptions ocr ON ocr.user_coupon_id = uc.id
-       ${whereSql}`,
-      params
-    );
-    const row = totals[0] || { total_discount: 0, total_activated: 0, total_used: 0 };
-    const activated = Number(row.total_activated) || 0;
-    const used = Number(row.total_used) || 0;
-    res.json({
-      topActivated,
-      totalDiscount: Number(row.total_discount) || 0,
-      totalActivated: activated,
-      totalUsed: used,
-      usageRate: activated > 0 ? used / activated : 0,
-    });
+    const result = await fetchCouponsAnalyticsRollup(resolveCouponsAnalyticsQuery(req.query));
+    res.json(result);
   } catch (error) {
     logError('analytics cupoane admin', error);
     res.status(500).json({ error: 'Eroare internă server' });

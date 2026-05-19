@@ -11,7 +11,8 @@
 import { useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { restoreSession, fetchCurrentUser } from '@/store/slices/userSlice';
-import { adminRefreshToken, setAdminLoading } from '@/store/slices/adminSlice';
+import { setAdminLoading } from '@/store/slices/adminSlice';
+import { dispatchAdminSessionRestoreOnce } from '@/lib/adminSessionRestore';
 
 /**
  * Hook pentru restaurarea sesiunii la încărcarea aplicației
@@ -29,8 +30,13 @@ export const useSessionRestore = () => {
     if (hasInitialized.current) return;
     hasInitialized.current = true;
 
-    // Restaurează DOAR sesiunea de user la încărcare.
-    // Admin refresh se face doar când accesezi /admin (evită rotații inutile).
+    const path = typeof window !== 'undefined' ? window.location.pathname : '';
+    const isAdminAppPath = path.startsWith('/admin') && path !== '/admin/login';
+
+    if (isAdminAppPath) {
+      void dispatchAdminSessionRestoreOnce(dispatch);
+    }
+
     dispatch(restoreSession())
       .then((action) => {
         // După restore, user din REST e minimal (fără tier/nextTier). Încarcă currentUser complet
@@ -89,7 +95,7 @@ export function useAdminSessionRestore() {
       return;
     }
     
-    dispatch(adminRefreshToken());
+    void dispatchAdminSessionRestoreOnce(dispatch);
   }, [dispatch, isAuthenticated]);
   
   return { isLoading };

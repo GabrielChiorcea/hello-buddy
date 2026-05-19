@@ -15,12 +15,11 @@ npm install
 # 3. Pornire MariaDB cu Docker
 docker-compose up -d
 
-# 4. Rulare migrări
+# 4. Rulare migrări (creează și contul admin implicit)
 npm run migrate
 
-# 5. Populare date inițiale
+# 5. Populare date inițiale (opțional)
 npm run seed
-npm run seed:admin
 
 # 6. Pornire server
 npm run dev
@@ -56,7 +55,7 @@ Dacă pe hosting **nu poți rula** `npm run build` (doar `npm install`):
    - `package.json` și `package-lock.json`
    - `.env.production` (completat cu valorile de producție)
    - directoare goale sau cu date: `storage/`, `uploads/` dacă le folosești, `logs/` opțional  
-   Migrările SQL rămân în `migrations/` dacă le rulezi manual sau din alt mediu.
+   Schema DB: un singur fișier idempotent, `migrations/001_full_database.sql` — rulezi / actualizezi doar pe acesta.
 3. **Pe server (Linux)**:
    ```bash
    npm install
@@ -80,5 +79,5 @@ backend/
 │   ├── models/       # Modele date
 │   ├── middleware/   # Auth, rate limiting
 │   └── scripts/      # Migrări, seed
-└── migrations/       # Fișiere SQL
+└── migrations/       # Schema DB (001_full_database.sql — singurul fișier SQL)
 ```

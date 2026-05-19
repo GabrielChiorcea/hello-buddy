@@ -90,7 +90,7 @@ export const FriendlyCard: React.FC<CardVariantProps> = ({ product, className, d
             <p className="text-xs text-muted-foreground truncate md:hidden">
               {product.ingredients?.length ? product.ingredients.map((i) => i.name).join(', ') : product.description}
             </p>
-            <p className="text-[13px] text-muted-foreground/80 line-clamp-1 hidden md:block mt-1.5 leading-relaxed">
+            <p className="text-[13px] text-muted-foreground/80 break-words hidden md:line-clamp-2 mt-1.5 leading-relaxed">
               {product.description}
             </p>
           </>

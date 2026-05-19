@@ -11,8 +11,7 @@
     "migrate": "tsx src/scripts/migrate.ts",
     "db:ensure-welcome-bonus-column": "tsx src/scripts/ensureWelcomeBonusAwardedColumn.ts",
     "seed": "tsx src/scripts/seed.ts",
-    "seed:complete": "tsx src/scripts/seed-complete.ts",
-    "seed:admin": "tsx src/scripts/admin-seed.ts"
+    "seed:complete": "tsx src/scripts/seed-complete.ts"
   },
   "dependencies": {
     "@apollo/server": "^4.10.0",

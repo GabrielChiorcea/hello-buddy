@@ -476,12 +476,11 @@ export const useAdminApi = () => {
   );
 
   const getCouponsAnalyticsAdmin = useCallback(
-    (from?: string, to?: string) => {
+    (period?: string) => {
       const params = new URLSearchParams();
-      if (from) params.set('from', from);
-      if (to) params.set('to', to);
+      if (period) params.set('period', period);
       const qs = params.toString();
-      return fetchWithAuth<any>(`/admin/coupons/analytics${qs ? `?${qs}` : ''}`);
+      return fetchWithAuth<any>(`/admin/analytics/coupons${qs ? `?${qs}` : ''}`);
     },
     [fetchWithAuth]
   );

@@ -12,7 +12,7 @@ export const CleanMobileNav: React.FC<{ data: MobileNavDisplayData }> = ({ data 
   const { navItems, isActive } = data;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background border-t border-border/30 safe-area-bottom">
+    <nav className="fixed fixed-mobile-vv-bottom left-0 right-0 z-50 md:hidden bg-background border-t border-border/30 safe-area-bottom">
       <div className="flex items-center justify-around h-14 px-4">
         {navItems.map(({ path, label, icon: Icon, badge }) => (
           <Link

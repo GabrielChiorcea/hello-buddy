@@ -23,10 +23,10 @@ import {
   Ticket,
 } from 'lucide-react';
 import { ConfettiIcon } from '@/admin/components/ConfettiIcon';
-import { pointsPlugin } from '@/plugins/points';
-import { streakPlugin } from '@/plugins/streak';
-import { tiersPlugin } from '@/plugins/tiers';
-import { gamificationToastsPlugin } from '@/plugins/gamification_toasts';
+import { pointsAdminNavItems } from '@/plugins/points/adminNav';
+import { streakAdminNavItems } from '@/plugins/streak/adminNav';
+import { tiersAdminNavItems } from '@/plugins/tiers/adminNav';
+import { gamificationToastsAdminNavItems } from '@/plugins/gamification_toasts/adminNav';
 import { usePluginEnabled } from '@/hooks/usePluginEnabled';
 import {
   Sidebar,
@@ -78,16 +78,16 @@ export function AdminSidebar() {
 
   const mainNavItems = [
     ...baseNavItems,
-    ...(pointsEnabled ? pointsPlugin.navItems : []),
+    ...(pointsEnabled ? pointsAdminNavItems : []),
     { title: texts.admin.navWelcomeBonus, url: '/admin/welcome-bonus', icon: ConfettiIcon },
-    ...(streakEnabled ? streakPlugin.navItems : []),
-    ...(tiersEnabled ? tiersPlugin.navItems : []),
+    ...(streakEnabled ? streakAdminNavItems : []),
+    ...(tiersEnabled ? tiersAdminNavItems : []),
     ...(freeProductsEnabled
       ? [{ title: texts.admin.navFreeProducts, url: '/admin/free-products', icon: DollarSign }]
       : []),
     ...(addonsEnabled ? [{ title: texts.admin.navAddonRules, url: '/admin/addon-rules', icon: Puzzle }] : []),
     ...(couponsEnabled ? [{ title: 'Cupoane', url: '/admin/coupons', icon: Ticket }] : []),
-    ...(gamificationToastsEnabled ? gamificationToastsPlugin.navItems : []),
+    ...(gamificationToastsEnabled ? gamificationToastsAdminNavItems : []),
   ];
 
   const isActive = (path: string) => {

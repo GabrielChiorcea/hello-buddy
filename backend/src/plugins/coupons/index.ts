@@ -20,6 +20,5 @@ export function registerAdminRoutes(router: Router): void {
   router.post('/coupons', CouponsAdminController.createCoupon);
   router.put('/coupons/:id', CouponsAdminController.updateCoupon);
   router.delete('/coupons/:id', CouponsAdminController.deleteCoupon);
-  router.get('/coupons/analytics', CouponsAdminController.getCouponsAnalytics);
 }
 

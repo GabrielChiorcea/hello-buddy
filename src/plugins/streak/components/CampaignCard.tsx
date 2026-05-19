@@ -11,13 +11,32 @@ import type { StreakCampaign, StreakEnrollment } from '../types';
 import { motion } from 'framer-motion';
 import { useComponentStyle } from '@/config/componentStyle';
 import { isConsecutiveStreakBroken, isImpossibleToComplete } from './campaignUtils';
-import { GamifiedCard } from './styles/gamifiedCard';
-import { CleanCard } from './styles/cleanCard';
-import { PremiumCard } from './styles/premiumCard';
-import { FriendlyCard } from './styles/friendlyCard';
+import { createStyleVariants, StyleVariantSuspense } from '@/lib/styleVariants';
 import { usePointsRewards } from '@/plugins/points/hooks/usePointsRewards';
 import type { PointsReward } from '@/plugins/points/types';
 import { GET_TIERS_ECONOMY_SETTINGS } from '@/graphql/queries';
+
+type CampaignCardVariantProps = {
+  campaign: StreakCampaign;
+  enrollment: StreakEnrollment | null;
+  enrolledInOtherCampaign?: boolean;
+  completed: boolean;
+  isEnrolled: boolean;
+  isFailed: boolean;
+  failReason: 'broken' | 'impossible' | null;
+  enrollmentLoading?: boolean;
+  variant?: 'compact' | 'full';
+  onOpenDetail?: () => void;
+  pointsRewards?: PointsReward[];
+  pointsPerOrder?: number;
+};
+
+const CAMPAIGN_CARD_VARIANTS = createStyleVariants<CampaignCardVariantProps>({
+  gamified: () => import('./styles/gamifiedCard').then((m) => ({ default: m.GamifiedCard })),
+  clean: () => import('./styles/cleanCard').then((m) => ({ default: m.CleanCard })),
+  premium: () => import('./styles/premiumCard').then((m) => ({ default: m.PremiumCard })),
+  friendly: () => import('./styles/friendlyCard').then((m) => ({ default: m.FriendlyCard })),
+});
 
 export interface CampaignCardProps {
   campaign?: StreakCampaign | null;
@@ -112,12 +131,7 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
     pointsPerOrder,
   };
 
-  const StyleCard = {
-    gamified: GamifiedCard,
-    clean: CleanCard,
-    premium: PremiumCard,
-    friendly: FriendlyCard,
-  }[componentStyle];
+  const StyleCard = CAMPAIGN_CARD_VARIANTS[componentStyle];
 
   return (
     <motion.div
@@ -125,7 +139,9 @@ export const CampaignCard: React.FC<CampaignCardProps> = ({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
     >
-      <StyleCard {...sharedProps} />
+      <StyleVariantSuspense>
+        <StyleCard {...sharedProps} />
+      </StyleVariantSuspense>
     </motion.div>
   );
 };

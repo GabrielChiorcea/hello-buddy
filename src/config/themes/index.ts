@@ -5,10 +5,6 @@
  */
 
 import { createContext, useContext } from 'react';
-import orange from './orange';
-import tomato from './tomato';
-import freshGreen from './freshGreen';
-import mustard from './mustard';
 import type { ThemePreset } from './types';
 
 // ═══════════════════════════════════════════════════════════════
@@ -19,17 +15,14 @@ export type ThemeName = 'orange' | 'tomato' | 'freshGreen' | 'mustard';
 
 export const DEFAULT_THEME: ThemeName = 'orange';
 
-export const themes: Record<ThemeName, ThemePreset> = {
-  orange,
-  tomato,
-  freshGreen,
-  mustard,
+const THEME_LOADERS: Record<ThemeName, () => Promise<{ default: ThemePreset }>> = {
+  orange: () => import('./orange'),
+  tomato: () => import('./tomato'),
+  freshGreen: () => import('./freshGreen'),
+  mustard: () => import('./mustard'),
 };
 
-export function applyTheme(name: ThemeName = DEFAULT_THEME): void {
-  const theme = themes[name];
-  if (!theme) return;
-
+function applyThemePreset(theme: ThemePreset): void {
   const root = document.documentElement;
 
   for (const [key, value] of Object.entries(theme.light)) {
@@ -51,38 +44,63 @@ export function applyTheme(name: ThemeName = DEFAULT_THEME): void {
   darkStyle.textContent = `.dark {\n${darkRules}\n}`;
 }
 
+/** Încarcă doar fișierul temei active (chunk separat per temă). */
+export async function loadAndApplyTheme(name: ThemeName = DEFAULT_THEME): Promise<void> {
+  const mod = await THEME_LOADERS[name]();
+  applyThemePreset(mod.default);
+}
+
 // ═══════════════════════════════════════════════════════════════
 // 2. STILURI — Skinul vizual al fiecărei secțiuni
 //    (Pagina Home nu mai are variantă aici — sursa unică: pages/homeStyles/home.tsx)
 // ═══════════════════════════════════════════════════════════════
 
-export type StyleName = 'gamified' | 'clean' | 'premium' | 'friendly';
+export type StyleName = 'clean' | 'clean' | 'premium' | 'friendly';
 
 // ╔═══════════════════════════════════════════════════════════════════╗
 // ║   CONFIGURARE STILURI VIZUALE — schimbă individual            ║
 // ╚═══════════════════════════════════════════════════════════════════╝
 
+/** Înălțimi nav — sincronizate cu h-14 (clean) / h-16 (restul) din componentele nav. */
+export const NAV_BAR_HEIGHT = {
+  clean: { mobile: '3.5rem', desktop: '3.5rem' },
+  friendly: { mobile: '4rem', desktop: '4rem' },
+  gamified: { mobile: '4rem', desktop: '4rem' },
+  premium: { mobile: '4rem', desktop: '4rem' },
+} as const;
+
+export type NavbarStyleName = keyof typeof NAV_BAR_HEIGHT;
+
+/** Variabile CSS globale pentru toast (în afara Layout) și padding main. */
+export function applyNavbarLayoutCssVars(
+  navbarStyle: NavbarStyleName = STYLES.navbar as NavbarStyleName,
+): void {
+  const heights = NAV_BAR_HEIGHT[navbarStyle] ?? NAV_BAR_HEIGHT.clean;
+  document.documentElement.style.setProperty('--mobile-bottom-nav-height', heights.mobile);
+  document.documentElement.style.setProperty('--layout-nav-pad-desktop', heights.desktop);
+}
+
 export const STYLES = {
   /** Streak, Points, Rewards */
-  component: 'gamified' as StyleName,
+  component: 'clean' as StyleName,
 
   /** TierProgressBar (ranguri) */
-  tier: 'gamified' as StyleName,
+  tier: 'clean' as StyleName,
 
   /** Carduri de produse */
-  productCard: 'gamified' as StyleName,
+  productCard: 'clean' as StyleName,
 
   /** Navbar desktop + MobileBottomNav */
-  navbar: 'premium' as StyleName,
+  navbar: 'clean' as StyleName,
 
   /** Pagina Coș */
-  cart: 'gamified' as StyleName,
+  cart: 'clean' as StyleName,
 
   /** Pagina Checkout */
-  checkout: 'gamified' as StyleName,
+  checkout: 'clean' as StyleName,
 
   /** Footer */
-  footer: 'gamified' as StyleName,
+  footer: 'clean' as StyleName,
 } as const;
 
 // ── Contexte React ──

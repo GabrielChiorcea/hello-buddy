@@ -145,6 +145,16 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  @media (max-width: 767px) {
+    .safe-area-bottom {
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .fixed-mobile-vv-bottom {
+      bottom: calc(env(safe-area-inset-bottom, 0px) + var(--vv-bottom-inset, 0px));
+    }
+  }
 }
 
 /* ═══════════════ Streak Casino / Rewards Theme ═══════════════ */

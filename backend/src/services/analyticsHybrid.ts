@@ -498,3 +498,75 @@ export async function fetchProductPairs(daysBack: number): Promise<
     pair_count: int(r.pair_count),
   }));
 }
+
+export async function fetchCouponsAnalyticsRollup(opts: {
+  daysBack?: number;
+  from?: Date;
+  to?: Date;
+}): Promise<{
+  totalDiscount: number;
+  totalActivated: number;
+  totalUsed: number;
+  usageRate: number;
+  topActivated: { id: string; title: string; activations: number }[];
+}> {
+  const params: unknown[] = [];
+  const where: string[] = [];
+
+  if (opts.from && !isNaN(opts.from.getTime())) {
+    where.push('report_date >= ?');
+    params.push(formatDate(opts.from));
+  } else if (opts.daysBack != null) {
+    where.push('report_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)');
+    params.push(firstDayIntervalDays(opts.daysBack));
+  }
+
+  if (opts.to && !isNaN(opts.to.getTime())) {
+    where.push('report_date <= ?');
+    params.push(formatDate(opts.to));
+  }
+
+  const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+  const [totals] = await analyticsQuery<
+    { activated: string | number; used: string | number; discount: string | number }[]
+  >(
+    `SELECT
+       COALESCE(SUM(activations_count), 0) AS activated,
+       COALESCE(SUM(redemptions_count), 0) AS used,
+       COALESCE(SUM(discount_total), 0) AS discount
+     FROM analytics_daily_coupons
+     ${whereSql}`,
+    params
+  );
+
+  const topRows = await analyticsQuery<
+    { id: string; title: string; activations: string | number }[]
+  >(
+    `SELECT
+       coupon_id AS id,
+       coupon_title AS title,
+       COALESCE(SUM(activations_count), 0) AS activations
+     FROM analytics_daily_coupon_activations
+     ${whereSql}
+     GROUP BY coupon_id, coupon_title
+     ORDER BY activations DESC
+     LIMIT 10`,
+    params
+  );
+
+  const activated = int(totals?.activated);
+  const used = int(totals?.used);
+
+  return {
+    totalDiscount: num(totals?.discount),
+    totalActivated: activated,
+    totalUsed: used,
+    usageRate: activated > 0 ? used / activated : 0,
+    topActivated: topRows.map(r => ({
+      id: r.id,
+      title: r.title,
+      activations: int(r.activations),
+    })),
+  };
+}

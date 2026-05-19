@@ -13,19 +13,16 @@ import { routes } from '@/config/routes';
 import { GET_LOYALTY_TIERS } from '@/graphql/queries';
 import { TierIcon } from '@/config/tierIcons';
 import { useTierStyle } from '@/config/componentStyle';
-import { useTierDisplayData } from './tierStyles/shared';
-import { GamifiedTier } from './tierStyles/gamifiedTier';
-import { CleanTier } from './tierStyles/cleanTier';
-import { PremiumTier } from './tierStyles/premiumTier';
-import { FriendlyTier } from './tierStyles/friendlyTier';
+import { createStyleVariants, StyleVariantSuspense } from '@/lib/styleVariants';
+import { useTierDisplayData, type TierDisplayData } from './tierStyles/shared';
 import { Sparkles, ArrowRight, Zap } from 'lucide-react';
 
-const TIER_VARIANTS = {
-  gamified: GamifiedTier,
-  clean: CleanTier,
-  premium: PremiumTier,
-  friendly: FriendlyTier,
-} as const;
+const TIER_VARIANTS = createStyleVariants<{ data: TierDisplayData }>({
+  gamified: () => import('./tierStyles/gamifiedTier').then((m) => ({ default: m.GamifiedTier })),
+  clean: () => import('./tierStyles/cleanTier').then((m) => ({ default: m.CleanTier })),
+  premium: () => import('./tierStyles/premiumTier').then((m) => ({ default: m.PremiumTier })),
+  friendly: () => import('./tierStyles/friendlyTier').then((m) => ({ default: m.FriendlyTier })),
+});
 
 interface LoyaltyTierLite {
   id: string;
@@ -126,7 +123,9 @@ export const TierProgressBar: React.FC = () => {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
     >
-      <Variant data={data} />
+      <StyleVariantSuspense>
+        <Variant data={data} />
+      </StyleVariantSuspense>
     </motion.div>
   );
 };

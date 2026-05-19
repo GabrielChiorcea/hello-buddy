@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Loader2, Upload, X } from 'lucide-react';
 import { useAdminApi } from '@/admin/hooks/useAdminApi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { texts } from '@/config/texts';
 import { getImageUrl } from '@/lib/imageUrl';
+import { cn } from '@/lib/utils';
 
 interface AdminCoupon {
   id: string;
@@ -26,13 +28,6 @@ interface AdminCoupon {
   requiredTierId?: string | null;
   targetProductId: string;
   isActive: boolean;
-}
-
-interface CouponsAnalytics {
-  totalDiscount: number;
-  totalActivated: number;
-  totalUsed: number;
-  usageRate: number;
 }
 
 interface TierOption {
@@ -56,13 +51,115 @@ const initialForm = {
   isActive: true,
 };
 
+function ImageUploadField({
+  label,
+  imageUrl,
+  isUploading,
+  onSelectFile,
+  onClear,
+  boxClassName,
+  hint,
+  alt,
+  layout = 'inline',
+}: {
+  label?: string;
+  imageUrl?: string;
+  isUploading: boolean;
+  onSelectFile: (file?: File) => void | Promise<void>;
+  onClear?: () => void;
+  boxClassName: string;
+  hint: string;
+  alt: string;
+  layout?: 'inline' | 'stack';
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const openPicker = () => {
+    if (!isUploading) inputRef.current?.click();
+  };
+
+  const uploadBox = (
+    <div
+      role="button"
+      tabIndex={0}
+      className={cn(
+        'relative flex items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-border bg-muted/30 shrink-0 cursor-pointer transition-colors hover:border-primary hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+        boxClassName,
+        isUploading && 'pointer-events-none opacity-70',
+      )}
+      onClick={openPicker}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openPicker();
+        }
+      }}
+    >
+      {isUploading ? (
+        <Loader2 className="h-7 w-7 animate-spin text-muted-foreground" />
+      ) : imageUrl ? (
+        <>
+          <img src={getImageUrl(imageUrl)} alt={alt} className="h-full w-full object-cover" />
+          {onClear ? (
+            <button
+              type="button"
+              className="absolute top-1.5 right-1.5 rounded-full bg-background/95 p-1 shadow-sm ring-1 ring-border hover:bg-background"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClear();
+              }}
+              aria-label="Elimină imaginea"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          ) : null}
+        </>
+      ) : (
+        <div className="flex flex-col items-center gap-1.5 px-3 text-center text-muted-foreground">
+          <Upload className="h-7 w-7" />
+          <span className="text-[11px] font-medium leading-tight">Click pentru încărcare</span>
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="space-y-2">
+      {label ? <Label>{label}</Label> : null}
+      <div className={cn(
+        layout === 'stack' ? 'space-y-2' : 'flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4',
+      )}>
+        {uploadBox}
+        <p
+          className={cn(
+            'text-sm text-muted-foreground leading-relaxed',
+            layout === 'inline' && 'pt-1',
+            layout === 'stack' && 'max-w-sm',
+          )}
+        >
+          {hint}
+        </p>
+      </div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={(e) => {
+          void onSelectFile(e.target.files?.[0]);
+          e.target.value = '';
+        }}
+      />
+    </div>
+  );
+}
+
 export default function AdminCoupons() {
   const {
     getCouponsAdmin,
     createCouponAdmin,
     updateCouponAdmin,
     deleteCouponAdmin,
-    getCouponsAnalyticsAdmin,
     getTiers,
     getProducts,
     uploadImage,
@@ -72,24 +169,20 @@ export default function AdminCoupons() {
   const { toast } = useToast();
   const [items, setItems] = useState<AdminCoupon[]>([]);
   const [form, setForm] = useState(initialForm);
-  const [analytics, setAnalytics] = useState<CouponsAnalytics | null>(null);
   const [tiers, setTiers] = useState<TierOption[]>([]);
   const [products, setProducts] = useState<ProductOption[]>([]);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [homeCardImage, setHomeCardImage] = useState('');
   const [isUploadingHomeCardImage, setIsUploadingHomeCardImage] = useState(false);
-  const homeCardFileInputRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     try {
-      const [list, stats, tiersData, productsData] = await Promise.all([
+      const [list, tiersData, productsData] = await Promise.all([
         getCouponsAdmin(true),
-        getCouponsAnalyticsAdmin(),
         getTiers(),
         getProducts('limit=500'),
       ]);
       setItems((list as AdminCoupon[]) ?? []);
-      setAnalytics((stats as CouponsAnalytics) ?? null);
       setTiers(
         Array.isArray(tiersData)
           ? (tiersData as Array<{ id: string; name: string }>).map((t) => ({ id: t.id, name: t.name }))
@@ -176,7 +269,16 @@ export default function AdminCoupons() {
       toast({ title: texts.common.error, description: message, variant: 'destructive' });
     } finally {
       setIsUploadingHomeCardImage(false);
-      if (homeCardFileInputRef.current) homeCardFileInputRef.current.value = '';
+    }
+  };
+
+  const clearHomeCardImage = async () => {
+    try {
+      await updateSettings({ coupons_home_card_image: '' });
+      setHomeCardImage('');
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Nu s-a putut elimina imaginea';
+      toast({ title: texts.common.error, description: message, variant: 'destructive' });
     }
   };
 
@@ -185,9 +287,12 @@ export default function AdminCoupons() {
       <h1 className="text-2xl font-bold">{texts.adminCoupons.pageTitle}</h1>
       <Card>
         <CardHeader><CardTitle>{texts.adminCoupons.createCardTitle}</CardTitle></CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div><Label>{texts.adminCoupons.titleLabel}</Label><Input value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} /></div>
-          <div>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
+          <div className="space-y-2">
+            <Label>{texts.adminCoupons.titleLabel}</Label>
+            <Input value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} />
+          </div>
+          <div className="space-y-2">
             <Label>{texts.adminCoupons.targetProductLabel}</Label>
             <Select value={form.targetProductId} onValueChange={(value) => setForm((p) => ({ ...p, targetProductId: value }))}>
               <SelectTrigger>
@@ -200,9 +305,15 @@ export default function AdminCoupons() {
               </SelectContent>
             </Select>
           </div>
-          <div><Label>{texts.adminCoupons.discountLabel}</Label><Input type="number" value={form.discountPercent} onChange={(e) => setForm((p) => ({ ...p, discountPercent: Number(e.target.value) }))} /></div>
-          <div><Label>{texts.adminCoupons.pointsCostLabel}</Label><Input type="number" value={form.pointsCost} onChange={(e) => setForm((p) => ({ ...p, pointsCost: Number(e.target.value) }))} /></div>
-          <div>
+          <div className="space-y-2">
+            <Label>{texts.adminCoupons.discountLabel}</Label>
+            <Input type="number" value={form.discountPercent} onChange={(e) => setForm((p) => ({ ...p, discountPercent: Number(e.target.value) }))} />
+          </div>
+          <div className="space-y-2">
+            <Label>{texts.adminCoupons.pointsCostLabel}</Label>
+            <Input type="number" value={form.pointsCost} onChange={(e) => setForm((p) => ({ ...p, pointsCost: Number(e.target.value) }))} />
+          </div>
+          <div className="space-y-2">
             <Label>{texts.adminCoupons.requiredTierLabel}</Label>
             <Select value={form.requiredTierId || '__none__'} onValueChange={(value) => setForm((p) => ({ ...p, requiredTierId: value === '__none__' ? '' : value }))}>
               <SelectTrigger>
@@ -217,13 +328,26 @@ export default function AdminCoupons() {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>{texts.adminCoupons.imageLabel}</Label>
-            <Input type="file" accept="image/*" onChange={(e) => void handleImageUpload(e.target.files?.[0])} />
-            {isUploadingImage && <p className="text-xs text-muted-foreground">{texts.adminCoupons.imageUploading}</p>}
-            {form.imageUrl && <img src={form.imageUrl} alt={texts.adminCoupons.imagePreviewAlt} className="h-16 w-16 object-cover rounded border" />}
+            <ImageUploadField
+              label={texts.adminCoupons.imageLabel}
+              imageUrl={form.imageUrl || undefined}
+              isUploading={isUploadingImage}
+              onSelectFile={handleImageUpload}
+              onClear={() => setForm((p) => ({ ...p, imageUrl: '' }))}
+              boxClassName="h-24 w-24"
+              alt={texts.adminCoupons.imagePreviewAlt}
+              hint="Format pătrat (ex. 256×256 px), JPG, PNG sau WebP."
+              layout="stack"
+            />
           </div>
-          <div className="md:col-span-2"><Label>{texts.adminCoupons.descriptionLabel}</Label><Input value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} /></div>
-          <div className="flex items-center gap-2"><Switch checked={form.isActive} onCheckedChange={(v) => setForm((p) => ({ ...p, isActive: v }))} /><Label>{texts.adminCoupons.activeLabel}</Label></div>
+          <div className="space-y-2 md:col-span-2">
+            <Label>{texts.adminCoupons.descriptionLabel}</Label>
+            <Input value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} />
+          </div>
+          <div className="flex items-center gap-2 md:col-span-2">
+            <Switch checked={form.isActive} onCheckedChange={(v) => setForm((p) => ({ ...p, isActive: v }))} />
+            <Label>{texts.adminCoupons.activeLabel}</Label>
+          </div>
           <div className="md:col-span-2">
             <Button onClick={create} disabled={!form.targetProductId || isUploadingImage}>
               {texts.admin.create}
@@ -236,49 +360,17 @@ export default function AdminCoupons() {
         <CardHeader>
           <CardTitle>Imagine card cupoane Home</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <input
-            ref={homeCardFileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => void handleHomeCardImageUpload(e.target.files?.[0])}
+        <CardContent>
+          <ImageUploadField
+            imageUrl={homeCardImage || undefined}
+            isUploading={isUploadingHomeCardImage}
+            onSelectFile={handleHomeCardImageUpload}
+            onClear={() => void clearHomeCardImage()}
+            boxClassName="h-28 w-52"
+            alt="Imagine card cupoane"
+            hint="Format landscape recomandat (ex. 400×200 px). Apare în cardul de promovare cupoane de pe pagina principală."
+            layout="inline"
           />
-          <div className="flex items-center gap-4">
-            <div className="h-20 w-40 overflow-hidden rounded-lg border bg-muted">
-              {homeCardImage ? (
-                <img
-                  src={getImageUrl(homeCardImage)}
-                  alt="Imagine card cupoane"
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
-                  Fara imagine
-                </div>
-              )}
-            </div>
-            <Button
-              variant="outline"
-              onClick={() => homeCardFileInputRef.current?.click()}
-              disabled={isUploadingHomeCardImage}
-            >
-              {isUploadingHomeCardImage ? 'Se incarca...' : homeCardImage ? 'Schimba imaginea' : 'Incarca imagine'}
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Recomandare: format landscape (ex: 400x200), folosita in cardul de cupoane de pe Home.
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader><CardTitle>{texts.adminCoupons.analyticsTitle}</CardTitle></CardHeader>
-        <CardContent className="text-sm space-y-1">
-          <p>{texts.adminCoupons.totalDiscountLabel}: {Number(analytics?.totalDiscount ?? 0).toFixed(2)} {texts.common.currency}</p>
-          <p>{texts.adminCoupons.totalActivatedLabel}: {analytics?.totalActivated ?? 0}</p>
-          <p>{texts.adminCoupons.totalUsedLabel}: {analytics?.totalUsed ?? 0}</p>
-          <p>{texts.adminCoupons.usageRateLabel}: {(((analytics?.usageRate ?? 0) as number) * 100).toFixed(1)}%</p>
         </CardContent>
       </Card>
 

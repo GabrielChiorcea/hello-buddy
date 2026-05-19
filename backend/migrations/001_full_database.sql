@@ -1167,9 +1167,8 @@ PREPARE stmt_ads_rnp FROM @q_ads_rnp; EXECUTE stmt_ads_rnp; DEALLOCATE PREPARE s
 
 -- ============================================
 -- Agregări analytics zilnice (analytics_daily_*)
--- Nu mai folosim MySQL EVENT: agregarea zilnică se face din procesul API (ex. cron GET
--- /admin/analytics/run-daily-rollup?days=1 + X-Cron-Secret → CALL sp_backfill_analytics(1)).
--- Evenimentele vechi se șterg la migrarea 002_drop_mysql_analytics_events.sql
+-- Event zilnic evt_analytics_daily_rollup — la finalul acestui fișier.
+-- Backfill manual: CALL sp_backfill_analytics(90);
 -- ============================================
 
 
@@ -1541,7 +1540,7 @@ CREATE INDEX IF NOT EXISTS idx_orders_user_created_at ON orders (user_id, create
 -- ============================================================================
 
 -- Agregare zilnică venit pe categorie (analitice)
--- Populare prin cron GET pe API (sp_backfill_analytics), vezi comentariul de mai sus.
+-- Populare prin event MySQL evt_analytics_daily_rollup (sp_backfill_analytics).
 
 CREATE TABLE IF NOT EXISTS analytics_daily_category (
     report_date DATE NOT NULL,
@@ -1553,6 +1552,26 @@ CREATE TABLE IF NOT EXISTS analytics_daily_category (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (report_date, category_id),
     INDEX idx_adc_date (report_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Agregare zilnică cupoane (activări, utilizări, reduceri)
+CREATE TABLE IF NOT EXISTS analytics_daily_coupons (
+    report_date DATE PRIMARY KEY,
+    activations_count INT NOT NULL DEFAULT 0,
+    redemptions_count INT NOT NULL DEFAULT 0,
+    discount_total DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_adc_date (report_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS analytics_daily_coupon_activations (
+    report_date DATE NOT NULL,
+    coupon_id VARCHAR(36) NOT NULL,
+    coupon_title VARCHAR(255) NOT NULL,
+    activations_count INT NOT NULL DEFAULT 0,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (report_date, coupon_id),
+    INDEX idx_adca_report (report_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
@@ -1746,6 +1765,45 @@ BEGIN
     WHERE o.status != 'cancelled' AND DATE(o.created_at) = v_date
     GROUP BY c.id, c.display_name;
 
+    INSERT INTO analytics_daily_coupons (
+      report_date, activations_count, redemptions_count, discount_total
+    )
+    SELECT
+      v_date,
+      COALESCE((
+        SELECT COUNT(*)
+        FROM user_coupons uc
+        WHERE DATE(uc.activated_at) = v_date
+      ), 0),
+      COALESCE((
+        SELECT COUNT(*)
+        FROM order_coupon_redemptions ocr
+        WHERE DATE(ocr.created_at) = v_date
+      ), 0),
+      COALESCE((
+        SELECT SUM(ocr.discount_amount)
+        FROM order_coupon_redemptions ocr
+        WHERE DATE(ocr.created_at) = v_date
+      ), 0)
+    ON DUPLICATE KEY UPDATE
+      activations_count = VALUES(activations_count),
+      redemptions_count = VALUES(redemptions_count),
+      discount_total = VALUES(discount_total);
+
+    DELETE FROM analytics_daily_coupon_activations WHERE report_date = v_date;
+    INSERT INTO analytics_daily_coupon_activations (
+      report_date, coupon_id, coupon_title, activations_count
+    )
+    SELECT
+      v_date,
+      c.id,
+      c.title,
+      COUNT(*)
+    FROM user_coupons uc
+    INNER JOIN coupons c ON c.id = uc.coupon_id
+    WHERE DATE(uc.activated_at) = v_date
+    GROUP BY c.id, c.title;
+
     SET i = i - 1;
   END WHILE;
 END //
@@ -1848,3 +1906,47 @@ SET @sql_wba = IF(@col_wba = 0, 'ALTER TABLE users ADD COLUMN welcome_bonus_awar
 PREPARE stmt_wba FROM @sql_wba;
 EXECUTE stmt_wba;
 DEALLOCATE PREPARE stmt_wba;
+
+-- =============================================================================
+-- Seed cont administrator implicit
+-- Email:  admin@foodorder.com
+-- Parolă: admin123secure  (bcrypt cost 12, hash pre-generat)
+-- ⚠️  Schimbați parola la prima autentificare în producție!
+-- Idempotent: rulează în siguranță de mai multe ori.
+-- =============================================================================
+INSERT INTO users (id, email, password_hash, name, phone)
+VALUES (
+  '00000000-0000-0000-0000-000000000001',
+  'admin@foodorder.com',
+  '$2b$12$WiBq9VKm7NC7u7I.bDa4RexIbEMXso9XPhkAVBSJR/NY75VkWID2e',
+  'Administrator',
+  '+40700000000'
+)
+ON DUPLICATE KEY UPDATE name = VALUES(name);
+
+INSERT INTO user_roles (id, user_id, role)
+VALUES (
+  '00000000-0000-0000-0000-000000000002',
+  '00000000-0000-0000-0000-000000000001',
+  'admin'
+)
+ON DUPLICATE KEY UPDATE role = 'admin';
+
+-- =============================================================================
+-- Event zilnic analytics rollup (02:00 server time)
+-- Idempotent: recreează event-ul consolidat la fiecare rulare a fișierului.
+-- =============================================================================
+
+DROP EVENT IF EXISTS evt_analytics_daily_rollup;
+
+DELIMITER //
+
+CREATE EVENT evt_analytics_daily_rollup
+ON SCHEDULE EVERY 1 DAY
+STARTS (TIMESTAMP(CURDATE()) + INTERVAL 1 DAY + INTERVAL 2 HOUR)
+DO
+BEGIN
+  CALL sp_backfill_analytics(1);
+END //
+
+DELIMITER ;

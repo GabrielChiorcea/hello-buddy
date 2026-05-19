@@ -72,7 +72,7 @@ export const CleanCard: React.FC<CardVariantProps> = ({ product, className, data
         ) : (
           <>
             <p className="text-xs text-muted-foreground truncate md:hidden">{product.description}</p>
-            <p className="text-[13px] text-muted-foreground/70 line-clamp-1 hidden md:block">{product.description}</p>
+            <p className="text-[13px] text-muted-foreground/70 break-words hidden md:line-clamp-2">{product.description}</p>
           </>
         )}
 

@@ -2,12 +2,11 @@
  * Controller analitice admin — strictly din tabele pre-agregate (analytics_daily_* etc.)
  */
 
-import { timingSafeEqual } from 'node:crypto';
 import { Request, Response } from 'express';
 import { logError } from '../../utils/safeErrorLogger.js';
 import { logger } from '../../config/logger.js';
 import { env } from '../../config/env.js';
-import { analyticsQuery, pool } from '../../config/database.js';
+import { analyticsQuery } from '../../config/database.js';
 import {
   fetchDailyRevenueTrendHybrid,
   fetchFulfillmentSplitHybrid,
@@ -300,7 +299,8 @@ async function rollupDayCoverage(
     | 'analytics_daily_sales'
     | 'analytics_daily_points'
     | 'analytics_daily_streaks'
-    | 'analytics_daily_product_pairs',
+    | 'analytics_daily_product_pairs'
+    | 'analytics_daily_coupons',
   expectedDates: string[]
 ): Promise<{ missingDates: string[]; presentCount: number; lastPresentDate: string | null; note?: string }> {
   const off = firstDayIntervalDays(daysBack);
@@ -364,11 +364,12 @@ export async function getAnalyticsRollupHealth(req: Request, res: Response): Pro
 
     const expectedDates = await buildExpectedAnalyticsWindowDates(days);
 
-    const [sales, points, streaks, productPairs] = await Promise.all([
+    const [sales, points, streaks, productPairs, coupons] = await Promise.all([
       rollupDayCoverage(days, 'analytics_daily_sales', expectedDates),
       rollupDayCoverage(days, 'analytics_daily_points', expectedDates),
       rollupDayCoverage(days, 'analytics_daily_streaks', expectedDates),
       rollupDayCoverage(days, 'analytics_daily_product_pairs', expectedDates),
+      rollupDayCoverage(days, 'analytics_daily_coupons', expectedDates),
     ]);
 
     res.json({
@@ -382,6 +383,7 @@ export async function getAnalyticsRollupHealth(req: Request, res: Response): Pro
         analytics_daily_points: points,
         analytics_daily_streaks: streaks,
         analytics_daily_product_pairs: productPairs,
+        analytics_daily_coupons: coupons,
       },
     });
   } catch (error) {
@@ -393,56 +395,4 @@ export async function getAnalyticsRollupHealth(req: Request, res: Response): Pro
 function formatHealthDate(d: Date | string): string {
   if (typeof d === 'string') return d.slice(0, 10);
   return d.toISOString().slice(0, 10);
-}
-
-/**
- * GET /admin/analytics/run-daily-rollup?days=1
- * Secret: header `X-Cron-Secret`, sau `Authorization: Bearer <secret>`, sau `?secret=` (ultimul poate apărea în loguri).
- */
-export async function getRunDailyAnalyticsRollup(req: Request, res: Response): Promise<void> {
-  const cronSecret = env.ANALYTICS_CRON_SECRET;
-  if (!cronSecret) {
-    res.status(503).json({ error: 'Agregarea programată este dezactivată (lipsește ANALYTICS_CRON_SECRET).' });
-    return;
-  }
-
-  const fromHeader =
-    typeof req.headers['x-cron-secret'] === 'string' ? req.headers['x-cron-secret'].trim() : '';
-  const auth = typeof req.headers.authorization === 'string' ? req.headers.authorization.trim() : '';
-  const bearer = /^Bearer\s+/i.test(auth) ? auth.replace(/^Bearer\s+/i, '').trim() : '';
-  const fromQuery = typeof req.query.secret === 'string' ? req.query.secret.trim() : '';
-  const provided = fromHeader || bearer || fromQuery;
-
-  const safeEquals = (a: string, b: string) => {
-    if (a.length !== b.length) return false;
-    try {
-      return timingSafeEqual(Buffer.from(a, 'utf8'), Buffer.from(b, 'utf8'));
-    } catch {
-      return false;
-    }
-  };
-
-  if (!provided || !safeEquals(provided, cronSecret)) {
-    res.status(401).json({ error: 'Neautorizat' });
-    return;
-  }
-
-  const parsed = parseInt(String(req.query.days ?? '1'), 10);
-  const days = Math.min(365, Math.max(1, Number.isFinite(parsed) ? parsed : 1));
-
-  const t0 = Date.now();
-  try {
-    const conn = await pool.getConnection();
-    try {
-      await conn.query('CALL sp_backfill_analytics(?)', [days]);
-    } finally {
-      conn.release();
-    }
-    const ms = Date.now() - t0;
-    logger.info({ msg: 'analytics_run_daily_rollup', durationMs: ms, days });
-    res.json({ ok: true, days, durationMs: ms });
-  } catch (error) {
-    logError('analytics-run-daily-rollup', error);
-    res.status(500).json({ error: 'Eroare la rularea agregărilor' });
-  }
 }

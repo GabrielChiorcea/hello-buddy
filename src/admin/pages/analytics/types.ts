@@ -40,6 +40,14 @@ export interface AnalyticsData {
 
 export type ProductPairRow = { productA: string; productB: string; pairCount: number };
 
+export interface CouponsAnalytics {
+  totalDiscount: number;
+  totalActivated: number;
+  totalUsed: number;
+  usageRate: number;
+  topActivated: { id: string; title: string; activations: number }[];
+}
+
 export const analyticsPeriods = [
   { label: '7 zile', value: '7d' },
   { label: '30 zile', value: '30d' },
